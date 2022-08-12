@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+
+    <!--Type Name="intervals::set&lt;bool,makeshift::detail::reflector&gt;">
+        <DisplayString Condition="state_[0] == 0 &amp;&amp; state_[1] == 0">uninitialized</DisplayString>
+        <DisplayString Condition="state_[0] == 1 &amp;&amp; state_[1] == 0">{{ false }}</DisplayString>
+        <DisplayString Condition="state_[0] == 0 &amp;&amp; state_[1] == 1">{{ true }}</DisplayString>
+        <DisplayString Condition="state_[0] == 1 &amp;&amp; state_[1] == 1">{{ false, true }}</DisplayString>
+    </Type-->
+    <Type Name="intervals::set&lt;*,*&gt;">
+        <Expand>
+            <CustomListItems>
+                <Variable Name="i" InitialValue="0" />
+                <Loop>
+                    <Break Condition="i == num_values" />
+                    <Item Name="[{ i }]" Condition="state_[i] != 0">values[i]</Item>
+                    <Exec>++i</Exec>
+                </Loop>
+            </CustomListItems>
+        </Expand>
+    </Type>
+    <Type Name="intervals::interval&lt;*&gt;">
+        <DisplayString Condition="lower_ &gt; upper_">uninitialized</DisplayString>
+        <DisplayString Condition="lower_ == upper_">{ lower_ }</DisplayString>
+        <DisplayString>[{ lower_,g }, { upper_,g }]</DisplayString>
+    </Type>
+
+</AutoVisualizer>
