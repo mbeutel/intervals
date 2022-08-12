@@ -1,0 +1,65 @@
+
+trigger:
+- master
+- mr/*
+
+pr:
+- master
+
+resources:
+  repositories:
+    - repository: CImakeshift
+      type: github
+      name: mbeutel/CImakeshift
+      endpoint: mbeutel
+
+jobs:
+- template: azure-pipelines/cmake.yml@CImakeshift
+  parameters:
+    # Use Vcpkg fork for the stopgap fix to make Catch2 v3 work in C++17 mode
+    vcpkgRepo: https://github.com/mbeutel/vcpkg.git
+    vcpkgRef: c4e7faa6fe58f6cd921d96fb7699f560866e6709
+
+    cmakeConfigArgs: '-DBUILD_TESTING=ON'
+
+    cmakeBuildConfigurations: [Debug, RelWithDebInfo]
+
+    targets:
+
+    - os: Windows
+      cxxCompiler: MSVC
+      cxxCompilerVersions: [VS2019, VS2022]
+      platforms: [x86, x64]
+
+    - os: Windows
+      cxxCompiler: Clang
+      cxxCompilerVersions: [VS2019, VS2022]
+      platforms: [x86, x64]
+
+    - os: Linux
+      cxxCompiler: GCC
+      cxxCompilerVersions: [10, 12]
+      platforms: [x64]
+
+    - os: Linux
+      cxxCompiler: Clang
+      cxxCompilerVersions: [12]
+      platforms: [x64]
+
+    - os: Linux
+      cxxCompiler: Clang
+      cxxCompilerVersions: [14]
+      platforms: [x64]
+      cxxStandardLibraryDebugMode: true
+      cxxSanitizers: [AddressSanitizer, UndefinedBehaviorSanitizer, ImplicitIntegerArithmeticValueChange]
+      tag: 'sanitize'
+
+    - os: MacOS
+      cxxCompiler: GCC
+      cxxCompilerVersions: [10, 12]
+      platforms: [x64]
+
+    - os: MacOS
+      cxxCompiler: AppleClang
+      cxxCompilerVersions: [13, 13_1_6]
+      platforms: [x64]

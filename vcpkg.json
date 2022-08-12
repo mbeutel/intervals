@@ -1,0 +1,11 @@
+{
+    "name": "intervals",
+    "version-string": "1.0.0",
+    "description": "interval arithmetic in C++",
+    "homepage": "https://github.com/mbeutel/intervals",
+    "license": " BSL-1.0",
+    "dependencies": [
+        "catch2",
+        "gsl-lite"
+    ]
+}
