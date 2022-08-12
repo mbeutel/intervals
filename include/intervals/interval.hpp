@@ -1183,27 +1183,27 @@ operator *(set<sign> lhs, T rhs)
 
 template <detail::floating_point T>
 [[nodiscard]] constexpr detail::member_assigner<interval<T>>
-maybe(interval<T>& x) noexcept
+branch_value(interval<T>& x) noexcept
 {
     return detail::member_assigner<interval<T>>(x);
 }
 template <detail::floating_point T>
 [[nodiscard]] constexpr detail::member_resetter<interval<T>>
-definitely(interval<T>& x) noexcept
+uniform_value(interval<T>& x) noexcept
 {
     return detail::member_resetter<interval<T>>(x);
 }
 
 template <makeshift::tuple_like T>
 [[nodiscard]] constexpr detail::tuple_assigner<T>
-maybe(T& x) noexcept
+branch_value(T& x) noexcept
 requires detail::non_const<T>
 {
     return detail::tuple_assigner<T>(x);
 }
 template <makeshift::tuple_like T>
 [[nodiscard]] constexpr detail::tuple_resetter<T>
-definitely(T& x) noexcept
+uniform_value(T& x) noexcept
 requires detail::non_const<T>
 {
     return detail::tuple_resetter<T>(x);

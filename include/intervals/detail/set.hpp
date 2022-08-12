@@ -4,6 +4,7 @@
 
 
 #include <array>
+#include <type_traits>  // for is_same<>
 
 #include <makeshift/metadata.hpp>  // for metadata::values()
 
@@ -45,6 +46,14 @@ constexpr std::uint32_t lut_4vK_eq  = 0b11'11'11'00'11'10'01'00'11'01'10'00'00'0
 constexpr std::uint32_t lut_4vK_neq = 0b11'11'11'00'11'01'10'00'11'10'01'00'00'00'00'00u;  // `== lut_4vK_xor`
 //                                  x: | 3  2  1  0|
 constexpr std::uint8_t  lut_4vK_not = 0b11'01'10'00u;
+
+
+template <typename T0, typename... Ts>
+struct enforce_same
+{
+    static_assert((std::is_same_v<T0, Ts> && ...));
+    using type = T0;
+};
 
 
 }  // namespace detail

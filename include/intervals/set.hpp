@@ -5,7 +5,8 @@
 
 #include <array>
 #include <bitset>
-#include <utility>  // for pair<>
+#include <utility>           // for pair<>
+#include <initializer_list>
 
 #include <gsl-lite/gsl-lite.hpp>  // for type_identity<>, ssize()
 
@@ -13,9 +14,10 @@
 
 #include <intervals/sign.hpp>
 
+#include <intervals/math.hpp>   // to make maybe() et al. for lvalue references available
+#include <intervals/logic.hpp>  // to make maybe() et al. for Boolean arguments available
+
 #include <intervals/detail/set.hpp>
-#include <intervals/detail/math.hpp>   // to make maybe() et al. for lvalue references available
-#include <intervals/detail/logic.hpp>  // to make maybe() et al. for Boolean arguments available
 
 
 namespace intervals {
@@ -74,13 +76,13 @@ public:
     }
     constexpr set(T value)
     {
-        state_.set(detail::find_value_index(value));
+        state_.set(find_value_index(value));
     }
-    explicit constexpr set(std::initializer_list<T> values)
+    explicit constexpr set(std::initializer_list<T> _values)
     {
-        for (T value : values)
+        for (T value : _values)
         {
-            state_.set(detail::find_value_index(value));
+            state_.set(find_value_index(value));
         }
     }
     static constexpr set
@@ -121,7 +123,7 @@ public:
     constexpr set&
     assign(T value)
     {
-        state_.set(detail::find_value_index(value));
+        state_.set(find_value_index(value));
         return *this;
     }
 
@@ -134,7 +136,7 @@ public:
     [[nodiscard]] constexpr bool
     contains(T value) const
     {
-        return state_.test(detail::find_value_index(value));
+        return state_.test(find_value_index(value));
     }
     [[nodiscard]] constexpr bool
     contains(set<T> const& _set) const
@@ -210,6 +212,9 @@ public:
 };
 template <typename T, typename ReflectorT>
 constexpr std::array set<T, ReflectorT>::values;
+
+template <typename T0, typename... Ts>
+set(T0, Ts...) -> set<typename detail::enforce_same<T0, Ts...>::type>;
 
 
 [[nodiscard]] constexpr set<bool>
@@ -323,13 +328,13 @@ contingent(set<bool> x) noexcept
     // TODO: find different names?
 template <typename T, typename ReflectorT>
 [[nodiscard]] constexpr detail::member_assigner<set<T, ReflectorT>>
-maybe(set<T, ReflectorT>& x) noexcept
+branch_value(set<T, ReflectorT>& x) noexcept
 {
     return detail::member_assigner<set<T, ReflectorT>>(x);
 }
 template <typename T, typename ReflectorT>
 [[nodiscard]] constexpr detail::member_resetter<set<T, ReflectorT>>
-definitely(set<T, ReflectorT>& x) noexcept
+uniform_value(set<T, ReflectorT>& x) noexcept
 {
     return detail::member_resetter<set<T, ReflectorT>>(x);
 }
