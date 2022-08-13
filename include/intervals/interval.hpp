@@ -1447,14 +1447,14 @@ requires detail::non_const<T>
     // Expression does not constrain given interval.
 template <detail::floating_point T>
 constexpr interval<T>
-constrain(interval<T> const& x, set<bool>)
+constrain(interval<T> const&, set<bool>)
 {
     static_assert(makeshift::dependent_false<T>, "conditional expression does not constrain given interval");
     return interval<T>{ };
 }
 template <detail::floating_point T>
 constexpr interval<T>
-constrain(interval<T> const&& x, set<bool>)
+constrain(interval<T> const&&, set<bool>)
 {
     static_assert(makeshift::dependent_false<T>, "conditional expression does not constrain given interval");
     return interval<T>{ };
@@ -1471,7 +1471,7 @@ constrain(interval<T> const& x, ConditionT const& c)
 }
 template <detail::floating_point T, std::derived_from<detail::condition> ConditionT>
 constexpr interval<T>
-constrain(interval<T> const&& x, ConditionT const& c)
+constrain(interval<T> const&&, ConditionT const&)
 {
     static_assert(makeshift::dependent_false<T>, "rvalue interval cannot be constrained");
     return interval<T>{ };
