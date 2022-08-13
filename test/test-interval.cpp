@@ -1126,6 +1126,105 @@ TEST_CASE("interval<>", "interval arithmetic")
             CHECK_THROWS_AS(constrain(x, cy), gsl::fail_fast);
         }
     }
+    SECTION("example: max()")
+    {
+        auto maxG0 = []<typename T>(T x, T y)
+        {
+            using intervals::maybe;
+            using intervals::maybe_not;
+            using intervals::branch_value;
+            
+            auto result = T{ };
+            if (maybe(x >= y))
+            {
+                branch_value(result) = x;
+            }
+            if (maybe_not(x >= y))
+            {
+                branch_value(result) = y;
+            }
+            return result;
+        };
+        auto maxG = []<typename T>(T x, T y)
+        {
+            using intervals::maybe;
+            using intervals::maybe_not;
+            using intervals::constrain;
+            using intervals::branch_value;
+            
+            auto result = T{ };
+            auto cond = x >= y;
+            if (maybe(cond))
+            {
+                branch_value(result) = constrain(x, cond);
+            }
+            if (maybe_not(cond))
+            {
+                branch_value(result) = constrain(y, !cond);
+            }
+            return result;
+        };
+
+        using intervals::interval;
+
+        {
+            auto m = maxG0(interval{ 0., 2. }, interval{ 3., 4. });
+            auto mE = interval{ 3., 4. };
+            CAPTURE(m);
+            CAPTURE(mE);
+            CHECK(m.matches(mE));
+        }
+        {
+            auto m = maxG0(interval{ 3., 4. }, interval{ 0., 2. });
+            auto mE = interval{ 3., 4. };
+            CAPTURE(m);
+            CAPTURE(mE);
+            CHECK(m.matches(mE));
+        }
+        {
+            auto m = maxG0(interval{ 0., 2. }, interval{ 1., 4. });
+            auto mE = interval{ 0., 4. };
+            CAPTURE(m);
+            CAPTURE(mE);
+            CHECK(m.matches(mE));
+        }
+        {
+            auto m = maxG0(interval{ 0., 4. }, interval{ 1., 3. });
+            auto mE = interval{ 0., 4. };
+            CAPTURE(m);
+            CAPTURE(mE);
+            CHECK(m.matches(mE));
+        }
+
+        {
+            auto m = maxG(interval{ 0., 2. }, interval{ 3., 4. });
+            auto mE = interval{ 3., 4. };
+            CAPTURE(m);
+            CAPTURE(mE);
+            CHECK(m.matches(mE));
+        }
+        {
+            auto m = maxG(interval{ 3., 4. }, interval{ 0., 2. });
+            auto mE = interval{ 3., 4. };
+            CAPTURE(m);
+            CAPTURE(mE);
+            CHECK(m.matches(mE));
+        }
+        {
+            auto m = maxG(interval{ 0., 2. }, interval{ 1., 4. });
+            auto mE = interval{ 1., 4. };
+            CAPTURE(m);
+            CAPTURE(mE);
+            CHECK(m.matches(mE));
+        }
+        {
+            auto m = maxG(interval{ 0., 4. }, interval{ 1., 3. });
+            auto mE = interval{ 1., 4. };
+            CAPTURE(m);
+            CAPTURE(mE);
+            CHECK(m.matches(mE));
+        }
+    }
 }
 
 
