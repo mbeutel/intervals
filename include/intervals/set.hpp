@@ -383,41 +383,41 @@ operator +(set<sign> x)
 operator -(set<sign> x)
 {
     set<sign> result;
-    if (x.contains(positiveSign))
+    if (x.contains(positive_sign))
     {
-        result.assign(negativeSign);
+        result.assign(negative_sign);
     }
-    if (x.contains(negativeSign))
+    if (x.contains(negative_sign))
     {
-        result.assign(positiveSign);
+        result.assign(positive_sign);
     }
-    if (x.contains(zeroSign))
+    if (x.contains(zero_sign))
     {
-        result.assign(zeroSign);
+        result.assign(zero_sign);
     }
     return result;
 }
 [[nodiscard]] constexpr set<sign>
 operator *(set<sign> lhs, set<sign> rhs)
 {
-    bool lp = lhs.contains(positiveSign);
-    bool lz = lhs.contains(zeroSign);
-    bool ln = lhs.contains(negativeSign);
-    bool rp = rhs.contains(positiveSign);
-    bool rz = rhs.contains(zeroSign);
-    bool rn = rhs.contains(negativeSign);
+    bool lp = lhs.contains(positive_sign);
+    bool lz = lhs.contains(zero_sign);
+    bool ln = lhs.contains(negative_sign);
+    bool rp = rhs.contains(positive_sign);
+    bool rz = rhs.contains(zero_sign);
+    bool rn = rhs.contains(negative_sign);
     set<sign> result;
     if ((lp && rn) || (ln && rp))
     {
-        result.assign(negativeSign);
+        result.assign(negative_sign);
     }
     if ((lp && rp) || (ln && rn))
     {
-        result.assign(positiveSign);
+        result.assign(positive_sign);
     }
     if (lz || rz)
     {
-        result.assign(zeroSign);
+        result.assign(zero_sign);
     }
     return result;
 }

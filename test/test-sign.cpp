@@ -23,44 +23,44 @@ TEST_CASE("sign", "sign enum")
 
     SECTION("general")
     {
-        CHECK(+sign::negativeSign == sign::negativeSign);
-        CHECK(+sign::zeroSign == sign::zeroSign);
-        CHECK(+sign::positiveSign == sign::positiveSign);
-        CHECK(-sign::negativeSign == sign::positiveSign);
-        CHECK(-sign::zeroSign == sign::zeroSign);
-        CHECK(-sign::positiveSign == sign::negativeSign);
-        CHECK(sign::negativeSign*sign::negativeSign == sign::positiveSign);
-        CHECK(sign::positiveSign*sign::negativeSign == sign::negativeSign);
-        CHECK(sign::negativeSign*sign::zeroSign == sign::zeroSign);
-        CHECK(sign::zeroSign*sign::zeroSign == sign::zeroSign);
-        CHECK(sign::positiveSign*sign::zeroSign == sign::zeroSign);
+        CHECK(+sign::negative_sign == sign::negative_sign);
+        CHECK(+sign::zero_sign == sign::zero_sign);
+        CHECK(+sign::positive_sign == sign::positive_sign);
+        CHECK(-sign::negative_sign == sign::positive_sign);
+        CHECK(-sign::zero_sign == sign::zero_sign);
+        CHECK(-sign::positive_sign == sign::negative_sign);
+        CHECK(sign::negative_sign*sign::negative_sign == sign::positive_sign);
+        CHECK(sign::positive_sign*sign::negative_sign == sign::negative_sign);
+        CHECK(sign::negative_sign*sign::zero_sign == sign::zero_sign);
+        CHECK(sign::zero_sign*sign::zero_sign == sign::zero_sign);
+        CHECK(sign::positive_sign*sign::zero_sign == sign::zero_sign);
     }
     SECTION("double")
     {
-        CHECK(sgn(0.) == sign::zeroSign);
-        CHECK(sgn(-0.) == sign::zeroSign);
-        CHECK(sgn(eps) == sign::positiveSign);
-        CHECK(sgn(min) == sign::positiveSign);
-        CHECK(sgn(1.) == sign::positiveSign);
-        CHECK(sgn(-eps) == sign::negativeSign);
-        CHECK(sgn(-min) == sign::negativeSign);
-        CHECK(sgn(-1.) == sign::negativeSign);
-        CHECK(sign::negativeSign*2. == -2.);
-        CHECK(sign::zeroSign*2. == 0.);
-        CHECK(sign::positiveSign*2. == 2.);
+        CHECK(sgn(0.) == sign::zero_sign);
+        CHECK(sgn(-0.) == sign::zero_sign);
+        CHECK(sgn(eps) == sign::positive_sign);
+        CHECK(sgn(min) == sign::positive_sign);
+        CHECK(sgn(1.) == sign::positive_sign);
+        CHECK(sgn(-eps) == sign::negative_sign);
+        CHECK(sgn(-min) == sign::negative_sign);
+        CHECK(sgn(-1.) == sign::negative_sign);
+        CHECK(sign::negative_sign*2. == -2.);
+        CHECK(sign::zero_sign*2. == 0.);
+        CHECK(sign::positive_sign*2. == 2.);
         CHECK_THROWS_AS(sgn(nan), gsl::fail_fast);
     }
     SECTION("int")
     {
-        CHECK(sgn(-2) == sign::negativeSign);
-        CHECK(sgn(-2ll) == sign::negativeSign);
-        CHECK(sgn(0) == sign::zeroSign);
-        CHECK(sgn(0u) == sign::zeroSign);
-        CHECK(sgn(3) == sign::positiveSign);
-        CHECK(sgn(3ll) == sign::positiveSign);
-        CHECK(sign::negativeSign*2 == -2);
-        CHECK(sign::zeroSign*2 == 0);
-        CHECK(sign::positiveSign*2 == 2);
+        CHECK(sgn(-2) == sign::negative_sign);
+        CHECK(sgn(-2ll) == sign::negative_sign);
+        CHECK(sgn(0) == sign::zero_sign);
+        CHECK(sgn(0u) == sign::zero_sign);
+        CHECK(sgn(3) == sign::positive_sign);
+        CHECK(sgn(3ll) == sign::positive_sign);
+        CHECK(sign::negative_sign*2 == -2);
+        CHECK(sign::zero_sign*2 == 0);
+        CHECK(sign::positive_sign*2 == 2);
     }
 }
 

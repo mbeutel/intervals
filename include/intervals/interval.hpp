@@ -920,15 +920,15 @@ public:
     operator *(set<sign> lhs, interval const& rhs)
     {
         interval result;
-        if (lhs.contains(positiveSign))
+        if (lhs.contains(positive_sign))
         {
             result.assign(rhs);
         }
-        if (lhs.contains(negativeSign))
+        if (lhs.contains(negative_sign))
         {
             result.assign(-rhs);
         }
-        if (lhs.contains(zeroSign))
+        if (lhs.contains(zero_sign))
         {
             result.assign(0);
         }
@@ -1309,15 +1309,15 @@ public:
         auto result = set<sign>{ };
         if (maybe(x > T(0)))
         {
-            result.assign(positiveSign);
+            result.assign(positive_sign);
         }
         if (maybe(x < T(0)))
         {
-            result.assign(negativeSign);
+            result.assign(negative_sign);
         }
         if (maybe(x == T(0)))
         {
-            result.assign(zeroSign);
+            result.assign(zero_sign);
         }
         return result;
     }
@@ -1393,15 +1393,15 @@ template <detail::floating_point T>
 operator *(T lhs, set<sign> rhs)
 {
     interval<T> result;
-    if (rhs.contains(positiveSign))
+    if (rhs.contains(positive_sign))
     {
         result.assign(lhs);
     }
-    if (rhs.contains(zeroSign))
+    if (rhs.contains(zero_sign))
     {
         result.assign(0);
     }
-    if (rhs.contains(negativeSign))
+    if (rhs.contains(negative_sign))
     {
         result.assign(-lhs);
     }

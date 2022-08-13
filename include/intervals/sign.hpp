@@ -18,14 +18,14 @@ namespace gsl = gsl_lite;
 
 enum sign : int
 {
-    negativeSign = -1,
-    zeroSign     = 0,
-    positiveSign = +1
+    negative_sign = -1,
+    zero_sign     = 0,
+    positive_sign = +1
 };
 constexpr auto 
 reflect(gsl::type_identity<sign>)
 {
-    return std::array{ negativeSign, zeroSign, positiveSign };
+    return std::array{ negative_sign, zero_sign, positive_sign };
 }
 
 [[nodiscard]] constexpr sign

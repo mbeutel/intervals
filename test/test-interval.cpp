@@ -169,9 +169,9 @@ TEST_CASE("interval<>", "interval arithmetic")
         }
         SECTION("sgn()")
         {
-            CHECK(maybe(sgn(x) == intervals::positiveSign) == maybe(x > 0));
-            CHECK(maybe(sgn(x) == intervals::zeroSign) == maybe(x == 0));
-            CHECK(maybe(sgn(x) == intervals::negativeSign) == maybe(x < 0));
+            CHECK(maybe(sgn(x) == intervals::positive_sign) == maybe(x > 0));
+            CHECK(maybe(sgn(x) == intervals::zero_sign) == maybe(x == 0));
+            CHECK(maybe(sgn(x) == intervals::negative_sign) == maybe(x < 0));
         }
         SECTION("isinf()")
         {
@@ -483,17 +483,17 @@ TEST_CASE("interval<>", "interval arithmetic")
                             auto signs = set<intervals::sign>{ };
                             if (gsl::narrow_cast<int>(c) % 2 == 0)
                             {
-                                signs.assign(intervals::positiveSign);
+                                signs.assign(intervals::positive_sign);
                             }
                             else
                             {
                                 signs.assign(sgn(x));
                             }
-                            if (maybe(signs == intervals::positiveSign))
+                            if (maybe(signs == intervals::positive_sign))
                             {
                                 CHECK(z.upper() == inf);
                             }
-                            if (maybe(signs == intervals::negativeSign))
+                            if (maybe(signs == intervals::negative_sign))
                             {
                                 CHECK(z.lower() == -inf);
                             }
