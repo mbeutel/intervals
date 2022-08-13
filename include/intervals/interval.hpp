@@ -1503,93 +1503,21 @@ if_else(set<bool> cond, interval<T> const& resultIfTrue, interval<T> const& resu
     }
     return result;
 }
-template <typename T, std::derived_from<detail::condition> ConditionT>
+template <typename T>
 [[nodiscard]] constexpr interval<T>
-if_else(ConditionT const& cond, interval<T> const& resultIfTrue, interval<T> const& resultIfFalse)
-{
-    interval<T> result;
-    if (intervals::maybe(cond))
-    {
-        result.assign(intervals::constrain(resultIfTrue, cond));
-    }
-    if (intervals::maybe_not(cond))
-    {
-        result.assign(intervals::constrain(resultIfFalse, !cond));
-    }
-    return result;
-}
-template <typename T, std::derived_from<detail::condition> ConditionT>
-[[nodiscard]] constexpr interval<T>
-if_else(ConditionT const& cond, interval<T> const&& resultIfTrue, interval<T> const& resultIfFalse)
-{
-    interval<T> result;
-    if (intervals::maybe(cond))
-    {
-        result.assign(resultIfTrue);
-    }
-    if (intervals::maybe_not(cond))
-    {
-        result.assign(intervals::constrain(resultIfFalse, !cond));
-    }
-    return result;
-}
-template <typename T, std::derived_from<detail::condition> ConditionT>
-[[nodiscard]] constexpr interval<T>
-if_else(ConditionT const& cond, interval<T> const& resultIfTrue, interval<T> const&& resultIfFalse)
-{
-    interval<T> result;
-    if (intervals::maybe(cond))
-    {
-        result.assign(intervals::constrain(resultIfTrue, cond));
-    }
-    if (intervals::maybe_not(cond))
-    {
-        result.assign(resultIfFalse);
-    }
-    return result;
-}
-template <typename T, std::derived_from<detail::condition> ConditionT>
-[[nodiscard]] constexpr interval<T>
-if_else(ConditionT const& cond, interval<T> const&& resultIfTrue, interval<T> const&& resultIfFalse)
-{
-    interval<T> result;
-    if (intervals::maybe(cond))
-    {
-        result.assign(resultIfTrue);
-    }
-    if (intervals::maybe_not(cond))
-    {
-        result.assign(resultIfFalse);
-    }
-    return result;
-}
-template <typename T, std::derived_from<set<bool>> ConditionT>
-[[nodiscard]] constexpr interval<T>
-if_else(ConditionT const& cond, T resultIfTrue, interval<T> const& resultIfFalse)
+if_else(set<bool> cond, T resultIfTrue, interval<T> const& resultIfFalse)
 {
     return intervals::if_else(cond, interval(resultIfTrue), resultIfFalse);
 }
-template <typename T, std::derived_from<set<bool>> ConditionT>
+template <typename T>
 [[nodiscard]] constexpr interval<T>
-if_else(ConditionT const& cond, T resultIfTrue, interval<T> const&& resultIfFalse)
-{
-    return intervals::if_else(cond, interval(resultIfTrue), std::move(resultIfFalse));
-}
-template <typename T, std::derived_from<set<bool>> ConditionT>
-[[nodiscard]] constexpr interval<T>
-if_else(ConditionT const& cond, interval<T> const& resultIfTrue, T resultIfFalse)
+if_else(set<bool> cond, interval<T> const& resultIfTrue, T resultIfFalse)
 {
     return intervals::if_else(cond, resultIfTrue, interval(resultIfFalse));
 }
-template <typename T, std::derived_from<set<bool>> ConditionT>
-[[nodiscard]] constexpr interval<T>
-if_else(ConditionT const& cond, interval<T> const&& resultIfTrue, T resultIfFalse)
-{
-    return intervals::if_else(cond, std::move(resultIfTrue), interval(resultIfFalse));
-}
-template <typename T, std::derived_from<set<bool>> ConditionT>
+template <typename T>
 [[nodiscard]] constexpr set_of_t<T>
-if_else(ConditionT const& cond, T resultIfTrue, T resultIfFalse)
+if_else(set<bool> cond, T resultIfTrue, T resultIfFalse)
 {
     return intervals::if_else(cond, set_of_t<T>(resultIfTrue), set_of_t<T>(resultIfFalse));
 }
