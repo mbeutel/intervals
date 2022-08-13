@@ -1125,13 +1125,6 @@ TEST_CASE("interval<>", "interval arithmetic")
             CHECK_THROWS_AS(constrain(x, cxp1), gsl::fail_fast);
             CHECK_THROWS_AS(constrain(x, cy), gsl::fail_fast);
         }
-        //SECTION("NaN")
-        //{
-        //    CHECK_THROWS_AS(std::isnan(constrain(nan, 0., 1.)), gsl::fail_fast);
-        //    CHECK_THROWS_AS(isnan(constrain(interval(nan, 2.), 0., 1.)), gsl::fail_fast);
-        //    CHECK_THROWS_AS(isnan(constrain(interval(0., nan), 0., 1.)), gsl::fail_fast);
-        //    CHECK_THROWS_AS(isnan(constrain(interval(nan, nan), 0., 1.)), gsl::fail_fast);
-        //}
     }
 }
 

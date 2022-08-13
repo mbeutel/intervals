@@ -15,7 +15,8 @@
 
 #include <gsl-lite/gsl-lite.hpp>  // for gsl_Assert(), gsl_Expects(), gsl_ExpectsDebug(), gsl_FailFast()
 
-#include <makeshift/concepts.hpp>  // for tuple_like<>
+#include <makeshift/concepts.hpp>     // for tuple_like<>
+#include <makeshift/type_traits.hpp>  // for dependent_false<>
 
 #include <intervals/set.hpp>
 #include <intervals/sign.hpp>
@@ -28,38 +29,6 @@
 namespace intervals {
 
 namespace gsl = gsl_lite;
-
-
-//template <std::derived_from<detail::condition> T>
-//[[nodiscard]] constexpr detail::boolean_condition<T>
-//maybe(T const& x)
-//{
-//    return { x.value_.contains(true), x };
-//}
-//template <std::derived_from<detail::condition> T>
-//[[nodiscard]] constexpr detail::boolean_condition<T>
-//maybe_not(T const& x)
-//{
-//    return { x.value_.contains(false), x };
-//}
-//template <std::derived_from<detail::condition> T>
-//[[nodiscard]] constexpr detail::boolean_condition<T>
-//definitely(T const& x)
-//{
-//    return { x.value_.matches(true), x };
-//}
-//template <std::derived_from<detail::condition> T>
-//[[nodiscard]] constexpr detail::boolean_condition<T>
-//definitely_not(T const& x)
-//{
-//    return { x.value_.matches(false), x };
-//}
-//template <std::derived_from<detail::condition> T>
-//[[nodiscard]] constexpr detail::boolean_condition<T>
-//contingent(T const& x)
-//{
-//    return { x.value_.matches(set{ false, true }), x };
-//}
 
 
     // Algebraic type representing a bounded scalar.
@@ -1475,13 +1444,21 @@ requires detail::non_const<T>
 }
 
 
-    // Cannot constrain a variable with an unrelated condition.
+    // Expression does not constrain given interval.
 template <detail::floating_point T>
-interval<T>
-constrain(interval<T> const& x, set<bool>) = delete;
+constexpr interval<T>
+constrain(interval<T> const& x, set<bool>)
+{
+    static_assert(makeshift::dependent_false<T>, "conditional expression does not constrain given interval");
+    return interval<T>{ };
+}
 template <detail::floating_point T>
-interval<T>
-constrain(interval<T> const&& x, set<bool>) = delete;
+constexpr interval<T>
+constrain(interval<T> const&& x, set<bool>)
+{
+    static_assert(makeshift::dependent_false<T>, "conditional expression does not constrain given interval");
+    return interval<T>{ };
+}
 
 template <detail::floating_point T, std::derived_from<detail::condition> ConditionT>
 [[nodiscard]] constexpr interval<T>
@@ -1489,19 +1466,16 @@ constrain(interval<T> const& x, ConditionT const& c)
 {
     bool constraintApplied = false;
     auto xc = detail::constrain(x, c, constraintApplied);
-    gsl_Assert(constraintApplied && "expression does not constrain given interval");
+    gsl_Assert(constraintApplied && "conditional expression does not constrain given interval");
     return xc;
 }
 template <detail::floating_point T, std::derived_from<detail::condition> ConditionT>
-interval<T>
-constrain(interval<T> const&& x, ConditionT const& c) = delete;
-
-//template <detail::floating_point T, typename T>
-//[[nodiscard]] constexpr interval<T>
-//constrain(interval<T> const& x, detail::boolean_condition<T>& c)
-//{
-//    return intervals::constrain(x, c.expr_);
-//}
+constexpr interval<T>
+constrain(interval<T> const&& x, ConditionT const& c)
+{
+    static_assert(makeshift::dependent_false<T>, "rvalue interval cannot be constrained");
+    return interval<T>{ };
+}
 
 
 template <typename T> struct set_of;

@@ -518,23 +518,9 @@ constrain(LIntervalT const& x, detail::constraint_disjunction<L, R> const& c, bo
         {
             return result;
         }
-        //return LIntervalT{ std::min(xl.lower_unchecked(), xr.lower_unchecked()), std::max(xl.upper_unchecked(), xr.upper_unchecked()) };
     }
     return x;
 }
-
-
-template <typename T>
-struct boolean_condition
-{
-    bool value_;
-    T expr_;
-
-    constexpr explicit operator bool() const noexcept
-    {
-        return value_;
-    }
-};
 
 
 }  // namespace detail
