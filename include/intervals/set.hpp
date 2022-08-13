@@ -4,6 +4,7 @@
 
 
 #include <array>
+#include <iosfwd>
 #include <bitset>
 #include <utility>           // for pair<>
 #include <initializer_list>
@@ -14,8 +15,8 @@
 
 #include <intervals/sign.hpp>
 
-#include <intervals/math.hpp>   // to make maybe() et al. for lvalue references available
-#include <intervals/logic.hpp>  // to make maybe() et al. for Boolean arguments available
+#include <intervals/math.hpp>   // to make branch_value() and uniform_value() for lvalue references available
+#include <intervals/logic.hpp>  // to make if_else(), maybe() et al. for Boolean arguments available
 
 #include <intervals/detail/set.hpp>
 
@@ -134,6 +135,13 @@ public:
     }
 
     [[nodiscard]] constexpr bool
+    contains_index(gsl::index i) const
+    {
+        gsl_Expects(i >= 0 && i < num_values);
+
+        return state_.test(i);
+    }
+    [[nodiscard]] constexpr bool
     contains(T value) const
     {
         return state_.test(find_value_index(value));
@@ -210,11 +218,37 @@ public:
         return result;
     }
 };
-template <typename T, typename ReflectorT>
-constexpr std::array set<T, ReflectorT>::values;
+//template <typename T, typename ReflectorT>
+//constexpr std::array set<T, ReflectorT>::values;
 
 template <typename T0, typename... Ts>
 set(T0, Ts...) -> set<typename detail::enforce_same<T0, Ts...>::type>;
+
+
+template <typename ElemT, typename TraitsT, typename T, typename ReflectorT>
+std::basic_ostream<ElemT, TraitsT>&
+operator <<(std::basic_ostream<ElemT, TraitsT>& stream, set<T, ReflectorT> const& x)
+{
+    stream << ElemT('{');
+    bool first = true;
+    for (gsl::index i = 0, n = x.values.size(); i != n; ++i)
+    {
+        if (x.contains_index(i))
+        {
+            if (first)
+            {
+                first = false;
+            }
+            else
+            {
+                stream << ElemT(',') << ElemT(' ');
+            }
+            stream << x.values[i];
+        }
+    }
+    stream << ElemT('}');
+    return stream;
+}
 
 
 [[nodiscard]] constexpr set<bool>
@@ -225,8 +259,8 @@ operator !(set<bool> x)
     return set<bool>::from_bits((detail::lut_4vK_not >> (2*x.to_bits())) & 0b11u);
 }
 
-    // Instead of short-circuiting Boolean operators `&&` and `||`, use operators `&` and `|` for `set<bool>`, and use `maybe()`,
-    // `maybe_not()`, `definitely()`, `definitely_not()` to evaluate a `set<bool>` as Boolean.
+    // Instead of short-circuiting Boolean operators `&&` and `||`, use operators `&` and `|` for `set<bool>`,
+    // and use `maybe()`, `maybe_not()`, `definitely()`, `definitely_not()`, `contingent()` to evaluate a `set<bool>` as Boolean.
 set<bool> operator &&(set<bool>, set<bool>) = delete;
 set<bool> operator &&(bool, set<bool>) = delete;
 set<bool> operator &&(set<bool>, bool) = delete;
@@ -396,6 +430,35 @@ operator *(set<sign> lhs, sign rhs)
 operator *(sign lhs, set<sign> rhs)
 {
     return rhs*set<sign>(lhs);
+}
+
+
+template <typename T>
+[[nodiscard]] constexpr set<T>
+if_else(set<bool> cond, set<T> resultIfTrue, set<T> resultIfFalse)
+{
+    set<T> result;
+    if (intervals::maybe(cond))
+    {
+        result.assign(resultIfTrue);
+    }
+    if (intervals::maybe_not(cond))
+    {
+        result.assign(resultIfFalse);
+    }
+    return result;
+}
+template <typename T>
+[[nodiscard]] constexpr set<T>
+if_else(set<bool> cond, T resultIfTrue, set<T> resultIfFalse)
+{
+    return intervals::if_else(cond, set(resultIfTrue), resultIfFalse);
+}
+template <typename T>
+[[nodiscard]] constexpr set<T>
+if_else(set<bool> cond, set<T> resultIfTrue, T resultIfFalse)
+{
+    return intervals::if_else(cond, resultIfTrue, set(resultIfFalse));
 }
 
 

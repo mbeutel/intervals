@@ -37,6 +37,13 @@ contingent(bool) noexcept
     return false;
 }
 
+template <typename T>
+[[nodiscard]] constexpr T
+if_else(bool cond, T resultIfTrue, T resultIfFalse)
+{
+    return cond ? resultIfTrue : resultIfFalse;
+}
+
 
 } // namespace intervals
 

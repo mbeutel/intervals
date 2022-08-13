@@ -7,7 +7,10 @@
 #include <array>
 #include <bitset>
 #include <limits>
+#include <iosfwd>
+#include <numbers>
 #include <utility>      // for pair<>
+#include <concepts>
 #include <type_traits>  // for is_const<>
 
 #include <gsl-lite/gsl-lite.hpp>  // for gsl_Assert(), gsl_Expects(), gsl_ExpectsDebug(), gsl_FailFast()
@@ -16,10 +19,9 @@
 
 #include <intervals/set.hpp>
 #include <intervals/sign.hpp>
-#include <intervals/math.hpp>
+#include <intervals/math.hpp>   // for floating_point<>, and to make branch_value() and uniform_value() for floating-point types available
+#include <intervals/logic.hpp>  // to make maybe() et al. for Boolean arguments available
 
-#include <intervals/detail/math.hpp>      // for floating_point<>, and to make maybe() et al. for lvalue references available
-#include <intervals/detail/logic.hpp>     // to make maybe() et al. for Boolean arguments available
 #include <intervals/detail/interval.hpp>
 
 
@@ -28,31 +30,36 @@ namespace intervals {
 namespace gsl = gsl_lite;
 
 
-[[nodiscard]] constexpr bool
-maybe(detail::condition x) noexcept
-{
-    return x.value_.contains(true);
-}
-[[nodiscard]] constexpr bool
-maybe_not(detail::condition x) noexcept
-{
-    return x.value_.contains(false);
-}
-[[nodiscard]] constexpr bool
-definitely(detail::condition x) noexcept
-{
-    return x.value_.matches(true);
-}
-[[nodiscard]] constexpr bool
-definitely_not(detail::condition x) noexcept
-{
-    return x.value_.matches(false);
-}
-[[nodiscard]] constexpr bool
-contingent(detail::condition x) noexcept
-{
-    return x.value_.matches(set{ false, true });
-}
+//template <std::derived_from<detail::condition> T>
+//[[nodiscard]] constexpr detail::boolean_condition<T>
+//maybe(T const& x)
+//{
+//    return { x.value_.contains(true), x };
+//}
+//template <std::derived_from<detail::condition> T>
+//[[nodiscard]] constexpr detail::boolean_condition<T>
+//maybe_not(T const& x)
+//{
+//    return { x.value_.contains(false), x };
+//}
+//template <std::derived_from<detail::condition> T>
+//[[nodiscard]] constexpr detail::boolean_condition<T>
+//definitely(T const& x)
+//{
+//    return { x.value_.matches(true), x };
+//}
+//template <std::derived_from<detail::condition> T>
+//[[nodiscard]] constexpr detail::boolean_condition<T>
+//definitely_not(T const& x)
+//{
+//    return { x.value_.matches(false), x };
+//}
+//template <std::derived_from<detail::condition> T>
+//[[nodiscard]] constexpr detail::boolean_condition<T>
+//contingent(T const& x)
+//{
+//    return { x.value_.matches(set{ false, true }), x };
+//}
 
 
     // Algebraic type representing a bounded scalar.
@@ -133,6 +140,63 @@ private:
         T v1 = _multiply_0(lhs, rhs.lower_);
         T v2 = _multiply_0(lhs, rhs.upper_);
         return interval{ detail::_min(v1, v2), detail::_max(v1, v2) };
+    }
+
+    static constexpr set<bool>
+    compare_eq(interval const& lhs, interval const& rhs)
+    {
+        auto result = set<bool>{ };
+        if (rhs.upper_ >= lhs.lower_ && rhs.lower_ <= lhs.upper_)  // intervals overlap
+        {
+            result.assign(true);
+        }
+        if (lhs.lower_ != rhs.upper_ || lhs.upper_ != rhs.lower_)  // intervals are non-identical or non-degenerate
+        {
+            result.assign(false);
+        }
+        return result;
+    }
+    static constexpr set<bool>
+    compare_neq(interval const& lhs, interval const& rhs)
+    {
+        auto result = set<bool>{ };
+        if (rhs.upper_ >= lhs.lower_ && rhs.lower_ <= lhs.upper_)  // intervals overlap
+        {
+            result.assign(false);
+        }
+        if (lhs.lower_ != rhs.upper_ || lhs.upper_ != rhs.lower_)  // intervals are non-identical or non-degenerate
+        {
+            result.assign(true);
+        }
+        return result;
+    }
+    static constexpr set<bool>
+    compare_lt(interval const& lhs, interval const& rhs)
+    {
+        auto result = set<bool>{ };
+        if (lhs.lower_ < rhs.upper_)
+        {
+            result.assign(true);
+        }
+        if (lhs.upper_ >= rhs.lower_)
+        {
+            result.assign(false);
+        }
+        return result;
+    }
+    static constexpr set<bool>
+    compare_leq(interval const& lhs, interval const& rhs)
+    {
+        auto result = set<bool>{ };
+        if (lhs.lower_ <= rhs.upper_)
+        {
+            result.assign(true);
+        }
+        if (lhs.upper_ > rhs.lower_)
+        {
+            result.assign(false);
+        }
+        return result;
     }
 
 
@@ -394,143 +458,346 @@ public:
     //{
     //    return rhs <= interval(lhs);
     //}
-    [[nodiscard]] friend constexpr set<bool>
+    [[nodiscard]] friend constexpr detail::equality_constraint_ll<interval>
     operator ==(interval const& lhs, interval const& rhs)
     {
         gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
 
-        if (lhs.matches(rhs))
-        {
-            return set{ true };
-        }
-        else if (rhs.upper_ >= lhs.lower_ && rhs.lower_ <= lhs.upper_)  // overlapping intervals
-        {
-            return set{ false, true };
-        }
-        else
-        {
-            return set{ false };
-        }
+        return { { compare_eq(lhs, rhs) }, lhs, rhs };
+    }
+    [[nodiscard]] friend constexpr detail::equality_constraint_lr<interval>
+    operator ==(interval const& lhs, interval const&& rhs)
+    {
+        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+
+        return { { compare_eq(lhs, rhs) }, lhs, rhs };
+    }
+    [[nodiscard]] friend constexpr detail::equality_constraint_lr<interval>
+    operator ==(interval const&& lhs, interval const& rhs)
+    {
+        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+
+        return { { compare_eq(lhs, rhs) }, rhs, lhs };
     }
     [[nodiscard]] friend constexpr set<bool>
+    operator ==(interval const&& lhs, interval const&& rhs)
+    {
+        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+
+        return compare_eq(lhs, rhs);
+    }
+    [[nodiscard]] friend constexpr detail::equality_constraint_lr<interval>
     operator ==(interval const& lhs, T rhs)
     {
         gsl_ExpectsDebug(lhs._assigned());
 
-        if (lhs.matches(rhs))
-        {
-            return set{ true };
-        }
-        else if (lhs.contains(rhs))  // overlapping intervals
-        {
-            return set{ false, true };
-        }
-        else
-        {
-            return set{ false };
-        }
+        return { { compare_eq(lhs, rhs) }, lhs, { rhs } };
     }
     [[nodiscard]] friend constexpr set<bool>
+    operator ==(interval const&& lhs, T rhs)
+    {
+        gsl_ExpectsDebug(lhs._assigned());
+
+        return compare_eq(lhs, rhs);
+    }
+    [[nodiscard]] friend constexpr detail::equality_constraint_lr<interval>
     operator ==(T lhs, interval const& rhs)
     {
-        return rhs == lhs;
+        gsl_ExpectsDebug(rhs._assigned());
+
+        return { { compare_eq(lhs, rhs) }, rhs, { lhs } };
     }
     [[nodiscard]] friend constexpr set<bool>
+    operator ==(T lhs, interval const&& rhs)
+    {
+        gsl_ExpectsDebug(rhs._assigned());
+
+        return compare_eq(lhs, rhs);
+    }
+    [[nodiscard]] friend constexpr detail::inequality_constraint_ll<interval>
     operator !=(interval const& lhs, interval const& rhs)
     {
-        return !(lhs == rhs);
+        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+
+        return { { compare_neq(lhs, rhs) }, lhs, rhs };
+    }
+    [[nodiscard]] friend constexpr detail::inequality_constraint_lr<interval>
+    operator !=(interval const& lhs, interval const&& rhs)
+    {
+        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+
+        return { { compare_neq(lhs, rhs) }, lhs, rhs };
+    }
+    [[nodiscard]] friend constexpr detail::inequality_constraint_lr<interval>
+    operator !=(interval const&& lhs, interval const& rhs)
+    {
+        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+
+        return { { compare_neq(lhs, rhs) }, rhs, lhs };
     }
     [[nodiscard]] friend constexpr set<bool>
+    operator !=(interval const&& lhs, interval const&& rhs)
+    {
+        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+
+        return compare_neq(lhs, rhs);
+    }
+    [[nodiscard]] friend constexpr detail::inequality_constraint_lr<interval>
     operator !=(interval const& lhs, T rhs)
     {
-        return !(lhs == rhs);
+        gsl_ExpectsDebug(lhs._assigned());
+
+        return { { compare_neq(lhs, rhs) }, lhs, { rhs } };
     }
     [[nodiscard]] friend constexpr set<bool>
+    operator !=(interval const&& lhs, T rhs)
+    {
+        gsl_ExpectsDebug(lhs._assigned());
+
+        return compare_neq(lhs, rhs);
+    }
+    [[nodiscard]] friend constexpr detail::inequality_constraint_lr<interval>
     operator !=(T lhs, interval const& rhs)
     {
-        return !(rhs == lhs);
+        gsl_ExpectsDebug(rhs._assigned());
+
+        return { { compare_neq(lhs, rhs) }, rhs, { lhs } };
     }
     [[nodiscard]] friend constexpr set<bool>
+    operator !=(T lhs, interval const&& rhs)
+    {
+        gsl_ExpectsDebug(rhs._assigned());
+
+        return compare_neq(lhs, rhs);
+    }
+    // TODO: let's skip over `!=` for the time being (courtesy of C++20)
+
+    [[nodiscard]] friend constexpr detail::ordering_constraint_ll<interval>
     operator <(interval const& lhs, interval const& rhs)
     {
         gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
 
-        auto result = set<bool>{ };
-        if (lhs.lower_ < rhs.upper_)
-        {
-            result.assign(true);
-        }
-        if (lhs.upper_ >= rhs.lower_)
-        {
-            result.assign(false);
-        }
-        return result;
+        return { { compare_lt(lhs, rhs) }, lhs, rhs };
+    }
+    [[nodiscard]] friend constexpr detail::ordering_constraint_lr<interval>
+    operator <(interval const& lhs, interval const&& rhs)
+    {
+        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+
+        return { { compare_lt(lhs, rhs) }, lhs, rhs };
+    }
+    [[nodiscard]] friend constexpr detail::ordering_constraint_rl<interval>
+    operator <(interval const&& lhs, interval const& rhs)
+    {
+        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+
+        return { { compare_lt(lhs, rhs) }, lhs, rhs };
     }
     [[nodiscard]] friend constexpr set<bool>
+    operator <(interval const&& lhs, interval const&& rhs)
+    {
+        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+
+        return compare_lt(lhs, rhs);
+    }
+    [[nodiscard]] friend constexpr detail::ordering_constraint_lr<interval>
     operator <(interval const& lhs, T rhs)
     {
-        return lhs < interval(rhs);
+        gsl_ExpectsDebug(lhs._assigned());
+
+        return { { compare_lt(lhs, rhs) }, lhs, { rhs } };
     }
     [[nodiscard]] friend constexpr set<bool>
+    operator <(interval const&& lhs, T rhs)
+    {
+        gsl_ExpectsDebug(lhs._assigned());
+
+        return compare_lt(lhs, rhs);
+    }
+    [[nodiscard]] friend constexpr detail::ordering_constraint_rl<interval>
     operator <(T lhs, interval const& rhs)
     {
-        return interval(lhs) < rhs;
+        gsl_ExpectsDebug(rhs._assigned());
+
+        return { { compare_lt(lhs, rhs) }, { lhs }, rhs };
     }
     [[nodiscard]] friend constexpr set<bool>
+    operator <(T lhs, interval const&& rhs)
+    {
+        gsl_ExpectsDebug(rhs._assigned());
+
+        return compare_lt(lhs, rhs);
+    }
+
+    [[nodiscard]] friend constexpr detail::ordering_constraint_ll<interval>
     operator >(interval const& lhs, interval const& rhs)
     {
-        return rhs < lhs;
+        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+
+        return { { compare_lt(rhs, lhs) }, rhs, lhs };
+    }
+    [[nodiscard]] friend constexpr detail::ordering_constraint_rl<interval>
+    operator >(interval const& lhs, interval const&& rhs)
+    {
+        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+
+        return { { compare_lt(rhs, lhs) }, rhs, lhs };
+    }
+    [[nodiscard]] friend constexpr detail::ordering_constraint_lr<interval>
+    operator >(interval const&& lhs, interval const& rhs)
+    {
+        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+
+        return { { compare_lt(rhs, lhs) }, rhs, lhs };
     }
     [[nodiscard]] friend constexpr set<bool>
+    operator >(interval const&& lhs, interval const&& rhs)
+    {
+        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+
+        return compare_lt(rhs, lhs);
+    }
+    [[nodiscard]] friend constexpr detail::ordering_constraint_rl<interval>
     operator >(interval const& lhs, T rhs)
     {
-        return rhs < lhs;
+        gsl_ExpectsDebug(lhs._assigned());
+
+        return { { compare_lt(rhs, lhs) }, { rhs }, lhs };
     }
     [[nodiscard]] friend constexpr set<bool>
+    operator >(interval const&& lhs, T rhs)
+    {
+        gsl_ExpectsDebug(lhs._assigned());
+
+        return compare_lt(rhs, lhs);
+    }
+    [[nodiscard]] friend constexpr detail::ordering_constraint_lr<interval>
     operator >(T lhs, interval const& rhs)
     {
-        return rhs < lhs;
+        gsl_ExpectsDebug(rhs._assigned());
+
+        return { { compare_lt(rhs, lhs) }, rhs, { lhs } };
     }
     [[nodiscard]] friend constexpr set<bool>
+    operator >(T lhs, interval const&& rhs)
+    {
+        gsl_ExpectsDebug(rhs._assigned());
+
+        return compare_lt(rhs, lhs);
+    }
+
+    [[nodiscard]] friend constexpr detail::ordering_constraint_ll<interval>
     operator <=(interval const& lhs, interval const& rhs)
     {
         gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
 
-        auto result = set<bool>{ };
-        if (lhs.lower_ <= rhs.upper_)
-        {
-            result.assign(true);
-        }
-        if (lhs.upper_ > rhs.lower_)
-        {
-            result.assign(false);
-        }
-        return result;
+        return { { compare_leq(lhs, rhs) }, lhs, rhs };
+    }
+    [[nodiscard]] friend constexpr detail::ordering_constraint_lr<interval>
+    operator <=(interval const& lhs, interval const&& rhs)
+    {
+        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+
+        return { { compare_leq(lhs, rhs) }, lhs, rhs };
+    }
+    [[nodiscard]] friend constexpr detail::ordering_constraint_rl<interval>
+    operator <=(interval const&& lhs, interval const& rhs)
+    {
+        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+
+        return { { compare_leq(lhs, rhs) }, lhs, rhs };
     }
     [[nodiscard]] friend constexpr set<bool>
+    operator <=(interval const&& lhs, interval const&& rhs)
+    {
+        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+
+        return compare_leq(lhs, rhs);
+    }
+    [[nodiscard]] friend constexpr detail::ordering_constraint_lr<interval>
     operator <=(interval const& lhs, T rhs)
     {
-        return lhs <= interval(rhs);
+        gsl_ExpectsDebug(lhs._assigned());
+
+        return { { compare_leq(lhs, rhs) }, lhs, { rhs } };
     }
     [[nodiscard]] friend constexpr set<bool>
+    operator <=(interval const&& lhs, T rhs)
+    {
+        gsl_ExpectsDebug(lhs._assigned());
+
+        return compare_leq(lhs, rhs);
+    }
+    [[nodiscard]] friend constexpr detail::ordering_constraint_rl<interval>
     operator <=(T lhs, interval const& rhs)
     {
-        return interval(lhs) <= rhs;
+        gsl_ExpectsDebug(rhs._assigned());
+
+        return { { compare_leq(lhs, rhs) }, { lhs }, rhs };
     }
     [[nodiscard]] friend constexpr set<bool>
+    operator <=(T lhs, interval const&& rhs)
+    {
+        gsl_ExpectsDebug(rhs._assigned());
+
+        return compare_leq(lhs, rhs);
+    }
+
+    [[nodiscard]] friend constexpr detail::ordering_constraint_ll<interval>
     operator >=(interval const& lhs, interval const& rhs)
     {
-        return rhs <= lhs;
+        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+
+        return { { compare_leq(rhs, lhs) }, rhs, lhs };
+    }
+    [[nodiscard]] friend constexpr detail::ordering_constraint_rl<interval>
+    operator >=(interval const& lhs, interval const&& rhs)
+    {
+        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+
+        return { { compare_leq(rhs, lhs) }, rhs, lhs };
+    }
+    [[nodiscard]] friend constexpr detail::ordering_constraint_lr<interval>
+    operator >=(interval const&& lhs, interval const& rhs)
+    {
+        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+
+        return { { compare_leq(rhs, lhs) }, rhs, lhs };
     }
     [[nodiscard]] friend constexpr set<bool>
+    operator >=(interval const&& lhs, interval const&& rhs)
+    {
+        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+
+        return compare_leq(rhs, lhs);
+    }
+    [[nodiscard]] friend constexpr detail::ordering_constraint_rl<interval>
     operator >=(interval const& lhs, T rhs)
     {
-        return interval(rhs) <= lhs;
+        gsl_ExpectsDebug(lhs._assigned());
+
+        return { { compare_leq(rhs, lhs) }, { rhs }, lhs };
     }
     [[nodiscard]] friend constexpr set<bool>
+    operator >=(interval const&& lhs, T rhs)
+    {
+        gsl_ExpectsDebug(lhs._assigned());
+
+        return compare_leq(rhs, lhs);
+    }
+    [[nodiscard]] friend constexpr detail::ordering_constraint_lr<interval>
     operator >=(T lhs, interval const& rhs)
     {
-        return rhs <= interval(lhs);
+        gsl_ExpectsDebug(rhs._assigned());
+
+        return { { compare_leq(rhs, lhs) }, rhs, { lhs } };
+    }
+    [[nodiscard]] friend constexpr set<bool>
+    operator >=(T lhs, interval const&& rhs)
+    {
+        gsl_ExpectsDebug(rhs._assigned());
+
+        return compare_leq(rhs, lhs);
     }
 
     [[nodiscard]] friend constexpr interval
@@ -902,7 +1169,7 @@ public:
     {
         gsl_ExpectsDebug(x._assigned());
 
-        auto lo = intervals::wraparound(x.lower_, T(-pi), T(pi));
+        auto lo = intervals::wraparound(x.lower_, -std::numbers::pi_v<T>, std::numbers::pi_v<T>);
         auto delta = lo - x.lower_;
         auto hi = x.upper_ + delta;
         if (lo <= T(0))
@@ -911,18 +1178,18 @@ public:
             {
                 return interval{ detail::_cos(lo), detail::_cos(hi) };
             }
-            else if (hi <= T(pi))
+            else if (hi <= std::numbers::pi_v<T>)
             {
                 return interval{ detail::_min(detail::_cos(lo), detail::_cos(hi)), T(1) };
             }
         }
         else  // 0 < lo < π
         {
-            if (hi <= T(pi))
+            if (hi <= std::numbers::pi_v<T>)
             {
                 return interval{ detail::_cos(hi), detail::_cos(lo) };
             }
-            else if (hi <= T(2*pi))
+            else if (hi <= 2*std::numbers::pi_v<T>)
             {
                 return interval{ T(-1), detail::_max(detail::_cos(lo), detail::_cos(hi)) };
             }
@@ -932,17 +1199,17 @@ public:
     [[nodiscard]] friend constexpr interval
     sin(interval const& x)
     {
-        return cos(x - T(pi/2));
+        return cos(x - std::numbers::pi_v<T>/2);
     }
     [[nodiscard]] friend constexpr interval
     tan(interval const& x)
     {
         gsl_ExpectsDebug(x._assigned());
 
-        auto lo = intervals::wraparound(x.lower_, T(-pi/2), T(pi/2));
+        auto lo = intervals::wraparound(x.lower_, -std::numbers::pi_v<T>/2, std::numbers::pi_v<T>/2);
         auto delta = lo - x.lower_;
         auto hi = x.upper_ + delta;
-        if (hi - lo >= T(pi))
+        if (hi - lo >= std::numbers::pi_v<T>)
         {
             return interval{ -inf, inf };
         }
@@ -1060,9 +1327,9 @@ public:
 
         return x.lower_ <= T(0) && x.upper_ >= T(0)             // if  0 ∈ [a,b] :
             ? interval{ T(0), detail::_max(-x.lower_, x.upper_) }  //     → [0, max{-a,b}]
-            : x.lower_ < T(0)                                   // else if  a,b < 0 :
+               : x.lower_ < T(0)                                   // else if  a,b < 0 :
             ? interval{ -x.upper_, -x.lower_ }                     //     → [-b,-a]
-            : x;                                                // else → [a,b]
+               : x;                                                // else → [a,b]
     }
 
     [[nodiscard]] friend constexpr set<sign>
@@ -1129,9 +1396,7 @@ template <typename ElemT, typename TraitsT, typename T>
 std::basic_ostream<ElemT, TraitsT>&
 operator <<(std::basic_ostream<ElemT, TraitsT>& stream, interval<T> const& x)
 {
-    gsl_ExpectsDebug(x._assigned());
-
-    if (x.lower_unchecked() == x.upper_unchecked())
+    if (x.lower() == x.upper_unchecked())
     {
         return stream << x.lower_unchecked();
     }
@@ -1207,6 +1472,152 @@ uniform_value(T& x) noexcept
 requires detail::non_const<T>
 {
     return detail::tuple_resetter<T>(x);
+}
+
+
+    // Cannot constrain a variable with an unrelated condition.
+template <detail::floating_point T>
+interval<T>
+constrain(interval<T> const& x, set<bool>) = delete;
+template <detail::floating_point T>
+interval<T>
+constrain(interval<T> const&& x, set<bool>) = delete;
+
+template <detail::floating_point T, std::derived_from<detail::condition> ConditionT>
+[[nodiscard]] constexpr interval<T>
+constrain(interval<T> const& x, ConditionT const& c)
+{
+    bool constraintApplied = false;
+    auto xc = detail::constrain(x, c, constraintApplied);
+    gsl_Assert(constraintApplied && "expression does not constrain given interval");
+    return xc;
+}
+template <detail::floating_point T, std::derived_from<detail::condition> ConditionT>
+interval<T>
+constrain(interval<T> const&& x, ConditionT const& c) = delete;
+
+//template <detail::floating_point T, typename T>
+//[[nodiscard]] constexpr interval<T>
+//constrain(interval<T> const& x, detail::boolean_condition<T>& c)
+//{
+//    return intervals::constrain(x, c.expr_);
+//}
+
+
+template <typename T> struct set_of;
+template <> struct set_of<bool> { using type = set<bool>; };
+template <detail::enum_ T> struct set_of<T> { using type = set<T>; };
+template <detail::floating_point T> struct set_of<T> { using type = interval<T>; };
+template <typename T, typename ReflectorT> struct set_of<set<T, ReflectorT>> { using type = set<T, ReflectorT>; };
+template <typename T> struct set_of<interval<T>> { using type = interval<T>; };
+// TODO: implement bound type for integers
+template <typename T> using set_of_t = typename set_of<T>::type;
+
+
+template <typename T>
+[[nodiscard]] constexpr interval<T>
+if_else(set<bool> cond, interval<T> const& resultIfTrue, interval<T> const& resultIfFalse)
+{
+    interval<T> result;
+    if (intervals::maybe(cond))
+    {
+        result.assign(resultIfTrue);
+    }
+    if (intervals::maybe_not(cond))
+    {
+        result.assign(resultIfFalse);
+    }
+    return result;
+}
+template <typename T, std::derived_from<detail::condition> ConditionT>
+[[nodiscard]] constexpr interval<T>
+if_else(ConditionT const& cond, interval<T> const& resultIfTrue, interval<T> const& resultIfFalse)
+{
+    interval<T> result;
+    if (intervals::maybe(cond))
+    {
+        result.assign(intervals::constrain(resultIfTrue, cond));
+    }
+    if (intervals::maybe_not(cond))
+    {
+        result.assign(intervals::constrain(resultIfFalse, !cond));
+    }
+    return result;
+}
+template <typename T, std::derived_from<detail::condition> ConditionT>
+[[nodiscard]] constexpr interval<T>
+if_else(ConditionT const& cond, interval<T> const&& resultIfTrue, interval<T> const& resultIfFalse)
+{
+    interval<T> result;
+    if (intervals::maybe(cond))
+    {
+        result.assign(resultIfTrue);
+    }
+    if (intervals::maybe_not(cond))
+    {
+        result.assign(intervals::constrain(resultIfFalse, !cond));
+    }
+    return result;
+}
+template <typename T, std::derived_from<detail::condition> ConditionT>
+[[nodiscard]] constexpr interval<T>
+if_else(ConditionT const& cond, interval<T> const& resultIfTrue, interval<T> const&& resultIfFalse)
+{
+    interval<T> result;
+    if (intervals::maybe(cond))
+    {
+        result.assign(intervals::constrain(resultIfTrue, cond));
+    }
+    if (intervals::maybe_not(cond))
+    {
+        result.assign(resultIfFalse);
+    }
+    return result;
+}
+template <typename T, std::derived_from<detail::condition> ConditionT>
+[[nodiscard]] constexpr interval<T>
+if_else(ConditionT const& cond, interval<T> const&& resultIfTrue, interval<T> const&& resultIfFalse)
+{
+    interval<T> result;
+    if (intervals::maybe(cond))
+    {
+        result.assign(resultIfTrue);
+    }
+    if (intervals::maybe_not(cond))
+    {
+        result.assign(resultIfFalse);
+    }
+    return result;
+}
+template <typename T, std::derived_from<set<bool>> ConditionT>
+[[nodiscard]] constexpr interval<T>
+if_else(ConditionT const& cond, T resultIfTrue, interval<T> const& resultIfFalse)
+{
+    return intervals::if_else(cond, interval(resultIfTrue), resultIfFalse);
+}
+template <typename T, std::derived_from<set<bool>> ConditionT>
+[[nodiscard]] constexpr interval<T>
+if_else(ConditionT const& cond, T resultIfTrue, interval<T> const&& resultIfFalse)
+{
+    return intervals::if_else(cond, interval(resultIfTrue), std::move(resultIfFalse));
+}
+template <typename T, std::derived_from<set<bool>> ConditionT>
+[[nodiscard]] constexpr interval<T>
+if_else(ConditionT const& cond, interval<T> const& resultIfTrue, T resultIfFalse)
+{
+    return intervals::if_else(cond, resultIfTrue, interval(resultIfFalse));
+}
+template <typename T, std::derived_from<set<bool>> ConditionT>
+[[nodiscard]] constexpr interval<T>
+if_else(ConditionT const& cond, interval<T> const&& resultIfTrue, T resultIfFalse)
+{
+    return intervals::if_else(cond, std::move(resultIfTrue), interval(resultIfFalse));
+}
+template <typename T, std::derived_from<set<bool>> ConditionT>
+[[nodiscard]] constexpr set_of_t<T>
+if_else(ConditionT const& cond, T resultIfTrue, T resultIfFalse)
+{
+    return intervals::if_else(cond, set_of_t<T>(resultIfTrue), set_of_t<T>(resultIfFalse));
 }
 
 

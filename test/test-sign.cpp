@@ -4,8 +4,6 @@
 #include <gsl-lite/gsl-lite.hpp>  // for fail_fast, type_identity<>
 
 #include <catch2/catch_test_macros.hpp>
-#include <catch2/catch_approx.hpp>
-#include <catch2/generators/catch_generators.hpp>
 
 #include <intervals/sign.hpp>
 

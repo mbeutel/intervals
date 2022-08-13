@@ -126,16 +126,24 @@ blend_quadratic(T a, T b, T x, T y)
 
 template <detail::arithmetic T>
 [[nodiscard]] constexpr detail::assigner<T>
-maybe(T& x) noexcept
+branch_value(T& x) noexcept
+{
+    return detail::assigner<T>(x);
+}
+template <detail::arithmetic T>
+[[nodiscard]] constexpr detail::assigner<T>
+uniform_value(T& x) noexcept
 {
     return detail::assigner<T>(x);
 }
 
-template <detail::arithmetic T>
-[[nodiscard]] constexpr detail::assigner<T>
-definitely(T& x) noexcept
+
+template <detail::floating_point T>
+[[nodiscard]] constexpr T
+constrain(T x, bool c)
 {
-    return detail::assigner<T>(x);
+    gsl_Assert(c);
+    return x;
 }
 
 
