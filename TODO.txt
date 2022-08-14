@@ -1,0 +1,3 @@
+- set constructor: support constvals (also for initializer_list<>? array, perhaps?)
+- set<>.matches()/.contains(): support constvals
+- use constvals throughout to avoid lookup where possible
