@@ -15,7 +15,7 @@ namespace gsl = ::gsl_lite;
 
 
 enum Color { red = 2, green = 1, blue = 4 };
-constexpr auto
+consteval auto
 reflect(gsl::type_identity<Color>)
 {
     return std::array{ red, green, blue };

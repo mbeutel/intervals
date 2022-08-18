@@ -22,7 +22,7 @@ enum sign : int
     zero_sign     = 0,
     positive_sign = +1
 };
-constexpr auto 
+consteval auto 
 reflect(gsl::type_identity<sign>)
 {
     return std::array{ negative_sign, zero_sign, positive_sign };
