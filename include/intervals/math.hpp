@@ -3,7 +3,7 @@
 #define INCLUDED_INTERVALS_MATH_HPP_
 
 
-#include <gsl-lite/gsl-lite.hpp>  // for gsl_ExpectsDebug()
+#include <gsl-lite/gsl-lite.hpp>  // for gsl_Expects(), gsl_ExpectsDebug()
 
 #include <intervals/detail/math.hpp>
 
@@ -124,17 +124,42 @@ blend_quadratic(T a, T b, T x, T y)
 }
 
 
-template <detail::arithmetic T>
-[[nodiscard]] constexpr detail::assigner<T>
-branch_value(T& x) noexcept
+template <typename T>
+constexpr void
+assign(T& lhs, gsl::type_identity_t<T> rhs)
+requires detail::non_const<T>
 {
-    return detail::assigner<T>(x);
+    lhs = rhs;
 }
-template <detail::arithmetic T>
-[[nodiscard]] constexpr detail::assigner<T>
-uniform_value(T& x) noexcept
+template <typename T>
+constexpr void
+assign_partial(T& lhs, gsl::type_identity_t<T> rhs)
+requires detail::non_const<T>
 {
-    return detail::assigner<T>(x);
+    lhs = rhs;
+}
+template <typename T>
+constexpr void
+reset(T& lhs, gsl::type_identity_t<T> rhs)
+requires detail::non_const<T>
+{
+    lhs = rhs;
+}
+template <typename T>
+constexpr void
+assign_if(bool cond, T& lhs, gsl::type_identity_t<T> rhs)
+requires detail::non_const<T>
+{
+    gsl_Expects(cond);
+    lhs = rhs;
+}
+template <typename T>
+constexpr void
+assign_if_not(bool cond, T& lhs, gsl::type_identity_t<T> rhs)
+requires detail::non_const<T>
+{
+    gsl_Expects(!cond);
+    lhs = rhs;
 }
 
 

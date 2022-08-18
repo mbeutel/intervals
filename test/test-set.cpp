@@ -87,6 +87,9 @@ TEST_CASE("set<>", "algebra with bounds")
     }
     SECTION("assignment (bool)")
     {
+        using intervals::assign_partial;
+        using intervals::reset;
+
         auto value = GENERATE(false, true);
         auto svalue = set{ value };
         auto nsvalue = set{ !value };
@@ -99,11 +102,11 @@ TEST_CASE("set<>", "algebra with bounds")
         CHECK(maybe(s == set{ true, false }));
         CHECK_FALSE(definitely(s == set{ true, false }));
         s.reset();
-        branch_value(s) = value;
+        assign_partial(s, value);
         CHECK(s.matches(value));
-        branch_value(s) = !value;
+        assign_partial(s, !value);
         CHECK(s.matches(set{ false, true }));
-        uniform_value(s) = value;
+        reset(s, value);
         CHECK(s.matches(value));
     }
     SECTION("multi-valued sets (enum)")

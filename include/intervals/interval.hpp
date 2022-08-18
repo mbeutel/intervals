@@ -20,7 +20,7 @@
 
 #include <intervals/set.hpp>
 #include <intervals/sign.hpp>
-#include <intervals/math.hpp>   // for floating_point<>, and to make branch_value() and uniform_value() for floating-point types available
+#include <intervals/math.hpp>   // for floating_point<>, and to make assign*() and reset() available
 #include <intervals/logic.hpp>  // to make maybe() et al. for Boolean arguments available
 
 #include <intervals/detail/interval.hpp>
@@ -1275,31 +1275,139 @@ operator *(set<sign> lhs, T rhs)
 
 
 template <detail::floating_point T>
-[[nodiscard]] constexpr detail::member_assigner<interval<T>>
-branch_value(interval<T>& x) noexcept
+constexpr void
+assign(interval<T>& lhs, gsl::type_identity_t<interval<T>> const& rhs)
 {
-    return detail::member_assigner<interval<T>>(x);
+    gsl_Expects(!lhs.assigned());
+    lhs.reset(rhs);
 }
 template <detail::floating_point T>
-[[nodiscard]] constexpr detail::member_resetter<interval<T>>
-uniform_value(interval<T>& x) noexcept
+constexpr void
+assign_partial(interval<T>& lhs, gsl::type_identity_t<interval<T>> const& rhs)
 {
-    return detail::member_resetter<interval<T>>(x);
+    lhs.assign(rhs);
+}
+template <detail::floating_point T>
+constexpr void
+reset(interval<T>& lhs, gsl::type_identity_t<interval<T>> const& rhs)
+{
+    lhs.reset(rhs);
+}
+template <detail::floating_point T>
+constexpr void
+assign_if(set<bool> cond, interval<T>& lhs, gsl::type_identity_t<interval<T>> const& rhs)
+{
+    if (cond.matches(true))
+    {
+        gsl_Expects(!lhs.assigned());
+        lhs.reset(rhs);
+    }
+    else if (cond.matches(set{ false, true }))
+    {
+        lhs.assign(rhs);
+    }
+    else
+    {
+        gsl_Expects(!cond.matches(false));
+        // but just do nothing if `cond.matches(set{ })`
+    }
+}
+template <detail::floating_point T>
+constexpr void
+assign_if_not(set<bool> cond, interval<T>& lhs, gsl::type_identity_t<interval<T>> const& rhs)
+{
+    if (cond.matches(false))
+    {
+        gsl_Expects(!lhs.assigned());
+        lhs.reset(rhs);
+    }
+    else if (cond.matches(set{ false, true }))
+    {
+        lhs.assign(rhs);
+    }
+    else
+    {
+        gsl_Expects(!cond.matches(true));
+        // but just do nothing if `cond.matches(set{ })`
+    }
 }
 
-template <makeshift::tuple_like T>
-[[nodiscard]] constexpr detail::tuple_assigner<T>
-branch_value(T& x) noexcept
-requires detail::non_const<T>
+template <makeshift::tuple_like T, typename U>
+constexpr void
+assign(T& lhs, U&& rhs)
+requires detail::non_const<T> && detail::not_instantiation_of<T, interval>
 {
-    return detail::tuple_assigner<T>(x);
+    makeshift::template_for(
+        []<typename TT, typename UT>
+        (TT& lhs, UT&& rhs)
+        {
+            intervals::assign(lhs, std::forward<UT>(rhs));
+        },
+        lhs, std::forward<U>(rhs));
 }
-template <makeshift::tuple_like T>
-[[nodiscard]] constexpr detail::tuple_resetter<T>
-uniform_value(T& x) noexcept
-requires detail::non_const<T>
+template <makeshift::tuple_like T, typename U>
+constexpr void
+reset(T& lhs, U&& rhs)
+requires detail::non_const<T> && detail::not_instantiation_of<T, interval>
 {
-    return detail::tuple_resetter<T>(x);
+    makeshift::template_for(
+        []<typename TT, typename UT>
+        (TT& lhs, UT&& rhs)
+        {
+            intervals::reset(lhs, std::forward<UT>(rhs));
+        },
+        lhs, std::forward<U>(rhs));
+}
+template <makeshift::tuple_like T, typename U>
+constexpr void
+assign_partial(T& lhs, U&& rhs)
+requires detail::non_const<T> && detail::not_instantiation_of<T, interval>
+{
+    makeshift::template_for(
+        []<typename TT, typename UT>
+        (TT& lhs, UT&& rhs)
+        {
+            intervals::assign_partial(lhs, std::forward<UT>(rhs));
+        },
+        lhs, std::forward<U>(rhs));
+}
+template <makeshift::tuple_like T, typename U>
+constexpr void
+assign_if(set<bool> cond, T& lhs, U&& rhs)
+requires detail::non_const<T> && detail::not_instantiation_of<T, interval>
+{
+    if (cond.matches(true))
+    {
+        intervals::assign(lhs, std::forward<U>(rhs));
+    }
+    else if (cond.matches(set{ false, true }))
+    {
+        intervals::assign_partial(lhs, std::forward<U>(rhs));
+    }
+    else
+    {
+        gsl_Expects(!cond.matches(false));
+        // but just do nothing if `cond.matches(set{ })`
+    }
+}
+template <makeshift::tuple_like T, typename U>
+constexpr void
+assign_if_not(set<bool> cond, T& lhs, U&& rhs)
+requires detail::non_const<T> && detail::not_instantiation_of<T, interval>
+{
+    if (cond.matches(false))
+    {
+        intervals::assign(lhs, std::forward<U>(rhs));
+    }
+    else if (cond.matches(set{ false, true }))
+    {
+        intervals::assign_partial(lhs, std::forward<U>(rhs));
+    }
+    else
+    {
+        gsl_Expects(!cond.matches(true));
+        // but just do nothing if `cond.matches(set{ })`
+    }
 }
 
 

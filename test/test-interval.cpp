@@ -1132,16 +1132,18 @@ TEST_CASE("interval<>", "interval arithmetic")
         {
             using intervals::maybe;
             using intervals::maybe_not;
-            using intervals::branch_value;
+            using intervals::assign_if;
+            using intervals::assign_if_not;
             
             auto result = T{ };
-            if (maybe(x >= y))
+            auto cond = x >= y;
+            if (maybe(cond))
             {
-                branch_value(result) = x;
+                assign_if(cond, result, x);
             }
             if (maybe_not(x >= y))
             {
-                branch_value(result) = y;
+                assign_if_not(cond, result, y);
             }
             return result;
         };
@@ -1150,17 +1152,18 @@ TEST_CASE("interval<>", "interval arithmetic")
             using intervals::maybe;
             using intervals::maybe_not;
             using intervals::constrain;
-            using intervals::branch_value;
+            using intervals::assign_if;
+            using intervals::assign_if_not;
             
             auto result = T{ };
             auto cond = x >= y;
             if (maybe(cond))
             {
-                branch_value(result) = constrain(x, cond);
+                assign_if(cond, result, constrain(x, cond));
             }
             if (maybe_not(cond))
             {
-                branch_value(result) = constrain(y, !cond);
+                assign_if_not(cond, result, constrain(y, !cond));
             }
             return result;
         };

@@ -15,7 +15,7 @@
 
 #include <intervals/sign.hpp>
 
-#include <intervals/math.hpp>   // to make branch_value() and uniform_value() for lvalue references available
+#include <intervals/math.hpp>   // to make assign*() and reset() available
 #include <intervals/logic.hpp>  // to make if_else(), maybe() et al. for Boolean arguments available
 
 #include <intervals/detail/set.hpp>
@@ -359,18 +359,62 @@ contingent(set<bool> x) noexcept
 }
 
 
-    // TODO: find different names?
-template <typename T, typename ReflectorT>
-[[nodiscard]] constexpr detail::member_assigner<set<T, ReflectorT>>
-branch_value(set<T, ReflectorT>& x) noexcept
+template <typename T, typename R>
+constexpr void
+assign(set<T, R>& lhs, gsl::type_identity_t<set<T, R>> const& rhs)
 {
-    return detail::member_assigner<set<T, ReflectorT>>(x);
+    gsl_Expects(!lhs.assigned());
+    lhs.reset(rhs);
 }
-template <typename T, typename ReflectorT>
-[[nodiscard]] constexpr detail::member_resetter<set<T, ReflectorT>>
-uniform_value(set<T, ReflectorT>& x) noexcept
+template <typename T, typename R>
+constexpr void
+assign_partial(set<T, R>& lhs, gsl::type_identity_t<set<T, R>> const& rhs)
 {
-    return detail::member_resetter<set<T, ReflectorT>>(x);
+    lhs.assign(rhs);
+}
+template <typename T, typename R>
+constexpr void
+reset(set<T, R>& lhs, gsl::type_identity_t<set<T, R>> const& rhs)
+{
+    lhs.reset(rhs);
+}
+template <typename T, typename R>
+constexpr void
+assign_if(set<bool> cond, set<T, R>& lhs, gsl::type_identity_t<set<T, R>> const& rhs)
+{
+    if (cond.matches(true))
+    {
+        gsl_Expects(!lhs.assigned());
+        lhs.reset(rhs);
+    }
+    else if (cond.matches(set{ false, true }))
+    {
+        lhs.assign(rhs);
+    }
+    else
+    {
+        gsl_Expects(!cond.matches(false));
+        // but just do nothing if `cond.matches(set{ })`
+    }
+}
+template <typename T, typename R>
+constexpr void
+assign_if_not(set<bool> cond, set<T, R>& lhs, gsl::type_identity_t<set<T, R>> const& rhs)
+{
+    if (cond.matches(false))
+    {
+        gsl_Expects(!lhs.assigned());
+        lhs.reset(rhs);
+    }
+    else if (cond.matches(set{ false, true }))
+    {
+        lhs.assign(rhs);
+    }
+    else
+    {
+        gsl_Expects(!cond.matches(true));
+        // but just do nothing if `cond.matches(set{ })`
+    }
 }
 
 
