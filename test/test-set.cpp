@@ -192,6 +192,28 @@ TEST_CASE("set<>", "algebra with bounds")
         CHECK((set{ false       } ^ set{ true        }).matches(set{ true        }));
         CHECK((set{ false       } ^ set{ false, true }).matches(set{ false, true }));
         CHECK((set{ false       } ^ set{ false       }).matches(set{ false       }));
+
+            // ==
+        CHECK((set{ true        } == set{ true        }).matches(set{ true        }));
+        CHECK((set{ true        } == set{ false, true }).matches(set{ false, true }));
+        CHECK((set{ true        } == set{ false       }).matches(set{ false       }));
+        CHECK((set{ false, true } == set{ true        }).matches(set{ false, true }));
+        CHECK((set{ false, true } == set{ false, true }).matches(set{ false, true }));
+        CHECK((set{ false, true } == set{ false       }).matches(set{ false, true }));
+        CHECK((set{ false       } == set{ true        }).matches(set{ false       }));
+        CHECK((set{ false       } == set{ false, true }).matches(set{ false, true }));
+        CHECK((set{ false       } == set{ false       }).matches(set{ true        }));
+
+            // !=
+        CHECK((set{ true        } != set{ true        }).matches(set{ false       }));
+        CHECK((set{ true        } != set{ false, true }).matches(set{ false, true }));
+        CHECK((set{ true        } != set{ false       }).matches(set{ true        }));
+        CHECK((set{ false, true } != set{ true        }).matches(set{ false, true }));
+        CHECK((set{ false, true } != set{ false, true }).matches(set{ false, true }));
+        CHECK((set{ false, true } != set{ false       }).matches(set{ false, true }));
+        CHECK((set{ false       } != set{ true        }).matches(set{ true        }));
+        CHECK((set{ false       } != set{ false, true }).matches(set{ false, true }));
+        CHECK((set{ false       } != set{ false       }).matches(set{ false       }));
     }
     SECTION("Boolean predicates")
     {
@@ -222,6 +244,13 @@ TEST_CASE("set<>", "algebra with bounds")
         CHECK(definitely_not(set{ false }));
         CHECK_FALSE(definitely_not(set{ false, true }));
         CHECK_FALSE(definitely_not(set{ true }));
+
+            // contingent()
+        CHECK_FALSE(intervals::contingent(true));
+        CHECK_FALSE(intervals::contingent(false));
+        CHECK_FALSE(contingent(set{ true }));
+        CHECK(contingent(set{ false, true }));
+        CHECK_FALSE(contingent(set{ false }));
     }
 }
 
