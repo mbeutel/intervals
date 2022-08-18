@@ -14,6 +14,7 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 # Define build options.
 option(BUILD_TESTING "Build tests" OFF)
+option(BUILD_EXAMPLES "Build examples" OFF)
 option(CMAKE_EXPORT_PACKAGE_REGISTRY "Export to user package registry" OFF)
 
 # Include target definitions.
@@ -21,6 +22,9 @@ add_subdirectory(src)
 if(BUILD_TESTING)
     enable_testing()
     add_subdirectory(test)
+endif()
+if(BUILD_EXAMPLES)
+    add_subdirectory(examples)
 endif()
 
 # Install.
