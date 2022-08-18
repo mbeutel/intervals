@@ -74,12 +74,6 @@ private:
         else return hickey_classification::P1;
     }
 
-    constexpr bool
-    _assigned() const
-    {
-        return !(lower_ > upper_);
-    }
-
         // Compute  x⋅y  but impose that  0⋅∞ = 0 .
     static constexpr T
     _multiply_0(T x, T y)
@@ -186,12 +180,18 @@ public:
         gsl_Expects(!(_lower > _upper));  // does not trigger for NaNs
     }
 
+    constexpr bool
+    assigned() const
+    {
+        return !(lower_ > upper_);
+    }
+
     interval(interval const&) = default;
     interval& operator =(interval const&) = delete;
     constexpr interval&
     assign(interval const& rhs)
     {
-        gsl_ExpectsDebug(rhs._assigned());
+        gsl_ExpectsDebug(rhs.assigned());
 
         lower_ = detail::_min(lower_, rhs.lower_);
         upper_ = detail::_max(upper_, rhs.upper_);
@@ -234,14 +234,14 @@ public:
     [[nodiscard]] constexpr T
     lower() const
     {
-        gsl_ExpectsDebug(_assigned());
+        gsl_ExpectsDebug(assigned());
 
         return lower_;
     }
     [[nodiscard]] constexpr T
     upper() const
     {
-        gsl_ExpectsDebug(_assigned());
+        gsl_ExpectsDebug(assigned());
 
         return upper_;
     }
@@ -263,7 +263,7 @@ public:
     [[nodiscard]] constexpr bool
     contains(interval const& rhs) const
     {
-        return _assigned() && rhs.lower_ >= lower_ && rhs.upper_ <= upper_;
+        return assigned() && rhs.lower_ >= lower_ && rhs.upper_ <= upper_;
     }
     [[nodiscard]] constexpr bool
     encloses(T value) const
@@ -289,112 +289,112 @@ public:
     [[nodiscard]] friend constexpr detail::equality_constraint_ll<interval>
     operator ==(interval const& lhs, interval const& rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned() && rhs.assigned());
 
         return { { compare_eq(lhs, rhs) }, lhs, rhs };
     }
     [[nodiscard]] friend constexpr detail::equality_constraint_lr<interval>
     operator ==(interval const& lhs, interval const&& rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned() && rhs.assigned());
 
         return { { compare_eq(lhs, rhs) }, lhs, rhs };
     }
     [[nodiscard]] friend constexpr detail::equality_constraint_lr<interval>
     operator ==(interval const&& lhs, interval const& rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned() && rhs.assigned());
 
         return { { compare_eq(lhs, rhs) }, rhs, lhs };
     }
     [[nodiscard]] friend constexpr set<bool>
     operator ==(interval const&& lhs, interval const&& rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned() && rhs.assigned());
 
         return compare_eq(lhs, rhs);
     }
     [[nodiscard]] friend constexpr detail::equality_constraint_lr<interval>
     operator ==(interval const& lhs, T rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned());
 
         return { { compare_eq(lhs, rhs) }, lhs, { rhs } };
     }
     [[nodiscard]] friend constexpr set<bool>
     operator ==(interval const&& lhs, T rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned());
 
         return compare_eq(lhs, rhs);
     }
     [[nodiscard]] friend constexpr detail::equality_constraint_lr<interval>
     operator ==(T lhs, interval const& rhs)
     {
-        gsl_ExpectsDebug(rhs._assigned());
+        gsl_ExpectsDebug(rhs.assigned());
 
         return { { compare_eq(lhs, rhs) }, rhs, { lhs } };
     }
     [[nodiscard]] friend constexpr set<bool>
     operator ==(T lhs, interval const&& rhs)
     {
-        gsl_ExpectsDebug(rhs._assigned());
+        gsl_ExpectsDebug(rhs.assigned());
 
         return compare_eq(lhs, rhs);
     }
     [[nodiscard]] friend constexpr detail::inequality_constraint_ll<interval>
     operator !=(interval const& lhs, interval const& rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned() && rhs.assigned());
 
         return { { compare_neq(lhs, rhs) }, lhs, rhs };
     }
     [[nodiscard]] friend constexpr detail::inequality_constraint_lr<interval>
     operator !=(interval const& lhs, interval const&& rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned() && rhs.assigned());
 
         return { { compare_neq(lhs, rhs) }, lhs, rhs };
     }
     [[nodiscard]] friend constexpr detail::inequality_constraint_lr<interval>
     operator !=(interval const&& lhs, interval const& rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned() && rhs.assigned());
 
         return { { compare_neq(lhs, rhs) }, rhs, lhs };
     }
     [[nodiscard]] friend constexpr set<bool>
     operator !=(interval const&& lhs, interval const&& rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned() && rhs.assigned());
 
         return compare_neq(lhs, rhs);
     }
     [[nodiscard]] friend constexpr detail::inequality_constraint_lr<interval>
     operator !=(interval const& lhs, T rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned());
 
         return { { compare_neq(lhs, rhs) }, lhs, { rhs } };
     }
     [[nodiscard]] friend constexpr set<bool>
     operator !=(interval const&& lhs, T rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned());
 
         return compare_neq(lhs, rhs);
     }
     [[nodiscard]] friend constexpr detail::inequality_constraint_lr<interval>
     operator !=(T lhs, interval const& rhs)
     {
-        gsl_ExpectsDebug(rhs._assigned());
+        gsl_ExpectsDebug(rhs.assigned());
 
         return { { compare_neq(lhs, rhs) }, rhs, { lhs } };
     }
     [[nodiscard]] friend constexpr set<bool>
     operator !=(T lhs, interval const&& rhs)
     {
-        gsl_ExpectsDebug(rhs._assigned());
+        gsl_ExpectsDebug(rhs.assigned());
 
         return compare_neq(lhs, rhs);
     }
@@ -403,56 +403,56 @@ public:
     [[nodiscard]] friend constexpr detail::ordering_constraint_ll<interval>
     operator <(interval const& lhs, interval const& rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned() && rhs.assigned());
 
         return { { compare_lt(lhs, rhs) }, lhs, rhs };
     }
     [[nodiscard]] friend constexpr detail::ordering_constraint_lr<interval>
     operator <(interval const& lhs, interval const&& rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned() && rhs.assigned());
 
         return { { compare_lt(lhs, rhs) }, lhs, rhs };
     }
     [[nodiscard]] friend constexpr detail::ordering_constraint_rl<interval>
     operator <(interval const&& lhs, interval const& rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned() && rhs.assigned());
 
         return { { compare_lt(lhs, rhs) }, lhs, rhs };
     }
     [[nodiscard]] friend constexpr set<bool>
     operator <(interval const&& lhs, interval const&& rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned() && rhs.assigned());
 
         return compare_lt(lhs, rhs);
     }
     [[nodiscard]] friend constexpr detail::ordering_constraint_lr<interval>
     operator <(interval const& lhs, T rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned());
 
         return { { compare_lt(lhs, rhs) }, lhs, { rhs } };
     }
     [[nodiscard]] friend constexpr set<bool>
     operator <(interval const&& lhs, T rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned());
 
         return compare_lt(lhs, rhs);
     }
     [[nodiscard]] friend constexpr detail::ordering_constraint_rl<interval>
     operator <(T lhs, interval const& rhs)
     {
-        gsl_ExpectsDebug(rhs._assigned());
+        gsl_ExpectsDebug(rhs.assigned());
 
         return { { compare_lt(lhs, rhs) }, { lhs }, rhs };
     }
     [[nodiscard]] friend constexpr set<bool>
     operator <(T lhs, interval const&& rhs)
     {
-        gsl_ExpectsDebug(rhs._assigned());
+        gsl_ExpectsDebug(rhs.assigned());
 
         return compare_lt(lhs, rhs);
     }
@@ -460,56 +460,56 @@ public:
     [[nodiscard]] friend constexpr detail::ordering_constraint_ll<interval>
     operator >(interval const& lhs, interval const& rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned() && rhs.assigned());
 
         return { { compare_lt(rhs, lhs) }, rhs, lhs };
     }
     [[nodiscard]] friend constexpr detail::ordering_constraint_rl<interval>
     operator >(interval const& lhs, interval const&& rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned() && rhs.assigned());
 
         return { { compare_lt(rhs, lhs) }, rhs, lhs };
     }
     [[nodiscard]] friend constexpr detail::ordering_constraint_lr<interval>
     operator >(interval const&& lhs, interval const& rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned() && rhs.assigned());
 
         return { { compare_lt(rhs, lhs) }, rhs, lhs };
     }
     [[nodiscard]] friend constexpr set<bool>
     operator >(interval const&& lhs, interval const&& rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned() && rhs.assigned());
 
         return compare_lt(rhs, lhs);
     }
     [[nodiscard]] friend constexpr detail::ordering_constraint_rl<interval>
     operator >(interval const& lhs, T rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned());
 
         return { { compare_lt(rhs, lhs) }, { rhs }, lhs };
     }
     [[nodiscard]] friend constexpr set<bool>
     operator >(interval const&& lhs, T rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned());
 
         return compare_lt(rhs, lhs);
     }
     [[nodiscard]] friend constexpr detail::ordering_constraint_lr<interval>
     operator >(T lhs, interval const& rhs)
     {
-        gsl_ExpectsDebug(rhs._assigned());
+        gsl_ExpectsDebug(rhs.assigned());
 
         return { { compare_lt(rhs, lhs) }, rhs, { lhs } };
     }
     [[nodiscard]] friend constexpr set<bool>
     operator >(T lhs, interval const&& rhs)
     {
-        gsl_ExpectsDebug(rhs._assigned());
+        gsl_ExpectsDebug(rhs.assigned());
 
         return compare_lt(rhs, lhs);
     }
@@ -517,56 +517,56 @@ public:
     [[nodiscard]] friend constexpr detail::ordering_constraint_ll<interval>
     operator <=(interval const& lhs, interval const& rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned() && rhs.assigned());
 
         return { { compare_leq(lhs, rhs) }, lhs, rhs };
     }
     [[nodiscard]] friend constexpr detail::ordering_constraint_lr<interval>
     operator <=(interval const& lhs, interval const&& rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned() && rhs.assigned());
 
         return { { compare_leq(lhs, rhs) }, lhs, rhs };
     }
     [[nodiscard]] friend constexpr detail::ordering_constraint_rl<interval>
     operator <=(interval const&& lhs, interval const& rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned() && rhs.assigned());
 
         return { { compare_leq(lhs, rhs) }, lhs, rhs };
     }
     [[nodiscard]] friend constexpr set<bool>
     operator <=(interval const&& lhs, interval const&& rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned() && rhs.assigned());
 
         return compare_leq(lhs, rhs);
     }
     [[nodiscard]] friend constexpr detail::ordering_constraint_lr<interval>
     operator <=(interval const& lhs, T rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned());
 
         return { { compare_leq(lhs, rhs) }, lhs, { rhs } };
     }
     [[nodiscard]] friend constexpr set<bool>
     operator <=(interval const&& lhs, T rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned());
 
         return compare_leq(lhs, rhs);
     }
     [[nodiscard]] friend constexpr detail::ordering_constraint_rl<interval>
     operator <=(T lhs, interval const& rhs)
     {
-        gsl_ExpectsDebug(rhs._assigned());
+        gsl_ExpectsDebug(rhs.assigned());
 
         return { { compare_leq(lhs, rhs) }, { lhs }, rhs };
     }
     [[nodiscard]] friend constexpr set<bool>
     operator <=(T lhs, interval const&& rhs)
     {
-        gsl_ExpectsDebug(rhs._assigned());
+        gsl_ExpectsDebug(rhs.assigned());
 
         return compare_leq(lhs, rhs);
     }
@@ -574,56 +574,56 @@ public:
     [[nodiscard]] friend constexpr detail::ordering_constraint_ll<interval>
     operator >=(interval const& lhs, interval const& rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned() && rhs.assigned());
 
         return { { compare_leq(rhs, lhs) }, rhs, lhs };
     }
     [[nodiscard]] friend constexpr detail::ordering_constraint_rl<interval>
     operator >=(interval const& lhs, interval const&& rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned() && rhs.assigned());
 
         return { { compare_leq(rhs, lhs) }, rhs, lhs };
     }
     [[nodiscard]] friend constexpr detail::ordering_constraint_lr<interval>
     operator >=(interval const&& lhs, interval const& rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned() && rhs.assigned());
 
         return { { compare_leq(rhs, lhs) }, rhs, lhs };
     }
     [[nodiscard]] friend constexpr set<bool>
     operator >=(interval const&& lhs, interval const&& rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned() && rhs.assigned());
 
         return compare_leq(rhs, lhs);
     }
     [[nodiscard]] friend constexpr detail::ordering_constraint_rl<interval>
     operator >=(interval const& lhs, T rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned());
 
         return { { compare_leq(rhs, lhs) }, { rhs }, lhs };
     }
     [[nodiscard]] friend constexpr set<bool>
     operator >=(interval const&& lhs, T rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned());
 
         return compare_leq(rhs, lhs);
     }
     [[nodiscard]] friend constexpr detail::ordering_constraint_lr<interval>
     operator >=(T lhs, interval const& rhs)
     {
-        gsl_ExpectsDebug(rhs._assigned());
+        gsl_ExpectsDebug(rhs.assigned());
 
         return { { compare_leq(rhs, lhs) }, rhs, { lhs } };
     }
     [[nodiscard]] friend constexpr set<bool>
     operator >=(T lhs, interval const&& rhs)
     {
-        gsl_ExpectsDebug(rhs._assigned());
+        gsl_ExpectsDebug(rhs.assigned());
 
         return compare_leq(rhs, lhs);
     }
@@ -631,14 +631,14 @@ public:
     [[nodiscard]] friend constexpr interval
     min(interval const& lhs, interval const& rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned() && rhs.assigned());
 
         return interval{ detail::_min(lhs.lower_, rhs.lower_), detail::_min(lhs.upper_, rhs.upper_) };
     }
     [[nodiscard]] friend constexpr interval
     min(interval const& lhs, T rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned());
 
         return interval{ detail::_min(lhs.lower_, rhs), detail::_min(lhs.upper_, rhs) };
     }
@@ -650,14 +650,14 @@ public:
     [[nodiscard]] friend constexpr interval
     max(interval const& lhs, interval const& rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned() && rhs.assigned());
 
         return interval{ detail::_max(lhs.lower_, rhs.lower_), detail::_max(lhs.upper_, rhs.upper_) };
     }
     [[nodiscard]] friend constexpr interval
     max(interval const& lhs, T rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned());
 
         return interval{ detail::_max(lhs.lower_, rhs), detail::_max(lhs.upper_, rhs) };
     }
@@ -670,14 +670,14 @@ public:
     [[nodiscard]] constexpr interval
     operator +() const
     {
-        gsl_ExpectsDebug(_assigned());
+        gsl_ExpectsDebug(assigned());
 
         return *this;
     }
     [[nodiscard]] constexpr interval
     operator -() const
     {
-        gsl_ExpectsDebug(_assigned());
+        gsl_ExpectsDebug(assigned());
 
         return interval{ -upper_, -lower_ };
     }
@@ -685,7 +685,7 @@ public:
     [[nodiscard]] friend constexpr interval
     operator +(interval const& lhs, interval const& rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned() && rhs.assigned());
 
         if ((lhs.lower_ == -inf && rhs.upper_ == inf)
             || ((rhs.lower_ == -inf && lhs.upper_ == inf)))
@@ -707,7 +707,7 @@ public:
     [[nodiscard]] friend constexpr interval
     operator -(interval const& lhs, interval const& rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned() && rhs.assigned());
 
         if ((lhs.lower_ == -inf && rhs.lower_ == -inf)
             || ((lhs.upper_ == inf && rhs.upper_ == inf)))
@@ -719,21 +719,21 @@ public:
     [[nodiscard]] friend constexpr interval
     operator -(T lhs, interval const& rhs)
     {
-        gsl_ExpectsDebug(rhs._assigned());
+        gsl_ExpectsDebug(rhs.assigned());
 
         return interval{ lhs - rhs.upper_, lhs - rhs.lower_ };
     }
     [[nodiscard]] friend constexpr interval
     operator -(interval const& lhs, T rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned());
 
         return interval{ lhs.lower_ - rhs, lhs.upper_ - rhs };
     }
     [[nodiscard]] friend constexpr interval
     operator *(interval const& lhs, interval const& rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned() && rhs.assigned());
 
         if (((lhs.lower_ == -inf || lhs.upper_ == inf) && rhs.contains(T(0)))
             || (lhs.contains(T(0)) && (rhs.lower_ == -inf || rhs.upper_ == inf)))
@@ -749,7 +749,7 @@ public:
     [[nodiscard]] friend constexpr interval
     operator *(T lhs, interval const& rhs)
     {
-        gsl_ExpectsDebug(rhs._assigned());
+        gsl_ExpectsDebug(rhs.assigned());
 
         if (((lhs == -inf || lhs == inf) && rhs.contains(T(0)))
             || (lhs == T(0) && (rhs.lower_ == -inf || rhs.upper_ == inf)))
@@ -801,7 +801,7 @@ public:
     [[nodiscard]] friend constexpr interval
     operator /(interval const& lhs, interval const& rhs)
     {
-        gsl_ExpectsDebug(lhs._assigned() && rhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned() && rhs.assigned());
         
         if ((lhs.lower_ == -inf || lhs.upper_ == inf)  // a = -∞ ∨ b = ∞
             && (rhs.lower_ == -inf || rhs.upper_ == inf))  // c = -∞ ∨ d = ∞
@@ -835,7 +835,7 @@ public:
     {
         using std::isinf;
 
-        gsl_ExpectsDebug(rhs._assigned());
+        gsl_ExpectsDebug(rhs.assigned());
 
         if (isinf(lhs) && (rhs.lower_ == -inf || rhs.upper_ == inf))  // x = ±∞ ∧ (c = -∞ ∨ d = ∞)
         {
@@ -861,7 +861,7 @@ public:
     {
         using std::isinf;
 
-        gsl_ExpectsDebug(lhs._assigned());
+        gsl_ExpectsDebug(lhs.assigned());
 
         if ((lhs.lower_ == -inf || lhs.upper_ == inf) && isinf(rhs))  // (a = -∞ ∨ b = ∞) ∧ y = ±∞
         {
@@ -881,7 +881,7 @@ public:
     [[nodiscard]] friend constexpr interval
     square(interval const& x)
     {
-        gsl_ExpectsDebug(x._assigned());
+        gsl_ExpectsDebug(x.assigned());
 
         return interval{
             x.lower_ <= T{ } && x.upper_ >= T{ }  // 0 ∈ [a, b]
@@ -893,35 +893,35 @@ public:
     [[nodiscard]] friend constexpr interval
     sqrt(interval const& x)
     {
-        gsl_ExpectsDebug(x._assigned());
+        gsl_ExpectsDebug(x.assigned());
 
         return interval{ detail::_sqrt(x.lower_), detail::_sqrt(x.upper_) };
     }
     [[nodiscard]] friend constexpr interval
     cbrt(interval const& x)
     {
-        gsl_ExpectsDebug(x._assigned());
+        gsl_ExpectsDebug(x.assigned());
 
         return interval{ detail::_cbrt(x.lower_), detail::_cbrt(x.upper_) };
     }
     [[nodiscard]] friend constexpr interval
     log(interval const& x)
     {
-        gsl_ExpectsDebug(x._assigned());
+        gsl_ExpectsDebug(x.assigned());
 
         return interval{ detail::_log(x.lower_), detail::_log(x.upper_) };
     }
     [[nodiscard]] friend constexpr interval
     exp(interval const& x)
     {
-        gsl_ExpectsDebug(x._assigned());
+        gsl_ExpectsDebug(x.assigned());
 
         return interval{ detail::_exp(x.lower_), detail::_exp(x.upper_) };
     }
     [[nodiscard]] friend constexpr interval
     pow(interval const& x, interval const& y)
     {
-        gsl_ExpectsDebug(x._assigned() && y._assigned());
+        gsl_ExpectsDebug(x.assigned() && y.assigned());
 
         interval result;
         if (maybe(x >= T(0)))
@@ -946,7 +946,7 @@ public:
     [[nodiscard]] friend constexpr interval
     pow(interval const& x, T y)
     {
-        gsl_ExpectsDebug(x._assigned());
+        gsl_ExpectsDebug(x.assigned());
 
         interval result;
         if (maybe(x >= T(0)))
@@ -971,7 +971,7 @@ public:
     [[nodiscard]] friend constexpr interval
     pow(T x, interval const& y)
     {
-        gsl_ExpectsDebug(y._assigned());
+        gsl_ExpectsDebug(y.assigned());
 
         if (x >= T(0))
         {
@@ -995,7 +995,7 @@ public:
     [[nodiscard]] friend constexpr interval
     cos(interval const& x)
     {
-        gsl_ExpectsDebug(x._assigned());
+        gsl_ExpectsDebug(x.assigned());
 
         auto lo = intervals::wraparound(x.lower_, -std::numbers::pi_v<T>, std::numbers::pi_v<T>);
         auto delta = lo - x.lower_;
@@ -1032,7 +1032,7 @@ public:
     [[nodiscard]] friend constexpr interval
     tan(interval const& x)
     {
-        gsl_ExpectsDebug(x._assigned());
+        gsl_ExpectsDebug(x.assigned());
 
         auto lo = intervals::wraparound(x.lower_, -std::numbers::pi_v<T>/2, std::numbers::pi_v<T>/2);
         auto delta = lo - x.lower_;
@@ -1046,28 +1046,28 @@ public:
     [[nodiscard]] friend constexpr interval
     acos(interval const& x)
     {
-        gsl_ExpectsDebug(x._assigned());
+        gsl_ExpectsDebug(x.assigned());
 
         return interval{ detail::_acos(x.upper_), detail::_acos(x.lower_) };
     }
     [[nodiscard]] friend constexpr interval
     asin(interval const& x)
     {
-        gsl_ExpectsDebug(x._assigned());
+        gsl_ExpectsDebug(x.assigned());
 
         return interval{ detail::_asin(x.lower_), detail::_asin(x.upper_) };
     }
     [[nodiscard]] friend constexpr interval
     atan(interval const& x)
     {
-        gsl_ExpectsDebug(x._assigned());
+        gsl_ExpectsDebug(x.assigned());
 
         return interval{ detail::_atan(x.lower_), detail::_atan(x.upper_) };
     }
     [[nodiscard]] friend constexpr interval
     atan2(interval const& y, interval const& x)
     {
-        gsl_ExpectsDebug(y._assigned() && x._assigned());
+        gsl_ExpectsDebug(y.assigned() && x.assigned());
 
         if (x.lower_ <= T(0) && y.contains(T(0)))
         {
@@ -1082,7 +1082,7 @@ public:
     [[nodiscard]] friend constexpr interval
     atan2(interval const& y, T x)
     {
-        gsl_ExpectsDebug(y._assigned());
+        gsl_ExpectsDebug(y.assigned());
 
         if (x <= T(0) && y.contains(T(0)))
         {
@@ -1095,7 +1095,7 @@ public:
     [[nodiscard]] friend constexpr interval
     atan2(T y, interval const& x)
     {
-        gsl_ExpectsDebug(x._assigned());
+        gsl_ExpectsDebug(x.assigned());
 
         if (x.lower_ <= T(0) && y == T(0))
         {
@@ -1109,21 +1109,21 @@ public:
     [[nodiscard]] friend constexpr interval
     floor(interval const& x)
     {
-        gsl_ExpectsDebug(x._assigned());
+        gsl_ExpectsDebug(x.assigned());
 
         return interval{ detail::_floor(x.lower_), detail::_floor(x.upper_) };
     }
     [[nodiscard]] friend constexpr interval
     ceil(interval const& x)
     {
-        gsl_ExpectsDebug(x._assigned());
+        gsl_ExpectsDebug(x.assigned());
 
         return interval{ detail::_ceil(x.lower_), detail::_ceil(x.upper_) };
     }
     [[nodiscard]] friend constexpr interval
     frac(interval const& x)
     {
-        gsl_ExpectsDebug(x._assigned());
+        gsl_ExpectsDebug(x.assigned());
 
         T lfloor = detail::_floor(x.lower_);
         T ufloor = detail::_floor(x.upper_);
@@ -1137,7 +1137,7 @@ public:
     [[nodiscard]] friend constexpr std::pair<interval, interval>
     fractional_weights(interval a, interval b)
     {
-        gsl_ExpectsDebug(a._assigned() && b._assigned());
+        gsl_ExpectsDebug(a.assigned() && b.assigned());
         gsl_ExpectsDebug((a >= 0).matches(true));
         gsl_ExpectsDebug((b >= 0).matches(true));
         gsl_ExpectsDebug((a + b > 0).matches(true));
@@ -1151,7 +1151,7 @@ public:
     [[nodiscard]] friend constexpr interval
     abs(interval const& x)
     {
-        gsl_ExpectsDebug(x._assigned());
+        gsl_ExpectsDebug(x.assigned());
 
         return x.lower_ <= T(0) && x.upper_ >= T(0)             // if  0 ∈ [a,b] :
             ? interval{ T(0), detail::_max(-x.lower_, x.upper_) }  //     → [0, max{-a,b}]
@@ -1163,7 +1163,7 @@ public:
     [[nodiscard]] friend constexpr set<sign>
     sgn(interval const& x)
     {
-        gsl_ExpectsDebug(x._assigned());
+        gsl_ExpectsDebug(x.assigned());
 
         auto result = set<sign>{ };
         if (maybe(x > T(0)))
@@ -1186,7 +1186,7 @@ public:
     {
         using std::isinf;
 
-        gsl_ExpectsDebug(x._assigned());
+        gsl_ExpectsDebug(x.assigned());
 
         auto result = set<bool>{ };
         if (isinf(x.lower_) || isinf(x.upper_))
@@ -1209,7 +1209,7 @@ public:
     {
         using std::isnan;
 
-        gsl_ExpectsDebug(x._assigned());
+        gsl_ExpectsDebug(x.assigned());
 
         if (isnan(x.lower_) || isnan(x.upper_))
         {
