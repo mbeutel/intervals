@@ -229,7 +229,7 @@ template <typename ElemT, typename TraitsT, typename T, typename ReflectorT>
 std::basic_ostream<ElemT, TraitsT>&
 operator <<(std::basic_ostream<ElemT, TraitsT>& stream, set<T, ReflectorT> const& x)
 {
-    stream << ElemT('{');
+    stream << ElemT('{') << ElemT(' ');
     bool first = true;
     for (gsl::index i = 0, n = x.values.size(); i != n; ++i)
     {
@@ -246,7 +246,7 @@ operator <<(std::basic_ostream<ElemT, TraitsT>& stream, set<T, ReflectorT> const
             stream << x.values[i];
         }
     }
-    stream << ElemT('}');
+    stream << ElemT(' ') << ElemT('}');
     return stream;
 }
 
@@ -393,7 +393,7 @@ assign_if(set<bool> cond, set<T, R>& lhs, gsl::type_identity_t<set<T, R>> const&
     }
     else
     {
-        gsl_Expects(!cond.matches(false));
+        //gsl_Expects(!cond.matches(false));
         // but just do nothing if `cond.matches(set{ })`
     }
 }
@@ -412,7 +412,7 @@ assign_if_not(set<bool> cond, set<T, R>& lhs, gsl::type_identity_t<set<T, R>> co
     }
     else
     {
-        gsl_Expects(!cond.matches(true));
+        //gsl_Expects(!cond.matches(true));
         // but just do nothing if `cond.matches(set{ })`
     }
 }

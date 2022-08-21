@@ -1308,7 +1308,7 @@ assign_if(set<bool> cond, interval<T>& lhs, gsl::type_identity_t<interval<T>> co
     }
     else
     {
-        gsl_Expects(!cond.matches(false));
+        //gsl_Expects(!cond.matches(false));
         // but just do nothing if `cond.matches(set{ })`
     }
 }
@@ -1327,7 +1327,7 @@ assign_if_not(set<bool> cond, interval<T>& lhs, gsl::type_identity_t<interval<T>
     }
     else
     {
-        gsl_Expects(!cond.matches(true));
+        //gsl_Expects(!cond.matches(true));
         // but just do nothing if `cond.matches(set{ })`
     }
 }
@@ -1386,7 +1386,7 @@ requires detail::non_const<T> && detail::not_instantiation_of<T, interval>
     }
     else
     {
-        gsl_Expects(!cond.matches(false));
+        //gsl_Expects(!cond.matches(false));
         // but just do nothing if `cond.matches(set{ })`
     }
 }
@@ -1405,7 +1405,7 @@ requires detail::non_const<T> && detail::not_instantiation_of<T, interval>
     }
     else
     {
-        gsl_Expects(!cond.matches(true));
+        //gsl_Expects(!cond.matches(true));
         // but just do nothing if `cond.matches(set{ })`
     }
 }
