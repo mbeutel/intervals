@@ -41,21 +41,28 @@ target_link_libraries(test-intervals
         intervals
 )
 target_precompile_headers(test-intervals
-    INTERFACE
+    PRIVATE
         # C standard library
-        <cstddef>
-        <cstdint>
+        <cmath>
         # C++ standard library
         <array>
-        <tuple>
+        <bitset>
         <iosfwd>
+        <limits>
+        <compare>
+        <numbers>
         <utility>
-        <iterator>
-        <exception>
+        <concepts>
+        <algorithm>
         <type_traits>
+        <initializer_list>
         # other libraries
         <gsl-lite/gsl-lite.hpp>
-        #<catch2/catch_test_macros.hpp>
+        <fmt/core.h>
+        <fmt/ostream.h>
+        <makeshift/concepts.hpp>
+        <makeshift/type_traits.hpp>
+        <catch2/catch_test_macros.hpp>
 )
 cmakeshift_target_compile_settings(test-intervals
     SOURCE_FILE_ENCODING "UTF-8"
