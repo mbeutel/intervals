@@ -1,5 +1,7 @@
 
 #include <array>
+#include <functional>
+#include <initializer_list>
 
 #include <gsl-lite/gsl-lite.hpp>  // for fail_fast, type_identity<>
 
@@ -19,6 +21,28 @@ consteval auto
 reflect(gsl::type_identity<Color>)
 {
     return std::array{ red, green, blue };
+}
+
+
+template <typename F>
+intervals::set<bool>
+collect(intervals::set<bool> x, intervals::set<bool> y, F&& func)
+{
+    auto result = intervals::set<bool>{ };
+    for (bool cx : { false, true })
+    {
+        if (x.contains(cx))
+        {
+            for (bool cy : { false, true })
+            {
+                if (y.contains(cy))
+                {
+                    result.assign(func(x, y));
+                }
+            }
+        }
+    }
+    return result;
 }
 
 
@@ -156,67 +180,242 @@ TEST_CASE("set<>", "algebra with bounds")
             CHECK(svalue.value() == value);
         }
     }
-    SECTION("Boolean operators")
+    SECTION("negation")
     {
             // !
         CHECK((!set{ true        }).matches(set{ false       }));
         CHECK((!set{ false       }).matches(set{ true        }));
         CHECK((!set{ false, true }).matches(set{ false, true }));
-
-            // &
-        CHECK((set{ true        } & set{ true        }).matches(set{ true        }));
-        CHECK((set{ true        } & set{ false, true }).matches(set{ false, true }));
-        CHECK((set{ true        } & set{ false       }).matches(set{ false       }));
-        CHECK((set{ false, true } & set{ true        }).matches(set{ false, true }));
-        CHECK((set{ false, true } & set{ false, true }).matches(set{ false, true }));
-        CHECK((set{ false, true } & set{ false       }).matches(set{ false       }));
-        CHECK((set{ false       } & set{ true        }).matches(set{ false       }));
-        CHECK((set{ false       } & set{ false, true }).matches(set{ false       }));
-        CHECK((set{ false       } & set{ false       }).matches(set{ false       }));
-
-            // |
-        CHECK((set{ true        } | set{ true        }).matches(set{ true        }));
-        CHECK((set{ true        } | set{ false, true }).matches(set{ true        }));
-        CHECK((set{ true        } | set{ false       }).matches(set{ true        }));
-        CHECK((set{ false, true } | set{ true        }).matches(set{ true        }));
-        CHECK((set{ false, true } | set{ false, true }).matches(set{ false, true }));
-        CHECK((set{ false, true } | set{ false       }).matches(set{ false, true }));
-        CHECK((set{ false       } | set{ true        }).matches(set{ true        }));
-        CHECK((set{ false       } | set{ false, true }).matches(set{ false, true }));
-        CHECK((set{ false       } | set{ false       }).matches(set{ false       }));
-
-            // ^
-        CHECK((set{ true        } ^ set{ true        }).matches(set{ false       }));
-        CHECK((set{ true        } ^ set{ false, true }).matches(set{ false, true }));
-        CHECK((set{ true        } ^ set{ false       }).matches(set{ true        }));
-        CHECK((set{ false, true } ^ set{ true        }).matches(set{ false, true }));
-        CHECK((set{ false, true } ^ set{ false, true }).matches(set{ false, true }));
-        CHECK((set{ false, true } ^ set{ false       }).matches(set{ false, true }));
-        CHECK((set{ false       } ^ set{ true        }).matches(set{ true        }));
-        CHECK((set{ false       } ^ set{ false, true }).matches(set{ false, true }));
-        CHECK((set{ false       } ^ set{ false       }).matches(set{ false       }));
-
-            // ==
-        CHECK((set{ true        } == set{ true        }).matches(set{ true        }));
-        CHECK((set{ true        } == set{ false, true }).matches(set{ false, true }));
-        CHECK((set{ true        } == set{ false       }).matches(set{ false       }));
-        CHECK((set{ false, true } == set{ true        }).matches(set{ false, true }));
-        CHECK((set{ false, true } == set{ false, true }).matches(set{ false, true }));
-        CHECK((set{ false, true } == set{ false       }).matches(set{ false, true }));
-        CHECK((set{ false       } == set{ true        }).matches(set{ false       }));
-        CHECK((set{ false       } == set{ false, true }).matches(set{ false, true }));
-        CHECK((set{ false       } == set{ false       }).matches(set{ true        }));
-
-            // !=
-        CHECK((set{ true        } != set{ true        }).matches(set{ false       }));
-        CHECK((set{ true        } != set{ false, true }).matches(set{ false, true }));
-        CHECK((set{ true        } != set{ false       }).matches(set{ true        }));
-        CHECK((set{ false, true } != set{ true        }).matches(set{ false, true }));
-        CHECK((set{ false, true } != set{ false, true }).matches(set{ false, true }));
-        CHECK((set{ false, true } != set{ false       }).matches(set{ false, true }));
-        CHECK((set{ false       } != set{ true        }).matches(set{ true        }));
-        CHECK((set{ false       } != set{ false, true }).matches(set{ false, true }));
-        CHECK((set{ false       } != set{ false       }).matches(set{ false       }));
+    }
+    SECTION("mixed binary logical operators")
+    {
+        auto x = GENERATE(false, true);
+        auto y = GENERATE(set{ false }, set{ true }, set{ false, true });
+        CAPTURE(x);
+        CAPTURE(y);
+        {
+            INFO("operation: x & y");
+            auto z = x & y;
+            auto zc = collect(x, y, std::bit_and<>{ });
+            CAPTURE(z);
+            CAPTURE(zc);
+            CHECK(z.matches(zc));
+        }
+        {
+            INFO("operation: y & x");
+            auto z = y & x;
+            auto zc = collect(y, x, std::bit_and<>{ });
+            CAPTURE(z);
+            CAPTURE(zc);
+            CHECK(z.matches(zc));
+        }
+        {
+            INFO("operation: x | y");
+            auto z = x | y;
+            auto zc = collect(x, y, std::bit_or<>{ });
+            CAPTURE(z);
+            CAPTURE(zc);
+            CHECK(z.matches(zc));
+        }
+        {
+            INFO("operation: y | x");
+            auto z = y | x;
+            auto zc = collect(y, x, std::bit_or<>{ });
+            CAPTURE(z);
+            CAPTURE(zc);
+            CHECK(z.matches(zc));
+        }
+        {
+            INFO("operation: x ^ y");
+            auto z = x ^ y;
+            auto zc = collect(x, y, std::bit_xor<>{ });
+            CAPTURE(z);
+            CAPTURE(zc);
+            CHECK(z.matches(zc));
+        }
+        {
+            INFO("operation: y ^ x");
+            auto z = y ^ x;
+            auto zc = collect(y, x, std::bit_xor<>{ });
+            CAPTURE(z);
+            CAPTURE(zc);
+            CHECK(z.matches(zc));
+        }
+        {
+            INFO("operation: x == y");
+            auto z = x == y;
+            auto zc = collect(x, y, std::equal_to<>{ });
+            CAPTURE(z);
+            CAPTURE(zc);
+            CHECK(z.matches(zc));
+        }
+        {
+            INFO("operation: y == x");
+            auto z = y == x;
+            auto zc = collect(y, x, std::equal_to<>{ });
+            CAPTURE(z);
+            CAPTURE(zc);
+            CHECK(z.matches(zc));
+        }
+        {
+            INFO("operation: x != y");
+            auto z = x != y;
+            auto zc = collect(x, y, std::not_equal_to<>{ });
+            CAPTURE(z);
+            CAPTURE(zc);
+            CHECK(z.matches(zc));
+        }
+        {
+            INFO("operation: y != x");
+            auto z = y != x;
+            auto zc = collect(y, x, std::not_equal_to<>{ });
+            CAPTURE(z);
+            CAPTURE(zc);
+            CHECK(z.matches(zc));
+        }
+        {
+            INFO("operation: x <= y");
+            auto z = x <= y;
+            auto zc = collect(x, y, std::less_equal<>{ });
+            CAPTURE(z);
+            CAPTURE(zc);
+            CHECK(z.matches(zc));
+        }
+        {
+            INFO("operation: y <= x");
+            auto z = y <= x;
+            auto zc = collect(y, x, std::less_equal<>{ });
+            CAPTURE(z);
+            CAPTURE(zc);
+            CHECK(z.matches(zc));
+        }
+        {
+            INFO("operation: x < y");
+            auto z = x < y;
+            auto zc = collect(x, y, std::less<>{ });
+            CAPTURE(z);
+            CAPTURE(zc);
+            CHECK(z.matches(zc));
+        }
+        {
+            INFO("operation: y < x");
+            auto z = y < x;
+            auto zc = collect(y, x, std::less<>{ });
+            CAPTURE(z);
+            CAPTURE(zc);
+            CHECK(z.matches(zc));
+        }
+        {
+            INFO("operation: x >= y");
+            auto z = x >= y;
+            auto zc = collect(x, y, std::greater_equal<>{ });
+            CAPTURE(z);
+            CAPTURE(zc);
+            CHECK(z.matches(zc));
+        }
+        {
+            INFO("operation: y >= x");
+            auto z = y >= x;
+            auto zc = collect(y, x, std::greater_equal<>{ });
+            CAPTURE(z);
+            CAPTURE(zc);
+            CHECK(z.matches(zc));
+        }
+        {
+            INFO("operation: x > y");
+            auto z = x > y;
+            auto zc = collect(x, y, std::greater<>{ });
+            CAPTURE(z);
+            CAPTURE(zc);
+            CHECK(z.matches(zc));
+        }
+        {
+            INFO("operation: y > x");
+            auto z = y > x;
+            auto zc = collect(y, x, std::greater<>{ });
+            CAPTURE(z);
+            CAPTURE(zc);
+            CHECK(z.matches(zc));
+        }
+    }
+    SECTION("binary logical operators")
+    {
+        auto x = GENERATE(set{ false }, set{ true }, set{ false, true });
+        auto y = GENERATE(set{ false }, set{ true }, set{ false, true });
+        CAPTURE(x);
+        CAPTURE(y);
+        {
+            INFO("operation: x & y");
+            auto z = x & y;
+            auto zc = collect(x, y, std::bit_and<>{ });
+            CAPTURE(z);
+            CAPTURE(zc);
+            CHECK(z.matches(zc));
+        }
+        {
+            INFO("operation: x | y");
+            auto z = x | y;
+            auto zc = collect(x, y, std::bit_or<>{ });
+            CAPTURE(z);
+            CAPTURE(zc);
+            CHECK(z.matches(zc));
+        }
+        {
+            INFO("operation: x ^ y");
+            auto z = x ^ y;
+            auto zc = collect(x, y, std::bit_xor<>{ });
+            CAPTURE(z);
+            CAPTURE(zc);
+            CHECK(z.matches(zc));
+        }
+        {
+            INFO("operation: x == y");
+            auto z = x == y;
+            auto zc = collect(x, y, std::equal_to<>{ });
+            CAPTURE(z);
+            CAPTURE(zc);
+            CHECK(z.matches(zc));
+        }
+        {
+            INFO("operation: x != y");
+            auto z = x != y;
+            auto zc = collect(x, y, std::not_equal_to<>{ });
+            CAPTURE(z);
+            CAPTURE(zc);
+            CHECK(z.matches(zc));
+        }
+        {
+            INFO("operation: x <= y");
+            auto z = x <= y;
+            auto zc = collect(x, y, std::less_equal<>{ });
+            CAPTURE(z);
+            CAPTURE(zc);
+            CHECK(z.matches(zc));
+        }
+        {
+            INFO("operation: x < y");
+            auto z = x < y;
+            auto zc = collect(x, y, std::less<>{ });
+            CAPTURE(z);
+            CAPTURE(zc);
+            CHECK(z.matches(zc));
+        }
+        {
+            INFO("operation: x >= y");
+            auto z = x >= y;
+            auto zc = collect(x, y, std::greater_equal<>{ });
+            CAPTURE(z);
+            CAPTURE(zc);
+            CHECK(z.matches(zc));
+        }
+        {
+            INFO("operation: x > y");
+            auto z = x > y;
+            auto zc = collect(x, y, std::greater<>{ });
+            CAPTURE(z);
+            CAPTURE(zc);
+            CHECK(z.matches(zc));
+        }
     }
     SECTION("Boolean predicates")
     {

@@ -34,6 +34,14 @@ namespace detail {
 //       2 | 0  1  2  3       2 | 0  2  2  2       2 | 0  2  1  3       3 | 3        2 | 0  1  2  3       2 | 0  2  1  3
 //       3 | 0  1  3  3       3 | 0  3  2  3       3 | 0  3  3  3                    3 | 0  3  3  3       3 | 0  3  3  3
 //
+//      ≥  |     y           >  |     y
+//         | 0  1  2  3         | 0  1  2  3
+//     ————+————————————    ————+————————————
+//       0 | 0  0  0  0       0 | 0  0  0  0
+//     x 1 | 0  2  1  3     x 1 | 0  1  1  1
+//       2 | 0  2  2  2       2 | 0  2  1  3
+//       3 | 0  2  2  3       3 | 0  3  1  3
+//
 // The following constants are essentially 32-bit look-up tables for truth values, which we use for efficient implementation
 // of 4-valued logic.
 //
@@ -44,6 +52,8 @@ constexpr std::uint32_t lut_4vK_or  = 0b11'10'11'00'10'10'10'00'11'10'01'00'00'0
 constexpr std::uint32_t lut_4vK_xor = 0b11'11'11'00'11'01'10'00'11'10'01'00'00'00'00'00u;
 constexpr std::uint32_t lut_4vK_eq  = 0b11'11'11'00'11'10'01'00'11'01'10'00'00'00'00'00u;
 constexpr std::uint32_t lut_4vK_neq = 0b11'11'11'00'11'01'10'00'11'10'01'00'00'00'00'00u;  // `== lut_4vK_xor`
+constexpr std::uint32_t lut_4vK_geq = 0b11'10'11'00'10'10'01'00'10'10'10'00'00'00'00'00u;
+constexpr std::uint32_t lut_4vK_gt  = 0b11'11'01'00'01'01'01'00'11'10'01'00'00'00'00'00u;
 //                                  x: | 3  2  1  0|
 constexpr std::uint8_t  lut_4vK_not = 0b11'01'10'00u;
 

@@ -269,6 +269,90 @@ set<bool> operator ||(bool, set<bool>) = delete;
 set<bool> operator ||(set<bool>, bool) = delete;
 
 [[nodiscard]] constexpr set<bool>
+operator >=(set<bool> x, set<bool> y)
+{
+    gsl_ExpectsDebug(x.assigned() && y.assigned());
+
+    return set<bool>::from_bits((detail::lut_4vK_geq >> (2*x.to_bits() + 8*y.to_bits())) & 0b11u);
+}
+[[nodiscard]] constexpr set<bool>
+operator >=(set<bool> x, bool y)
+{
+    gsl_ExpectsDebug(x.assigned());
+
+    return set<bool>::from_bits((detail::lut_4vK_geq >> (2*x.to_bits() + 8*(1 + int(y)))) & 0b11u);
+}
+[[nodiscard]] constexpr set<bool>
+operator >=(bool x, set<bool> y)
+{
+    gsl_ExpectsDebug(y.assigned());
+
+    return set<bool>::from_bits((detail::lut_4vK_geq >> (2*(1 + int(x)) + 8*y.to_bits())) & 0b11u);
+}
+[[nodiscard]] constexpr set<bool>
+operator >(set<bool> x, set<bool> y)
+{
+    gsl_ExpectsDebug(x.assigned() && y.assigned());
+
+    return set<bool>::from_bits((detail::lut_4vK_gt >> (2*x.to_bits() + 8*y.to_bits())) & 0b11u);
+}
+[[nodiscard]] constexpr set<bool>
+operator >(set<bool> x, bool y)
+{
+    gsl_ExpectsDebug(x.assigned());
+
+    return set<bool>::from_bits((detail::lut_4vK_gt >> (2*x.to_bits() + 8*(1 + int(y)))) & 0b11u);
+}
+[[nodiscard]] constexpr set<bool>
+operator >(bool x, set<bool> y)
+{
+    gsl_ExpectsDebug(y.assigned());
+
+    return set<bool>::from_bits((detail::lut_4vK_gt >> (2*(1 + int(x)) + 8*y.to_bits())) & 0b11u);
+}
+[[nodiscard]] constexpr set<bool>
+operator <=(set<bool> x, set<bool> y)
+{
+    gsl_ExpectsDebug(x.assigned() && y.assigned());
+
+    return set<bool>::from_bits((detail::lut_4vK_geq >> (2*y.to_bits() + 8*x.to_bits())) & 0b11u);
+}
+[[nodiscard]] constexpr set<bool>
+operator <=(set<bool> x, bool y)
+{
+    gsl_ExpectsDebug(x.assigned());
+
+    return set<bool>::from_bits((detail::lut_4vK_geq >> (2*(1 + int(y)) + 8*x.to_bits())) & 0b11u);
+}
+[[nodiscard]] constexpr set<bool>
+operator <=(bool x, set<bool> y)
+{
+    gsl_ExpectsDebug(y.assigned());
+
+    return set<bool>::from_bits((detail::lut_4vK_geq >> (2*y.to_bits() + 8*(1 + int(x)))) & 0b11u);
+}
+[[nodiscard]] constexpr set<bool>
+operator <(set<bool> x, set<bool> y)
+{
+    gsl_ExpectsDebug(x.assigned() && y.assigned());
+
+    return set<bool>::from_bits((detail::lut_4vK_gt >> (2*y.to_bits() + 8*x.to_bits())) & 0b11u);
+}
+[[nodiscard]] constexpr set<bool>
+operator <(set<bool> x, bool y)
+{
+    gsl_ExpectsDebug(x.assigned());
+
+    return set<bool>::from_bits((detail::lut_4vK_gt >> (2*(1 + int(y)) + 8*x.to_bits())) & 0b11u);
+}
+[[nodiscard]] constexpr set<bool>
+operator <(bool x, set<bool> y)
+{
+    gsl_ExpectsDebug(y.assigned());
+
+    return set<bool>::from_bits((detail::lut_4vK_gt >> (2*y.to_bits() + 8*(1 + int(x)))) & 0b11u);
+}
+[[nodiscard]] constexpr set<bool>
 operator &(set<bool> x, set<bool> y)
 {
     gsl_ExpectsDebug(x.assigned() && y.assigned());
