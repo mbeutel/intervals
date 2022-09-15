@@ -707,7 +707,7 @@ TEST_CASE("interval<>", "interval arithmetic")
 
         SECTION("scalar")
         {
-            auto a = GENERATE(-inf, -1., 0., 1.);
+            auto a = GENERATE(-inf, -1., 0., 1., 2.);
             auto b = 2.;
             auto x = GENERATE(-2., -1., 0., 1., 2., 3.);
             CAPTURE(x);
@@ -1223,6 +1223,787 @@ TEST_CASE("interval<>", "interval arithmetic")
         {
             auto m = maxG(interval{ 0., 4. }, interval{ 1., 3. });
             auto mE = interval{ 1., 4. };
+            CAPTURE(m);
+            CAPTURE(mE);
+            CHECK(m.matches(mE));
+        }
+    }
+}
+TEST_CASE("interval<int>", "interval arithmetic")
+{
+    using intervals::set;
+    using intervals::interval;
+
+    SECTION("value()")
+    {
+        CHECK(interval{ 1, 1 }.value() == 1);
+        CHECK_THROWS_AS(interval<int>{ }.value(), gsl::fail_fast);
+        CHECK_THROWS_AS((interval{ 1, 2 }.value()), gsl::fail_fast);
+    }
+    SECTION("mixed relational operators")
+    {
+        auto [xbelow, a, xin, b, xabove] = GENERATE_COPY(
+            //          below   a       in      b       above
+            std::array{ -200,   -150,   -150,   -150,   -100 },
+            std::array{ -200,   -150,   -100,    -10,      0 },
+            std::array{ -200,   -150,   -100,      0,     50 },
+            std::array{ -200,   -150,      0,    100,    200 },
+            std::array{ -200,      0,      0,      0,    100 },
+            std::array{ -200,      0,     10,    100,    150 },
+            std::array{ -200,     10,     10,     10,    100 },
+            std::array{    0,     10,     10,     10,    100 },
+            std::array{    1,     10,     10,     10,    100 },
+            std::array{ -200,     10,    100,    200,    300 }
+        );
+        auto x = interval{ a, b };
+        CAPTURE(x);
+
+        CHECK(definitely(xbelow < x));
+        CHECK(!maybe(xbelow >= x));
+        CHECK(definitely(a <= x));
+        CHECK(!maybe(a > x));
+        CHECK(maybe(xin <= x));
+        CHECK(!definitely(xin > x));
+        CHECK(maybe(xin >= x));
+        CHECK(!definitely(xin < x));
+        CHECK(definitely(b >= x));
+        CHECK(!maybe(b < x));
+        CHECK(definitely(xabove > x));
+        CHECK(!maybe(xabove <= x));
+    }
+
+    // The `interval<>` type implements the transposition of the  min/max  operator and an unary/binary algebraic function, i.e.
+    //
+    //     x ∈ I := [a, b]
+    //     y ∈ J := [c, d]
+    //     fₘᵢₙ(I) := min{ f(x) | x ∈ I }
+    //     fₘₐₓ(I) := max{ f(x) | x ∈ I }
+    //     gₘᵢₙ(I, J) := min{ g(x, y) | x ∈ I, y ∈ J }
+    //     gₘₐₓ(I, J) := max{ g(x, y) | x ∈ I, y ∈ J } .
+    //
+    // For monotonic functions  f, g  , this can be simplified to
+    //
+    //     fₘᵢₙ(I) = min{ f(a); f(b) }
+    //     fₘₐₓ(I) = max{ f(a); f(b) }
+    //     gₘᵢₙ(I, J) = min{ g(a, c); g(a, d); g(b, c); g(b, d) }
+    //     gₘₐₓ(I, J) = max{ g(a, c); g(a, d); g(b, c); g(b, d) } .
+    //
+    // We use this definition to write property-based tests for the operations of the `interval<>` type.
+
+    SECTION("unary operators")
+    {
+        auto [xbelow, a, xin, b, xabove] = GENERATE_COPY(
+            //          below   a       in      b       above
+            std::array{ -200,   -150,   -150,   -150,   -100 },
+            std::array{ -200,   -150,   -100,    -10,      0 },
+            std::array{ -200,   -150,   -100,      0,     50 },
+            std::array{ -200,   -150,      0,    100,    200 },
+            std::array{ -200,      0,      0,      0,    100 },
+            std::array{ -200,      0,     10,    100,    150 },
+            std::array{ -200,     10,     10,     10,    100 },
+            std::array{    0,     10,     10,     10,    100 },
+            std::array{    1,     10,     10,     10,    100 },
+            std::array{ -200,     10,    100,    200,    300 }
+        );
+        auto x = interval{ a, b };
+        CAPTURE(x);
+
+        SECTION("operator -")
+        {
+            CHECK((-x).lower() == std::min(-a, -b));
+            CHECK((-x).upper() == std::max(-a, -b));
+        }
+        SECTION("square()")
+        {
+            if (a <= 0 && b >= 0)  //  0 ∈ [a, b]
+            {
+                CHECK(square(x).lower() == 0);
+            }
+            else  //  0 ∉ [a, b]
+            {
+                CHECK(square(x).lower() == std::min(intervals::square(a), intervals::square(b)));
+            }
+            CHECK(square(x).upper() == std::max(intervals::square(a), intervals::square(b)));
+        }
+        SECTION("sgn()")
+        {
+            CHECK(maybe(sgn(x) == intervals::positive_sign) == maybe(x > 0));
+            CHECK(maybe(sgn(x) == intervals::zero_sign) == maybe(x == 0));
+            CHECK(maybe(sgn(x) == intervals::negative_sign) == maybe(x < 0));
+        }
+    }
+    SECTION("binary operators")
+    {
+        auto [xbelow, a, xin, b, xabove] = GENERATE_COPY(
+            //          below   a       in      b       above
+            std::array{ -200,   -150,   -150,   -150,   -100 },
+            std::array{ -200,   -150,   -100,    -10,      0 },
+            std::array{ -200,   -150,   -100,      0,     50 },
+            std::array{ -200,   -150,      0,    100,    200 },
+            std::array{ -200,      0,      0,      0,    100 },
+            std::array{ -200,      0,     10,    100,    150 },
+            std::array{ -200,     10,     10,     10,    100 },
+            std::array{    0,     10,     10,     10,    100 },
+            std::array{    1,     10,     10,     10,    100 },
+            std::array{ -200,     10,    100,    200,    300 }
+        );
+        auto x = interval{ a, b };
+        CAPTURE(x);
+        auto [ybelow, c, yin, d, yabove] = GENERATE_COPY(
+            //          below   a       in      b       above
+            std::array{ -200,   -150,   -150,   -150,   -100 },
+            std::array{ -200,   -150,   -100,    -10,      0 },
+            std::array{ -200,   -150,   -100,      0,     50 },
+            std::array{ -200,   -150,      0,    100,    200 },
+            std::array{ -200,      0,      0,      0,    100 },
+            std::array{ -200,      0,     10,    100,    150 },
+            std::array{ -200,     10,     10,     10,    100 },
+            std::array{    0,     10,     10,     10,    100 },
+            std::array{    1,     10,     10,     10,    100 },
+            std::array{ -200,     10,    100,    200,    300 }
+        );
+        auto y = interval{ c, d };
+        CAPTURE(y);
+
+        SECTION("operator +")
+        {
+            auto z = x + y;
+            CAPTURE(z);
+            CHECK(z.lower() == std::min({ a + c, a + d, b + c, b + d }));
+            CHECK(z.upper() == std::max({ a + c, a + d, b + c, b + d }));
+        }
+        SECTION("operator -")
+        {
+            auto z = x - y;
+            CAPTURE(z);
+            CHECK(z.lower() == std::min({ a - c, a - d, b - c, b - d }));
+            CHECK(z.upper() == std::max({ a - c, a - d, b - c, b - d }));
+        }
+        SECTION("operator *")
+        {
+            SECTION("bound*bound")
+            {
+                auto z = x*y;
+                CAPTURE(z);
+                CHECK(z.lower() == std::min({ a*c, a*d, b*c, b*d }));
+                CHECK(z.upper() == std::max({ a*c, a*d, b*c, b*d }));
+                CHECK(maybe(z == a*yin));
+                CHECK(maybe(z == xin*c));
+                CHECK(maybe(z == xin*yin));
+                CHECK(maybe(z == b*yin));
+                CHECK(maybe(z == xin*d));
+            }
+            SECTION("bound*scalar")
+            {
+                auto z = x*c;
+                CAPTURE(z);
+                CHECK(z.lower() == std::min({ a*c, b*c }));
+                CHECK(z.upper() == std::max({ a*c, b*c }));
+                CHECK(maybe(z == a*c));
+                CHECK(maybe(z == xin*c));
+                CHECK(maybe(z == b*c));
+            }
+        }
+        SECTION("operator /")
+        {
+            SECTION("bound/bound")
+            {
+                if (definitely(y != 0))
+                {
+                    auto z = x/y;
+                    CAPTURE(z);
+                    CHECK(z.lower() == std::min({ a/c, a/d, b/c, b/d }));
+                    CHECK(z.upper() == std::max({ a/c, a/d, b/c, b/d }));
+                    CHECK(maybe(z == a/yin));
+                    CHECK(maybe(z == xin/c));
+                    CHECK(maybe(z == xin/yin));
+                    CHECK(maybe(z == b/yin));
+                    CHECK(maybe(z == xin/d));
+                }
+            }
+            SECTION("bound/scalar")
+            {
+                if (c != 0)
+                {
+                    auto z = x/c;
+                    CAPTURE(z);
+                    CHECK(z.lower() == std::min({ a/c, b/c }));
+                    CHECK(z.upper() == std::max({ a/c, b/c }));
+                    CHECK(maybe(z == a/c));
+                    CHECK(maybe(z == xin/c));
+                    CHECK(maybe(z == b/c));
+                }
+            }
+            SECTION("scalar/bound")
+            {
+                if (definitely(y != 0))
+                {
+                    auto z = a/y;
+                    CAPTURE(z);
+                    CHECK(z.lower() == std::min({ a/c, a/d }));
+                    CHECK(z.upper() == std::max({ a/c, a/d }));
+                    CHECK(maybe(z == a/c));
+                    CHECK(maybe(z == a/yin));
+                    CHECK(maybe(z == a/d));
+                }
+            }
+        }
+    }
+    SECTION("if_else()")
+    {
+        using intervals::if_else;
+
+        CHECK(if_else(true, 1, 2) == 1);
+        CHECK(if_else(false, 1, 2) == 2);
+        CHECK(if_else(set<bool>{ false       }, 1,            2           ).matches(2));
+        CHECK(if_else(set<bool>{ false, true }, 1,            2           ).matches(interval(1, 2)));
+        CHECK(if_else(set<bool>{        true }, 1,            2           ).matches(1));
+        CHECK(if_else(set<bool>{ false       }, interval(1, 2), 3           ).matches(3));
+        CHECK(if_else(set<bool>{ false, true }, interval(1, 2), 3           ).matches(interval(1, 3)));
+        CHECK(if_else(set<bool>{        true }, interval(1, 2), 3           ).matches(interval(1, 2)));
+        CHECK(if_else(set<bool>{ false       }, 1,            interval(3, 4)).matches(interval(3, 4)));
+        CHECK(if_else(set<bool>{ false, true }, 1,            interval(3, 4)).matches(interval(1, 4)));
+        CHECK(if_else(set<bool>{        true }, 1,            interval(3, 4)).matches(1));
+        CHECK(if_else(set<bool>{ false       }, interval(1, 2), interval(3, 4)).matches(interval(3, 4)));
+        CHECK(if_else(set<bool>{ false, true }, interval(1, 2), interval(3, 4)).matches(interval(1, 4)));
+        CHECK(if_else(set<bool>{        true }, interval(1, 2), interval(3, 4)).matches(interval(1, 2)));
+    }
+    SECTION("constrain()")
+    {
+        using intervals::constrain;
+        using intervals::maybe;
+
+        SECTION("scalar")
+        {
+            auto a = GENERATE(-1, 0, 1, 2);
+            auto b = 2;
+            auto x = GENERATE(-2, -1, 0, 1, 2, 3);
+            CAPTURE(x);
+            CAPTURE(a);
+            CAPTURE(b);
+    
+            if (auto cond = (x >= a) & (x <= b); maybe(cond))
+            {
+                CHECK(constrain(x, cond) == x);
+            }
+            else
+            {
+                CHECK(constrain(x, !cond) == x);
+                CHECK_THROWS_AS(constrain(x, cond), gsl::fail_fast);
+            }
+        }
+        SECTION("interval")
+        {
+            SECTION("x < y, x <= y")
+            {
+                auto [x, y, ltc, leqc, xltc, yltc, xleqc, yleqc] = GENERATE(
+                    // plain scalars
+                    std::tuple{ interval{ -2 }, interval{ 1 }, set{ true  }, set{ true  }, interval{ -2 }, interval{ 1 }, interval{ -2 }, interval{ 1 } },
+                    std::tuple{ interval{  1 }, interval{ 1 }, set{ false }, set{ true  }, interval{  0 }, interval{ 0 }, interval{  1 }, interval{ 1 } },
+                    std::tuple{ interval{  3 }, interval{ 1 }, set{ false }, set{ false }, interval{  0 }, interval{ 0 }, interval{  0 }, interval{ 0 } },
+
+                    // mixing scalars and intervals
+                    std::tuple{ interval{ -2, -1 }, interval{ 1 }, set{        true }, set{        true }, interval{ -2, -1 }, interval{ 1 }   , interval{ -2, -1 }, interval{ 1 }    },
+                    std::tuple{ interval{ -2,  1 }, interval{ 1 }, set{ false, true }, set{        true }, interval{ -2,  0 }, interval{ 1 }   , interval{ -2,  1 }, interval{ 1 }    },
+                    std::tuple{ interval{ -2,  3 }, interval{ 1 }, set{ false, true }, set{ false, true }, interval{ -2,  0 }, interval{ 1 }   , interval{ -2,  1 }, interval{ 1 }    },
+                    std::tuple{ interval{  1,  3 }, interval{ 1 }, set{ false       }, set{ false, true }, interval{ 0 },      interval{ 0 }   , interval{ 1 },      interval{ 1 }    },
+                    std::tuple{ interval{  2,  3 }, interval{ 1 }, set{ false       }, set{ false       }, interval{ 0 },      interval{ 0 }   , interval{ 0 },      interval{ 0 }    },
+                    std::tuple{ interval{ 1 }, interval{  2,  3 }, set{        true }, set{        true }, interval{ 1 },      interval{ 2, 3 }, interval{ 1 },      interval{ 2, 3 } },
+                    std::tuple{ interval{ 1 }, interval{  1,  3 }, set{ false, true }, set{        true }, interval{ 1 },      interval{ 2, 3 }, interval{ 1 },      interval{ 1, 3 } },
+                    std::tuple{ interval{ 1 }, interval{ -2,  3 }, set{ false, true }, set{ false, true }, interval{ 1 },      interval{ 2, 3 }, interval{ 1 },      interval{ 1, 3 } },
+                    std::tuple{ interval{ 1 }, interval{ -2,  1 }, set{ false       }, set{ false, true }, interval{ 0 },      interval{ 0 }   , interval{ 1 },      interval{ 1 }    },
+                    std::tuple{ interval{ 1 }, interval{ -2, -1 }, set{ false       }, set{ false       }, interval{ 0 },      interval{ 0 }   , interval{ 0 },      interval{ 0 }    },
+
+                    // intervals
+                    std::tuple{ interval{ -2, -1 }, interval{ 1, 3 }, set{        true }, set {        true }, interval{ -2, -1 }, interval{ 1, 3 }, interval{ -2, -1 }, interval{ 1, 3 } },
+                    std::tuple{ interval{ -2,  1 }, interval{ 1, 3 }, set{ false, true }, set {        true }, interval{ -2,  1 }, interval{ 1, 3 }, interval{ -2,  1 }, interval{ 1, 3 } },
+                    std::tuple{ interval{ -2,  2 }, interval{ 1, 3 }, set{ false, true }, set { false, true }, interval{ -2,  2 }, interval{ 1, 3 }, interval{ -2,  2 }, interval{ 1, 3 } },
+                    std::tuple{ interval{ -2,  3 }, interval{ 1, 3 }, set{ false, true }, set { false, true }, interval{ -2,  2 }, interval{ 1, 3 }, interval{ -2,  3 }, interval{ 1, 3 } },
+                    std::tuple{ interval{ -2,  5 }, interval{ 1, 3 }, set{ false, true }, set { false, true }, interval{ -2,  2 }, interval{ 1, 3 }, interval{ -2,  3 }, interval{ 1, 3 } },
+                    std::tuple{ interval{  1,  2 }, interval{ 1, 3 }, set{ false, true }, set { false, true }, interval{  1,  2 }, interval{ 2, 3 }, interval{  1,  2 }, interval{ 1, 3 } },
+                    std::tuple{ interval{  1,  3 }, interval{ 1, 3 }, set{ false, true }, set { false, true }, interval{  1,  2 }, interval{ 2, 3 }, interval{  1,  3 }, interval{ 1, 3 } },
+                    std::tuple{ interval{  1,  5 }, interval{ 1, 3 }, set{ false, true }, set { false, true }, interval{  1,  2 }, interval{ 2, 3 }, interval{  1,  3 }, interval{ 1, 3 } },
+                    std::tuple{ interval{  2,  3 }, interval{ 1, 3 }, set{ false, true }, set { false, true }, interval{  2 },     interval{ 3 },    interval{  2,  3 }, interval{ 2, 3 } },
+                    std::tuple{ interval{  2,  5 }, interval{ 1, 3 }, set{ false, true }, set { false, true }, interval{  2 },     interval{ 3 },    interval{  2,  3 }, interval{ 2, 3 } },
+                    std::tuple{ interval{  3,  5 }, interval{ 1, 3 }, set{ false       }, set { false, true }, interval{  0 },     interval{ 0 }   , interval{  3 },     interval{ 3 }    },
+                    std::tuple{ interval{  4,  5 }, interval{ 1, 3 }, set{ false       }, set { false       }, interval{  0 },     interval{ 0 }   , interval{  0 },     interval{ 0 }    }
+                );
+                CAPTURE(x);
+                CAPTURE(y);
+
+                {
+                    auto cc = x <= y;
+                    CAPTURE(xleqc);
+                    CAPTURE(yleqc);
+                    CAPTURE(leqc);
+                    CAPTURE(cc);
+                    CHECK(cc.matches(leqc));
+                    if (cc.contains(true))
+                    {
+                        auto xcc = constrain(x, cc);
+                        auto ycc = constrain(y, cc);
+                        CAPTURE(xcc);
+                        CAPTURE(ycc);
+                        CHECK(xcc.matches(xleqc));
+                        CHECK(ycc.matches(yleqc));
+                    }
+                    else
+                    {
+                        CHECK_THROWS_AS(constrain(x, cc), gsl::fail_fast);
+                        CHECK_THROWS_AS(constrain(y, cc), gsl::fail_fast);
+                    }
+                }
+                {
+                    auto cc = y >= x;
+                    CAPTURE(xleqc);
+                    CAPTURE(yleqc);
+                    CAPTURE(leqc);
+                    CAPTURE(cc);
+                    CHECK(cc.matches(leqc));
+                    if (cc.contains(true))
+                    {
+                        auto xcc = constrain(x, cc);
+                        auto ycc = constrain(y, cc);
+                        CAPTURE(xcc);
+                        CAPTURE(ycc);
+                        CHECK(xcc.matches(xleqc));
+                        CHECK(ycc.matches(yleqc));
+                    }
+                    else
+                    {
+                        CHECK_THROWS_AS(constrain(x, cc), gsl::fail_fast);
+                        CHECK_THROWS_AS(constrain(y, cc), gsl::fail_fast);
+                    }
+                }
+                {
+                    auto cc = x < y;
+                    CAPTURE(xltc);
+                    CAPTURE(yltc);
+                    CAPTURE(ltc);
+                    CAPTURE(cc);
+                    CHECK(cc.matches(ltc));
+                    if (cc.contains(true))
+                    {
+                        auto xcc = constrain(x, cc);
+                        auto ycc = constrain(y, cc);
+                        CAPTURE(xcc);
+                        CAPTURE(ycc);
+                        CHECK(xcc.matches(xltc));
+                        CHECK(ycc.matches(yltc));
+                    }
+                    else if (!leqc.contains(true))
+                    {
+                        CHECK_THROWS_AS(constrain(x, cc), gsl::fail_fast);
+                        CHECK_THROWS_AS(constrain(y, cc), gsl::fail_fast);
+                    }
+                }
+                {
+                    auto cc = y > x;
+                    CAPTURE(xltc);
+                    CAPTURE(yltc);
+                    CAPTURE(ltc);
+                    CAPTURE(cc);
+                    CHECK(cc.matches(ltc));
+                    if (cc.contains(true))
+                    {
+                        auto xcc = constrain(x, cc);
+                        auto ycc = constrain(y, cc);
+                        CAPTURE(xcc);
+                        CAPTURE(ycc);
+                        CHECK(xcc.matches(xltc));
+                        CHECK(ycc.matches(yltc));
+                    }
+                    else if (!leqc.contains(true))
+                    {
+                        CHECK_THROWS_AS(constrain(x, cc), gsl::fail_fast);
+                        CHECK_THROWS_AS(constrain(y, cc), gsl::fail_fast);
+                    }
+                }
+            }
+            SECTION("x == y, x != y")
+            {
+                auto [x, y, c, xyc, xneqc, yneqc] = GENERATE(
+                    // plain scalars
+                    std::tuple{ interval{ -2 }, interval{ 1 }, set{ false }, interval{ 0 }, interval{ -2 }, interval{ 1 } },
+                    std::tuple{ interval{  1 }, interval{ 1 }, set{ true  }, interval{ 1 }, interval{  0 }, interval{ 0 } },
+                    std::tuple{ interval{  3 }, interval{ 1 }, set{ false }, interval{ 0 }, interval{  3 }, interval{ 1 } },
+
+                    // mixing scalars and intervals
+                    std::tuple{ interval{ -2, -1 }, interval{ 1 }, set{ false       }, interval{ 0 }, interval{ -2, -1 }, interval{ 1 } },
+                    std::tuple{ interval{ -2,  1 }, interval{ 1 }, set{ false, true }, interval{ 1 }, interval{ -2,  0 }, interval{ 1 } },
+                    std::tuple{ interval{ -2,  3 }, interval{ 1 }, set{ false, true }, interval{ 1 }, interval{ -2,  3 }, interval{ 1 } },
+                    std::tuple{ interval{  1,  3 }, interval{ 1 }, set{ false, true }, interval{ 1 }, interval{  2,  3 }, interval{ 1 } },
+                    std::tuple{ interval{  2,  3 }, interval{ 1 }, set{ false       }, interval{ 0 }, interval{  2,  3 }, interval{ 1 } },
+                    std::tuple{ interval{ 1 }, interval{ -2, -1 }, set{ false       }, interval{ 0 }, interval{ 1 }, interval{ -2, -1 } },
+                    std::tuple{ interval{ 1 }, interval{ -2,  1 }, set{ false, true }, interval{ 1 }, interval{ 1 }, interval{ -2,  0 } },
+                    std::tuple{ interval{ 1 }, interval{ -2,  3 }, set{ false, true }, interval{ 1 }, interval{ 1 }, interval{ -2,  3 } },
+                    std::tuple{ interval{ 1 }, interval{  1,  3 }, set{ false, true }, interval{ 1 }, interval{ 1 }, interval{  2,  3 } },
+                    std::tuple{ interval{ 1 }, interval{  2,  3 }, set{ false       }, interval{ 0 }, interval{ 1 }, interval{  2,  3 } },
+
+                    // intervals
+                    std::tuple{ interval{ -2, -1 }, interval{ 1, 3 }, set { false       }, interval{ 0 },    interval{ -2, -1 }, interval{ 1, 3 } },
+                    std::tuple{ interval{ -2,  1 }, interval{ 1, 3 }, set { false, true }, interval{ 1 },    interval{ -2,  1 }, interval{ 1, 3 } },
+                    std::tuple{ interval{ -2,  2 }, interval{ 1, 3 }, set { false, true }, interval{ 1, 2 }, interval{ -2,  2 }, interval{ 1, 3 } },
+                    std::tuple{ interval{ -2,  3 }, interval{ 1, 3 }, set { false, true }, interval{ 1, 3 }, interval{ -2,  3 }, interval{ 1, 3 } },
+                    std::tuple{ interval{ -2,  5 }, interval{ 1, 3 }, set { false, true }, interval{ 1, 3 }, interval{ -2,  5 }, interval{ 1, 3 } },
+                    std::tuple{ interval{  1,  2 }, interval{ 1, 3 }, set { false, true }, interval{ 1, 2 }, interval{  1,  2 }, interval{ 1, 3 } },
+                    std::tuple{ interval{  1,  3 }, interval{ 1, 3 }, set { false, true }, interval{ 1, 3 }, interval{  1,  3 }, interval{ 1, 3 } },
+                    std::tuple{ interval{  1,  5 }, interval{ 1, 3 }, set { false, true }, interval{ 1, 3 }, interval{  1,  5 }, interval{ 1, 3 } },
+                    std::tuple{ interval{  2,  3 }, interval{ 1, 3 }, set { false, true }, interval{ 2, 3 }, interval{  2,  3 }, interval{ 1, 3 } },
+                    std::tuple{ interval{  2,  5 }, interval{ 1, 3 }, set { false, true }, interval{ 2, 3 }, interval{  2,  5 }, interval{ 1, 3 } },
+                    std::tuple{ interval{  3,  5 }, interval{ 1, 3 }, set { false, true }, interval{ 3 },    interval{  3,  5 }, interval{ 1, 3 } },
+                    std::tuple{ interval{  4,  5 }, interval{ 1, 3 }, set { false       }, interval{ 0 },    interval{  4,  5 }, interval{ 1, 3 } }
+                );
+                CAPTURE(x);
+                CAPTURE(y);
+                CAPTURE(c);
+
+                {
+                    auto cc = x == y;
+                    CAPTURE(xyc);
+                    CAPTURE(cc);
+                    CHECK(cc.matches(c));
+                    if (cc.contains(true))
+                    {
+                        auto xcc = constrain(x, cc);
+                        auto ycc = constrain(y, cc);
+                        CAPTURE(xcc);
+                        CAPTURE(ycc);
+                        CHECK(xcc.matches(xyc));
+                        CHECK(ycc.matches(xyc));
+                    }
+                    else
+                    {
+                        CHECK_THROWS_AS(constrain(x, cc), gsl::fail_fast);
+                        CHECK_THROWS_AS(constrain(y, cc), gsl::fail_fast);
+                    }
+                }
+                {
+                    auto cc = x != y;
+                    CAPTURE(xneqc);
+                    CAPTURE(yneqc);
+                    CAPTURE(cc);
+                    CHECK(cc.matches(!c));
+                    if (cc.contains(true))
+                    {
+                        auto xcc = constrain(x, cc);
+                        auto ycc = constrain(y, cc);
+                        CAPTURE(xcc);
+                        CAPTURE(ycc);
+                        CHECK(xcc.matches(xneqc));
+                        CHECK(ycc.matches(yneqc));
+                    }
+                    else
+                    {
+                        CHECK_THROWS_AS(constrain(x, cc), gsl::fail_fast);
+                        CHECK_THROWS_AS(constrain(y, cc), gsl::fail_fast);
+                    }
+                }
+
+            }
+            SECTION("& and |")
+            {
+                auto xlo = GENERATE(-2, 1, 2, 3, 4, 5, 6, 7);
+                auto xhi = GENERATE(-1, 1, 2, 3, 4, 5, 6, 7, 8);
+                SECTION("(x >= a) & (x <= b)")
+                {
+                    if (xhi >= xlo)
+                    {
+                        auto [a, b] = GENERATE(
+                            std::tuple{ interval{ 1 },    interval{ 1 }    },
+                            std::tuple{ interval{ 1 },    interval{ 4 }    },
+                            std::tuple{ interval{ 1 },    interval{ 4, 6 } },
+                            std::tuple{ interval{ 4 },    interval{ 4, 6 } },
+                            std::tuple{ interval{ 1, 3 }, interval{ 4 }    },
+                            std::tuple{ interval{ 1, 3 }, interval{ 4, 6 } },
+                            std::tuple{ interval{ 1, 4 }, interval{ 4 }    },
+                            std::tuple{ interval{ 1, 4 }, interval{ 4, 6 } }
+                        );
+                        auto c = set<bool>{ };
+                        if (xhi >= a.lower() && xlo <= b.upper())
+                        {
+                            c.assign(true);
+                        }
+                        if (xlo < a.upper() || xhi > b.lower())
+                        {
+                            c.assign(false);
+                        }
+                        auto x = interval{ xlo, xhi };
+                        CAPTURE(x);
+                        CAPTURE(a);
+                        CAPTURE(b);
+                        CAPTURE(c);
+                        {
+                            auto cc = (x >= a) & (x <= b);
+                            CAPTURE(cc);
+                            CHECK(cc.matches(c));
+                            if (cc.contains(true))
+                            {
+                                auto xc = constrain(x, cc);
+                                CAPTURE(xc);
+                                CHECK(xc.matches(interval{ std::max(xlo, a.lower()), std::min(xhi, b.upper()) }));
+                            }
+                            else
+                            {
+                                CHECK_THROWS_AS(constrain(x, cc), gsl::fail_fast);
+                            }
+                        }
+                        {
+                            auto cc = (a <= x) & (b >= x);
+                            CAPTURE(cc);
+                            CHECK(cc.matches(c));
+                            if (cc.contains(true))
+                            {
+                                auto xc = constrain(x, cc);
+                                CAPTURE(xc);
+                                CHECK(xc.matches(interval{ std::max(xlo, a.lower()), std::min(xhi, b.upper()) }));
+                            }
+                            else
+                            {
+                                CHECK_THROWS_AS(constrain(x, cc), gsl::fail_fast);
+                            }
+                        }
+                        {
+                            auto cc = (x >= interval(a)) & (x <= interval(b));
+                            CAPTURE(cc);
+                            CHECK(cc.matches(c));
+                            if (cc.contains(true))
+                            {
+                                auto xc = constrain(x, cc);
+                                CAPTURE(xc);
+                                CHECK(xc.matches(interval{ std::max(xlo, a.lower()), std::min(xhi, b.upper()) }));
+                            }
+                            else
+                            {
+                                CHECK_THROWS_AS(constrain(x, cc), gsl::fail_fast);
+                            }
+                        }
+                        {
+                            auto cc = (interval(a) <= x) & (interval(b) >= x);
+                            CAPTURE(cc);
+                            CHECK(cc.matches(c));
+                            if (cc.contains(true))
+                            {
+                                auto xc = constrain(x, cc);
+                                CAPTURE(xc);
+                                CHECK(xc.matches(interval{ std::max(xlo, a.lower()), std::min(xhi, b.upper()) }));
+                            }
+                            else
+                            {
+                                CHECK_THROWS_AS(constrain(x, cc), gsl::fail_fast);
+                            }
+                        }
+                        {
+                            auto cc = (x < a) | (x > b);
+                            CAPTURE(cc);
+                            CHECK(cc.matches(!c));
+                            if (cc.contains(false))
+                            {
+                                auto xc = constrain(x, !cc);
+                                CAPTURE(xc);
+                                CHECK(xc.matches(interval{ std::max(xlo, a.lower()), std::min(xhi, b.upper()) }));
+                            }
+                            else
+                            {
+                                CHECK_THROWS_AS(constrain(x, !cc), gsl::fail_fast);
+                            }
+                        }
+                        {
+                            auto cc = (a > x) | (b < x);
+                            CAPTURE(cc);
+                            CHECK(cc.matches(!c));
+                            if (cc.contains(false))
+                            {
+                                auto xc = constrain(x, !cc);
+                                CAPTURE(xc);
+                                CHECK(xc.matches(interval{ std::max(xlo, a.lower()), std::min(xhi, b.upper()) }));
+                            }
+                            else
+                            {
+                                CHECK_THROWS_AS(constrain(x, !cc), gsl::fail_fast);
+                            }
+                        }
+                        {
+                            auto cc = (x < interval(a)) | (x > interval(b));
+                            CAPTURE(cc);
+                            CHECK(cc.matches(!c));
+                            if (cc.contains(false))
+                            {
+                                auto xc = constrain(x, !cc);
+                                CAPTURE(xc);
+                                CHECK(xc.matches(interval{ std::max(xlo, a.lower()), std::min(xhi, b.upper()) }));
+                            }
+                            else
+                            {
+                                CHECK_THROWS_AS(constrain(x, !cc), gsl::fail_fast);
+                            }
+                        }
+                        {
+                            auto cc = (interval(a) > x) | (interval(b) < x);
+                            CAPTURE(cc);
+                            CHECK(cc.matches(!c));
+                            if (cc.contains(false))
+                            {
+                                auto xc = constrain(x, !cc);
+                                CAPTURE(xc);
+                                CHECK(xc.matches(interval{ std::max(xlo, a.lower()), std::min(xhi, b.upper()) }));
+                            }
+                            else
+                            {
+                                CHECK_THROWS_AS(constrain(x, !cc), gsl::fail_fast);
+                            }
+                        }
+                    }
+                }
+                SECTION("(x >= a) | (x >= b)")
+                {
+                    if (xhi >= xlo)
+                    {
+                        auto a = GENERATE(interval{ 1 }, interval{ 1, 2 }, interval{ 1, 4 }, interval{ 2, 4 }, interval{ 4 });
+                        auto b = GENERATE(interval{ 2 }, interval{ 2, 3 }, interval{ 4, 6 } );
+                        auto c = set<bool>{ };
+                        if (xhi >= std::min(a.lower(), b.lower()))
+                        {
+                            c.assign(true);
+                        }
+                        if (xlo < std::min(a.upper(), b.upper()))
+                        {
+                            c.assign(false);
+                        }
+                        auto x = interval{ xlo, xhi };
+                        CAPTURE(x);
+                        CAPTURE(a);
+                        CAPTURE(b);
+                        CAPTURE(c);
+                        {
+                            auto cc = (x >= a) | (x >= b);
+                            CAPTURE(cc);
+                            CHECK(cc.matches(c));
+                            if (cc.contains(true))
+                            {
+                                auto xc = constrain(x, cc);
+                                CAPTURE(xc);
+                                CHECK(xc.matches(interval{ std::max(xlo, std::min(a.lower(), b.lower())), xhi }));
+                            }
+                            else
+                            {
+                                CHECK_THROWS_AS(constrain(x, cc), gsl::fail_fast);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        SECTION("constraint not applied")
+        {
+            auto x = interval{ 1 };
+            auto y = interval{ 2 };
+            auto a = interval{ 0 };
+            auto cx = x >= a;
+            auto cxp1 = x + 1 >= a;
+            auto cy = y >= a;
+            CHECK_NOTHROW(constrain(x, cx));
+            CHECK_THROWS_AS(constrain(x, cxp1), gsl::fail_fast);
+            CHECK_THROWS_AS(constrain(x, cy), gsl::fail_fast);
+        }
+    }
+    SECTION("example: max()")
+    {
+        auto maxG0 = []<typename T>(T x, T y)
+        {
+            using intervals::maybe;
+            using intervals::maybe_not;
+            using intervals::assign_if;
+            using intervals::assign_if_not;
+            
+            auto result = T{ };
+            auto cond = x >= y;
+            if (maybe(cond))
+            {
+                assign_if(cond, result, x);
+            }
+            if (maybe_not(x >= y))
+            {
+                assign_if_not(cond, result, y);
+            }
+            return result;
+        };
+        auto maxG = []<typename T>(T x, T y)
+        {
+            using intervals::maybe;
+            using intervals::maybe_not;
+            using intervals::constrain;
+            using intervals::assign_if;
+            using intervals::assign_if_not;
+            
+            auto result = T{ };
+            auto cond = x >= y;
+            if (maybe(cond))
+            {
+                assign_if(cond, result, constrain(x, cond));
+            }
+            if (maybe_not(cond))
+            {
+                assign_if_not(cond, result, constrain(y, !cond));
+            }
+            return result;
+        };
+
+        using intervals::interval;
+
+        {
+            auto m = maxG0(interval{ 0, 2 }, interval{ 3, 4 });
+            auto mE = interval{ 3, 4 };
+            CAPTURE(m);
+            CAPTURE(mE);
+            CHECK(m.matches(mE));
+        }
+        {
+            auto m = maxG0(interval{ 3, 4 }, interval{ 0, 2 });
+            auto mE = interval{ 3, 4 };
+            CAPTURE(m);
+            CAPTURE(mE);
+            CHECK(m.matches(mE));
+        }
+        {
+            auto m = maxG0(interval{ 0, 2 }, interval{ 1, 4 });
+            auto mE = interval{ 0, 4 };
+            CAPTURE(m);
+            CAPTURE(mE);
+            CHECK(m.matches(mE));
+        }
+        {
+            auto m = maxG0(interval{ 0, 4 }, interval{ 1, 3 });
+            auto mE = interval{ 0, 4 };
+            CAPTURE(m);
+            CAPTURE(mE);
+            CHECK(m.matches(mE));
+        }
+
+        {
+            auto m = maxG(interval{ 0, 2 }, interval{ 3, 4 });
+            auto mE = interval{ 3, 4 };
+            CAPTURE(m);
+            CAPTURE(mE);
+            CHECK(m.matches(mE));
+        }
+        {
+            auto m = maxG(interval{ 3, 4 }, interval{ 0, 2 });
+            auto mE = interval{ 3, 4 };
+            CAPTURE(m);
+            CAPTURE(mE);
+            CHECK(m.matches(mE));
+        }
+        {
+            auto m = maxG(interval{ 0, 2 }, interval{ 1, 4 });
+            auto mE = interval{ 1, 4 };
+            CAPTURE(m);
+            CAPTURE(mE);
+            CHECK(m.matches(mE));
+        }
+        {
+            auto m = maxG(interval{ 0, 4 }, interval{ 1, 3 });
+            auto mE = interval{ 1, 4 };
             CAPTURE(m);
             CAPTURE(mE);
             CHECK(m.matches(mE));

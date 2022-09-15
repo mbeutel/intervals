@@ -143,19 +143,37 @@ struct condition : set<bool>
     }
 };
 template <typename IntervalT>
-struct ordering_constraint_lr : condition  // lhs ≤ rhs
+struct less_equal_constraint_lr : condition  // lhs ≤ rhs
 {
     IntervalT const& lhs_;
     IntervalT rhs_;
 };
 template <typename IntervalT>
-struct ordering_constraint_ll : condition  // lhs ≤ rhs
+struct less_equal_constraint_ll : condition  // lhs ≤ rhs
 {
     IntervalT const& lhs_;
     IntervalT const& rhs_;
 };
 template <typename IntervalT>
-struct ordering_constraint_rl : condition  // lhs ≤ rhs
+struct less_equal_constraint_rl : condition  // lhs ≤ rhs
+{
+    IntervalT lhs_;
+    IntervalT const& rhs_;
+};
+template <typename IntervalT>
+struct less_constraint_lr : condition  // lhs < rhs
+{
+    IntervalT const& lhs_;
+    IntervalT rhs_;
+};
+template <typename IntervalT>
+struct less_constraint_ll : condition  // lhs < rhs
+{
+    IntervalT const& lhs_;
+    IntervalT const& rhs_;
+};
+template <typename IntervalT>
+struct less_constraint_rl : condition  // lhs < rhs
 {
     IntervalT lhs_;
     IntervalT const& rhs_;
@@ -240,20 +258,38 @@ operator |(bool lhs, R const& rhs)
 }
 
 template <typename IntervalT>
-constexpr ordering_constraint_rl<IntervalT>
-operator !(ordering_constraint_lr<IntervalT> const& c)
+constexpr less_equal_constraint_rl<IntervalT>
+operator !(less_constraint_lr<IntervalT> const& c)
 {
     return { { !c.as_set() }, c.rhs_, c.lhs_ };
 }
 template <typename IntervalT>
-constexpr ordering_constraint_lr<IntervalT>
-operator !(ordering_constraint_rl<IntervalT> const& c)
+constexpr less_equal_constraint_lr<IntervalT>
+operator !(less_constraint_rl<IntervalT> const& c)
 {
     return { { !c.as_set() }, c.rhs_, c.lhs_ };
 }
 template <typename IntervalT>
-constexpr ordering_constraint_ll<IntervalT>
-operator !(ordering_constraint_ll<IntervalT> const& c)
+constexpr less_equal_constraint_ll<IntervalT>
+operator !(less_constraint_ll<IntervalT> const& c)
+{
+    return { { !c.as_set() }, c.rhs_, c.lhs_ };
+}
+template <typename IntervalT>
+constexpr less_constraint_rl<IntervalT>
+operator !(less_equal_constraint_lr<IntervalT> const& c)
+{
+    return { { !c.as_set() }, c.rhs_, c.lhs_ };
+}
+template <typename IntervalT>
+constexpr less_constraint_lr<IntervalT>
+operator !(less_equal_constraint_rl<IntervalT> const& c)
+{
+    return { { !c.as_set() }, c.rhs_, c.lhs_ };
+}
+template <typename IntervalT>
+constexpr less_constraint_ll<IntervalT>
+operator !(less_equal_constraint_ll<IntervalT> const& c)
 {
     return { { !c.as_set() }, c.rhs_, c.lhs_ };
 }
@@ -303,177 +339,360 @@ constrain(LIntervalT const& x, set<bool>, bool&)
 }
 template <typename LIntervalT, typename IntervalT>
 constexpr LIntervalT
-constrain(LIntervalT const& x, detail::ordering_constraint_lr<IntervalT> const& c, bool& constraintApplied)
+constrain(LIntervalT const& x, less_equal_constraint_lr<IntervalT> const& c, bool& constraintApplied)
 {
     using std::min;
 
-    if (c.contains(true))
+    if constexpr (std::is_same_v<LIntervalT, IntervalT>)
     {
-        if (std::addressof(x) == std::addressof(c.lhs_))
+        if (c.contains(true))
         {
-                // Apply constraint  x ≤ rhs⁺ .
-            auto xlo = x.lower_unchecked();
-            auto xhi = x.upper_unchecked();
-            auto rhi = c.rhs_.upper_unchecked();
-            gsl_AssertDebug(xlo <= rhi);
-            constraintApplied = true;
-            return LIntervalT{ xlo, min(xhi, rhi) };
+            if (std::addressof(x) == std::addressof(c.lhs_))
+            {
+                    // Apply constraint  x ≤ rhs⁺ .
+                auto xlo = x.lower_unchecked();
+                auto xhi = x.upper_unchecked();
+                auto rhi = c.rhs_.upper_unchecked();
+                gsl_AssertDebug(xlo <= rhi);
+                constraintApplied = true;
+                return LIntervalT{ xlo, std::min(xhi, rhi) };
+            }
         }
+        return x;
     }
-    return x;
+    else return x;
 }
 template <typename LIntervalT, typename IntervalT>
 constexpr LIntervalT
-constrain(LIntervalT const& x, detail::ordering_constraint_rl<IntervalT> const& c, bool& constraintApplied)
+constrain(LIntervalT const& x, less_equal_constraint_rl<IntervalT> const& c, bool& constraintApplied)
 {
     using std::max;
 
-    if (c.contains(true))
+    if constexpr (std::is_same_v<LIntervalT, IntervalT>)
     {
-        if (std::addressof(x) == std::addressof(c.rhs_))
+        if (c.contains(true))
         {
-            constraintApplied = true;
+            if (std::addressof(x) == std::addressof(c.rhs_))
+            {
+                constraintApplied = true;
 
-                // Apply constraint  lhs⁻ ≤ x .
-            auto xlo = x.lower_unchecked();
-            auto xhi = x.upper_unchecked();
-            auto llo = c.lhs_.lower_unchecked();
-            gsl_AssertDebug(llo <= xhi);
-            constraintApplied = true;
-            return LIntervalT{ std::max(llo, xlo), xhi };
+                    // Apply constraint  lhs⁻ ≤ x .
+                auto xlo = x.lower_unchecked();
+                auto xhi = x.upper_unchecked();
+                auto llo = c.lhs_.lower_unchecked();
+                gsl_AssertDebug(llo <= xhi);
+                constraintApplied = true;
+                return LIntervalT{ std::max(llo, xlo), xhi };
+            }
         }
+        return x;
     }
-    return x;
+    else return x;
 }
 template <typename LIntervalT, typename IntervalT>
 constexpr LIntervalT
-constrain(LIntervalT const& x, detail::ordering_constraint_ll<IntervalT> const& c, bool& constraintApplied)
-{
-    using std::min;
-    using std::max;
-
-    if (c.contains(true))
-    {
-        if (std::addressof(x) == std::addressof(c.lhs_))
-        {
-                // Apply constraint  x ≤ rhs⁺ .
-            auto xlo = x.lower_unchecked();
-            auto xhi = x.upper_unchecked();
-            auto rhi = c.rhs_.upper_unchecked();
-            gsl_AssertDebug(xlo <= rhi);
-            constraintApplied = true;
-            return LIntervalT{ xlo, std::min(xhi, rhi) };
-        }
-        else if (std::addressof(x) == std::addressof(c.rhs_))
-        {
-            constraintApplied = true;
-
-                // Apply constraint  lhs⁻ ≤ x .
-            auto xlo = x.lower_unchecked();
-            auto xhi = x.upper_unchecked();
-            auto llo = c.lhs_.lower_unchecked();
-            gsl_AssertDebug(llo <= xhi);
-            constraintApplied = true;
-            return LIntervalT{ std::max(llo, xlo), xhi };
-        }
-    }
-    return x;
-}
-template <typename LIntervalT, typename IntervalT>
-constexpr LIntervalT
-constrain(LIntervalT const& x, detail::equality_constraint_lr<IntervalT> const& c, bool& constraintApplied)
+constrain(LIntervalT const& x, less_equal_constraint_ll<IntervalT> const& c, bool& constraintApplied)
 {
     using std::min;
     using std::max;
 
-    if (c.contains(true))
+    if constexpr (std::is_same_v<LIntervalT, IntervalT>)
     {
-        if (std::addressof(x) == std::addressof(c.lhs_))
+        if (c.contains(true))
         {
-            constraintApplied = true;
+            if (std::addressof(x) == std::addressof(c.lhs_))
+            {
+                    // Apply constraint  x ≤ rhs⁺ .
+                auto xlo = x.lower_unchecked();
+                auto xhi = x.upper_unchecked();
+                auto rhi = c.rhs_.upper_unchecked();
+                gsl_AssertDebug(xlo <= rhi);
+                constraintApplied = true;
+                return LIntervalT{ xlo, std::min(xhi, rhi) };
+            }
+            else if (std::addressof(x) == std::addressof(c.rhs_))
+            {
+                constraintApplied = true;
 
-                // Apply constraint  x = rhs .
-            auto xlo = x.lower_unchecked();
-            auto xhi = x.upper_unchecked();
-            auto rlo = c.rhs_.lower_unchecked();
-            auto rhi = c.rhs_.upper_unchecked();
-            gsl_AssertDebug(rhi >= xlo && rlo <= xhi);  // intervals overlap
-            constraintApplied = true;
-            return LIntervalT{ max(xlo, rlo), min(xhi, rhi) };  // overlapping interval
+                    // Apply constraint  lhs⁻ ≤ x .
+                auto xlo = x.lower_unchecked();
+                auto xhi = x.upper_unchecked();
+                auto llo = c.lhs_.lower_unchecked();
+                gsl_AssertDebug(llo <= xhi);
+                constraintApplied = true;
+                return LIntervalT{ std::max(llo, xlo), xhi };
+            }
         }
+        return x;
     }
-    return x;
+    else return x;
 }
 template <typename LIntervalT, typename IntervalT>
 constexpr LIntervalT
-constrain(LIntervalT const& x, detail::equality_constraint_ll<IntervalT> const& c, bool& constraintApplied)
+constrain(LIntervalT const& x, less_constraint_lr<IntervalT> const& c, bool& constraintApplied)
+{
+    if constexpr (std::is_same_v<LIntervalT, IntervalT>)
+    {
+        if (c.contains(true))
+        {
+            if (std::addressof(x) == std::addressof(c.lhs_))
+            {
+                    // Apply constraint  x < rhs⁺ .
+                auto xlo = x.lower_unchecked();
+                auto xhi = x.upper_unchecked();
+                auto rhi = c.rhs_.upper_unchecked();
+                gsl_AssertDebug(xlo < rhi);
+                constraintApplied = true;
+                if constexpr (std::is_integral_v<typename IntervalT::value_type>)
+                {
+                    return LIntervalT{ xlo, std::min(xhi, rhi - static_cast<typename IntervalT::value_type>(1)) };
+                }
+                else
+                {
+                    return LIntervalT{ xlo, std::min(xhi, rhi) };
+                }
+            }
+        }
+        return x;
+    }
+    else return x;
+}
+template <typename LIntervalT, typename IntervalT>
+constexpr LIntervalT
+constrain(LIntervalT const& x, less_constraint_rl<IntervalT> const& c, bool& constraintApplied)
+{
+    using std::max;
+
+    if constexpr (std::is_same_v<LIntervalT, IntervalT>)
+    {
+        if (c.contains(true))
+        {
+            if (std::addressof(x) == std::addressof(c.rhs_))
+            {
+                constraintApplied = true;
+
+                    // Apply constraint  lhs⁻ < x .
+                auto xlo = x.lower_unchecked();
+                auto xhi = x.upper_unchecked();
+                auto llo = c.lhs_.lower_unchecked();
+                gsl_AssertDebug(llo < xhi);
+                constraintApplied = true;
+                if constexpr (std::is_integral_v<typename IntervalT::value_type>)
+                {
+                    return LIntervalT{ std::max(llo + static_cast<typename IntervalT::value_type>(1), xlo), xhi };
+                }
+                else
+                {
+                    return LIntervalT{ std::max(llo, xlo), xhi };
+                }
+            }
+        }
+        return x;
+    }
+    else return x;
+}
+template <typename LIntervalT, typename IntervalT>
+constexpr LIntervalT
+constrain(LIntervalT const& x, less_constraint_ll<IntervalT> const& c, bool& constraintApplied)
 {
     using std::min;
     using std::max;
 
-    if (c.contains(true))
+    if constexpr (std::is_same_v<LIntervalT, IntervalT>)
     {
-        if (std::addressof(x) == std::addressof(c.lhs_) || std::addressof(x) == std::addressof(c.rhs_))
+        if (c.contains(true))
         {
-                // Apply constraint  lhs = rhs .
-            auto llo = c.lhs_.lower_unchecked();
-            auto lhi = c.lhs_.upper_unchecked();
-            auto rlo = c.rhs_.lower_unchecked();
-            auto rhi = c.rhs_.upper_unchecked();
-            gsl_AssertDebug(rhi >= llo && rlo <= lhi);  // intervals overlap
-            constraintApplied = true;
-            return LIntervalT{ max(llo, rlo), min(lhi, rhi) };  // overlapping interval
+            if (std::addressof(x) == std::addressof(c.lhs_))
+            {
+                    // Apply constraint  x < rhs⁺ .
+                auto xlo = x.lower_unchecked();
+                auto xhi = x.upper_unchecked();
+                auto rhi = c.rhs_.upper_unchecked();
+                gsl_AssertDebug(xlo < rhi);
+                constraintApplied = true;
+                if constexpr (std::is_integral_v<typename IntervalT::value_type>)
+                {
+                    return LIntervalT{ xlo, std::min(xhi, rhi - static_cast<typename IntervalT::value_type>(1)) };
+                }
+                else
+                {
+                    return LIntervalT{ xlo, std::min(xhi, rhi) };
+                }
+            }
+            else if (std::addressof(x) == std::addressof(c.rhs_))
+            {
+                constraintApplied = true;
+
+                    // Apply constraint  lhs⁻ ≤ x .
+                auto xlo = x.lower_unchecked();
+                auto xhi = x.upper_unchecked();
+                auto llo = c.lhs_.lower_unchecked();
+                gsl_AssertDebug(llo < xhi);
+                constraintApplied = true;
+                if constexpr (std::is_integral_v<typename IntervalT::value_type>)
+                {
+                    return LIntervalT{ std::max(llo + static_cast<typename IntervalT::value_type>(1), xlo), xhi };
+                }
+                else
+                {
+                    return LIntervalT{ std::max(llo, xlo), xhi };
+                }
+            }
         }
+        return x;
     }
-    return x;
+    else return x;
 }
 template <typename LIntervalT, typename IntervalT>
 constexpr LIntervalT
-constrain(LIntervalT const& x, detail::inequality_constraint_lr<IntervalT> const& c, bool& constraintApplied)
+constrain(LIntervalT const& x, equality_constraint_lr<IntervalT> const& c, bool& constraintApplied)
 {
     using std::min;
     using std::max;
 
-    if (c.contains(true))
+    if constexpr (std::is_same_v<LIntervalT, IntervalT>)
     {
-        if (std::addressof(x) == std::addressof(c.lhs_))
+        if (c.contains(true))
         {
-                // Apply constraint  x ≠ rhs .
-            auto xlo = x.lower_unchecked();
-            auto xhi = x.upper_unchecked();
-            auto rlo = c.rhs_.lower_unchecked();
-            auto rhi = c.rhs_.upper_unchecked();
-            gsl_AssertDebug(xlo != rhi || xhi != rlo);  // intervals not identical
-            constraintApplied = true;
+            if (std::addressof(x) == std::addressof(c.lhs_))
+            {
+                constraintApplied = true;
+
+                    // Apply constraint  x = rhs .
+                auto xlo = x.lower_unchecked();
+                auto xhi = x.upper_unchecked();
+                auto rlo = c.rhs_.lower_unchecked();
+                auto rhi = c.rhs_.upper_unchecked();
+                gsl_AssertDebug(rhi >= xlo && rlo <= xhi);  // intervals overlap
+                constraintApplied = true;
+                return LIntervalT{ std::max(xlo, rlo), std::min(xhi, rhi) };  // overlapping interval
+            }
         }
+        return x;
     }
-    return x;
+    else return x;
 }
 template <typename LIntervalT, typename IntervalT>
 constexpr LIntervalT
-constrain(LIntervalT const& x, detail::inequality_constraint_ll<IntervalT> const& c, bool& constraintApplied)
+constrain(LIntervalT const& x, equality_constraint_ll<IntervalT> const& c, bool& constraintApplied)
 {
     using std::min;
     using std::max;
 
-    if (c.contains(true))
+    if constexpr (std::is_same_v<LIntervalT, IntervalT>)
     {
-        if (std::addressof(x) == std::addressof(c.lhs_) || std::addressof(x) == std::addressof(c.rhs_))
+        if (c.contains(true))
         {
-                // Apply constraint  lhs ≠ rhs .
-            auto llo = c.lhs_.lower_unchecked();
-            auto lhi = c.lhs_.upper_unchecked();
-            auto rlo = c.rhs_.lower_unchecked();
-            auto rhi = c.rhs_.upper_unchecked();
-            gsl_AssertDebug(llo != rhi || lhi != rlo);  // intervals not identical
-            constraintApplied = true;
+            if (std::addressof(x) == std::addressof(c.lhs_) || std::addressof(x) == std::addressof(c.rhs_))
+            {
+                    // Apply constraint  lhs = rhs .
+                auto llo = c.lhs_.lower_unchecked();
+                auto lhi = c.lhs_.upper_unchecked();
+                auto rlo = c.rhs_.lower_unchecked();
+                auto rhi = c.rhs_.upper_unchecked();
+                gsl_AssertDebug(rhi >= llo && rlo <= lhi);  // intervals overlap
+                constraintApplied = true;
+                return LIntervalT{ std::max(llo, rlo), std::min(lhi, rhi) };  // overlapping interval
+            }
         }
+        return x;
     }
-    return x;
+    else return x;
 }
-template <typename LIntervalT, std::derived_from<detail::condition> L, std::derived_from<detail::condition> R>
+template <typename LIntervalT, typename IntervalT>
 constexpr LIntervalT
-constrain(LIntervalT const& x, detail::constraint_conjunction<L, R> const& c, bool& constraintApplied)
+constrain(LIntervalT const& x, inequality_constraint_lr<IntervalT> const& c, bool& constraintApplied)
+{
+    using std::min;
+    using std::max;
+
+    if constexpr (std::is_same_v<LIntervalT, IntervalT>)
+    {
+        if (c.contains(true))
+        {
+            if (std::addressof(x) == std::addressof(c.lhs_))
+            {
+                    // Apply constraint  x ≠ rhs .
+                auto xlo = x.lower_unchecked();
+                auto xhi = x.upper_unchecked();
+                auto rlo = c.rhs_.lower_unchecked();
+                auto rhi = c.rhs_.upper_unchecked();
+                gsl_AssertDebug(xlo != rhi || xhi != rlo);  // intervals not identical
+                constraintApplied = true;
+                if constexpr (std::is_integral_v<typename IntervalT::value_type>)
+                {
+                    if (xlo != xhi && rlo == rhi)
+                    {
+                        if (xlo == rlo)
+                        {
+                            return LIntervalT{ xlo + static_cast<typename IntervalT::value_type>(1), xhi };
+                        }
+                        else if (xhi == rlo)
+                        {
+                            return LIntervalT{ xlo, xhi - static_cast<typename IntervalT::value_type>(1) };
+                        }
+                    }
+                }
+            }
+        }
+        return x;
+    }
+    else return x;
+}
+template <typename LIntervalT, typename IntervalT>
+constexpr LIntervalT
+constrain(LIntervalT const& x, inequality_constraint_ll<IntervalT> const& c, bool& constraintApplied)
+{
+    using std::min;
+    using std::max;
+
+    if constexpr (std::is_same_v<LIntervalT, IntervalT>)
+    {
+        if (c.contains(true))
+        {
+            if (std::addressof(x) == std::addressof(c.lhs_) || std::addressof(x) == std::addressof(c.rhs_))
+            {
+                    // Apply constraint  lhs ≠ rhs .
+                auto llo = c.lhs_.lower_unchecked();
+                auto lhi = c.lhs_.upper_unchecked();
+                auto rlo = c.rhs_.lower_unchecked();
+                auto rhi = c.rhs_.upper_unchecked();
+                gsl_AssertDebug(llo != rhi || lhi != rlo);  // intervals not identical
+                constraintApplied = true;
+                if constexpr (std::is_integral_v<typename IntervalT::value_type>)
+                {
+                    if (std::addressof(x) == std::addressof(c.lhs_) && llo != lhi && rlo == rhi)
+                    {
+                        if (llo == rlo)
+                        {
+                            return LIntervalT{ llo + static_cast<typename IntervalT::value_type>(1), lhi };
+                        }
+                        else if (lhi == rlo)
+                        {
+                            return LIntervalT{ llo, lhi - static_cast<typename IntervalT::value_type>(1) };
+                        }
+                    }
+                    if (std::addressof(x) == std::addressof(c.rhs_) && rlo != rhi && llo == lhi)
+                    {
+                        if (rlo == llo)
+                        {
+                            return LIntervalT{ rlo + static_cast<typename IntervalT::value_type>(1), rhi };
+                        }
+                        else if (rhi == llo)
+                        {
+                            return LIntervalT{ rlo, rhi - static_cast<typename IntervalT::value_type>(1) };
+                        }
+                    }
+                }
+            }
+        }
+        return x;
+    }
+    else return x;
+}
+template <typename LIntervalT, std::derived_from<condition> L, std::derived_from<condition> R>
+constexpr LIntervalT
+constrain(LIntervalT const& x, constraint_conjunction<L, R> const& c, bool& constraintApplied)
 {
     using std::min;
     using std::max;
@@ -490,9 +709,9 @@ constrain(LIntervalT const& x, detail::constraint_conjunction<L, R> const& c, bo
     }
     return x;
 }
-template <typename LIntervalT, std::derived_from<detail::condition> L, std::derived_from<detail::condition> R>
+template <typename LIntervalT, std::derived_from<condition> L, std::derived_from<condition> R>
 constexpr LIntervalT
-constrain(LIntervalT const& x, detail::constraint_disjunction<L, R> const& c, bool& constraintApplied)
+constrain(LIntervalT const& x, constraint_disjunction<L, R> const& c, bool& constraintApplied)
 {
     using std::min;
     using std::max;

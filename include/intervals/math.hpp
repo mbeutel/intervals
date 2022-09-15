@@ -163,9 +163,10 @@ requires detail::non_const<T>
 }
 
 
-template <detail::floating_point T>
+template <typename T>
 [[nodiscard]] constexpr T
 constrain(T x, bool c)
+requires detail::floating_point<T> || detail::integral<T>
 {
     gsl_Assert(c);
     return x;

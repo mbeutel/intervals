@@ -3,7 +3,7 @@
 #define INCLUDED_INTERVALS_DETAIL_MATH_HPP_
 
 
-#include <type_traits>  // for is_arithmetic<>, is_floating_point<>, is_enum<>
+#include <type_traits>  // for is_arithmetic<>, is_floating_point<>, is_integral<>, is_enum<>
 
 #include <makeshift/tuple.hpp>        // for template_for()
 #include <makeshift/type_traits.hpp>  // for is_instantiation_of<>
@@ -19,6 +19,9 @@ concept arithmetic = std::is_arithmetic_v<T>;
 
 template <typename T>
 concept floating_point = std::is_floating_point_v<T>;
+
+template <typename T>
+concept integral = std::is_integral_v<T>;
 
 template <typename T>
 concept non_const = !std::is_const_v<T>;
