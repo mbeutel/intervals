@@ -145,28 +145,34 @@ requires detail::non_const<T>
 {
     lhs = rhs;
 }
-template <typename T>
-constexpr void
-assign_if(bool cond, T& lhs, gsl::type_identity_t<T> rhs)
-requires detail::non_const<T>
-{
-    gsl_Expects(cond);
-    lhs = rhs;
-}
-template <typename T>
-constexpr void
-assign_if_not(bool cond, T& lhs, gsl::type_identity_t<T> rhs)
-requires detail::non_const<T>
-{
-    gsl_Expects(!cond);
-    lhs = rhs;
-}
+//template <typename T>
+//constexpr void
+//assign_if(bool cond, T& lhs, gsl::type_identity_t<T> rhs)
+//requires detail::non_const<T>
+//{
+//    //gsl_Expects(cond);
+//    if (cond)
+//    {
+//        lhs = rhs;
+//    }
+//}
+//template <typename T>
+//constexpr void
+//assign_if_not(bool cond, T& lhs, gsl::type_identity_t<T> rhs)
+//requires detail::non_const<T>
+//{
+//    //gsl_Expects(!cond);
+//    if (!cond)
+//    {
+//        lhs = rhs;
+//    }
+//}
 
 
 template <typename T>
 [[nodiscard]] constexpr T
 constrain(T x, bool c)
-requires detail::floating_point<T> || detail::integral<T>
+requires detail::floating_point<T> || detail::integral<T> || std::random_access_iterator<T>
 {
     gsl_Assert(c);
     return x;

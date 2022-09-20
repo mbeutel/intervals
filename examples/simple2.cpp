@@ -10,16 +10,26 @@ interval<double>
 imax0(interval<double> a, interval<double> b) {
     auto result = interval<double>{ };
     auto cond = a >= b;
-    assign_if(cond, result, a);
-    assign_if_not(cond, result, b);
+    if (maybe(cond)) {
+        assign_partial(result, a);
+    }
+    if (maybe_not(cond)) {
+        assign_partial(result, b);
+    }
     return result;
 }
 interval<double>
 imax(interval<double> a, interval<double> b) {
     auto result = interval<double>{ };
     auto cond = a >= b;
-    assign_if(cond, result, constrain(a, cond));
-    assign_if_not(cond, result, constrain(b, !cond));
+    if (maybe(cond)) {
+        auto ac = constrain(a, cond);
+        assign_partial(result, ac);
+    }
+    if (maybe_not(cond)) {
+        auto bc = constrain(b, !cond);
+        assign_partial(result, bc);
+    }
     return result;
 }
 int main() {

@@ -1132,18 +1132,17 @@ TEST_CASE("interval<>", "interval arithmetic")
         {
             using intervals::maybe;
             using intervals::maybe_not;
-            using intervals::assign_if;
-            using intervals::assign_if_not;
+            using intervals::assign_partial;
             
             auto result = T{ };
             auto cond = x >= y;
             if (maybe(cond))
             {
-                assign_if(cond, result, x);
+                assign_partial(result, x);
             }
             if (maybe_not(x >= y))
             {
-                assign_if_not(cond, result, y);
+                assign_partial(result, y);
             }
             return result;
         };
@@ -1152,18 +1151,17 @@ TEST_CASE("interval<>", "interval arithmetic")
             using intervals::maybe;
             using intervals::maybe_not;
             using intervals::constrain;
-            using intervals::assign_if;
-            using intervals::assign_if_not;
+            using intervals::assign_partial;
             
             auto result = T{ };
             auto cond = x >= y;
             if (maybe(cond))
             {
-                assign_if(cond, result, constrain(x, cond));
+                assign_partial(result, constrain(x, cond));
             }
             if (maybe_not(cond))
             {
-                assign_if_not(cond, result, constrain(y, !cond));
+                assign_partial(result, constrain(y, !cond));
             }
             return result;
         };
@@ -1913,18 +1911,17 @@ TEST_CASE("interval<int>", "interval arithmetic")
         {
             using intervals::maybe;
             using intervals::maybe_not;
-            using intervals::assign_if;
-            using intervals::assign_if_not;
+            using intervals::assign_partial;
             
             auto result = T{ };
             auto cond = x >= y;
             if (maybe(cond))
             {
-                assign_if(cond, result, x);
+                assign_partial(result, x);
             }
             if (maybe_not(x >= y))
             {
-                assign_if_not(cond, result, y);
+                assign_partial(result, y);
             }
             return result;
         };
@@ -1933,18 +1930,17 @@ TEST_CASE("interval<int>", "interval arithmetic")
             using intervals::maybe;
             using intervals::maybe_not;
             using intervals::constrain;
-            using intervals::assign_if;
-            using intervals::assign_if_not;
+            using intervals::assign_partial;
             
             auto result = T{ };
             auto cond = x >= y;
             if (maybe(cond))
             {
-                assign_if(cond, result, constrain(x, cond));
+                assign_partial(result, constrain(x, cond));
             }
             if (maybe_not(cond))
             {
-                assign_if_not(cond, result, constrain(y, !cond));
+                assign_partial(result, constrain(y, !cond));
             }
             return result;
         };
