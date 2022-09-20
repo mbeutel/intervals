@@ -6,6 +6,7 @@
 #include <cmath>
 #include <memory>     // for addressof()
 #include <concepts>   // for derived_from<>
+#include <iterator>   // for random_access_iterator<>
 #include <algorithm>  // for min(), max()
 
 #include <gsl-lite/gsl-lite.hpp>  // for gsl_AssertDebug()
@@ -331,6 +332,20 @@ operator !(constraint_disjunction<L, R> const& c)
 }
 
 
+template <typename T>
+constexpr T
+_next(T value)
+{
+    return ++value;
+}
+template <typename T>
+constexpr T
+_prev(T value)
+{
+    return --value;
+}
+
+
 template <typename LIntervalT>
 constexpr LIntervalT
 constrain(LIntervalT const& x, set<bool>, bool&)
@@ -443,9 +458,9 @@ constrain(LIntervalT const& x, less_constraint_lr<IntervalT> const& c, bool& con
                 auto rhi = c.rhs_.upper_unchecked();
                 gsl_AssertDebug(xlo < rhi);
                 constraintApplied = true;
-                if constexpr (std::is_integral_v<typename IntervalT::value_type>)
+                if constexpr (std::is_integral_v<typename IntervalT::value_type> || std::random_access_iterator<typename IntervalT::value_type>)
                 {
-                    return LIntervalT{ xlo, std::min(xhi, rhi - static_cast<typename IntervalT::value_type>(1)) };
+                    return LIntervalT{ xlo, std::min(xhi, detail::_prev(rhi)) };
                 }
                 else
                 {
@@ -477,9 +492,9 @@ constrain(LIntervalT const& x, less_constraint_rl<IntervalT> const& c, bool& con
                 auto llo = c.lhs_.lower_unchecked();
                 gsl_AssertDebug(llo < xhi);
                 constraintApplied = true;
-                if constexpr (std::is_integral_v<typename IntervalT::value_type>)
+                if constexpr (std::is_integral_v<typename IntervalT::value_type> || std::random_access_iterator<typename IntervalT::value_type>)
                 {
-                    return LIntervalT{ std::max(llo + static_cast<typename IntervalT::value_type>(1), xlo), xhi };
+                    return LIntervalT{ std::max(detail::_next(llo), xlo), xhi };
                 }
                 else
                 {
@@ -510,9 +525,9 @@ constrain(LIntervalT const& x, less_constraint_ll<IntervalT> const& c, bool& con
                 auto rhi = c.rhs_.upper_unchecked();
                 gsl_AssertDebug(xlo < rhi);
                 constraintApplied = true;
-                if constexpr (std::is_integral_v<typename IntervalT::value_type>)
+                if constexpr (std::is_integral_v<typename IntervalT::value_type> || std::random_access_iterator<typename IntervalT::value_type>)
                 {
-                    return LIntervalT{ xlo, std::min(xhi, rhi - static_cast<typename IntervalT::value_type>(1)) };
+                    return LIntervalT{ xlo, std::min(xhi, detail::_prev(rhi)) };
                 }
                 else
                 {
@@ -529,9 +544,9 @@ constrain(LIntervalT const& x, less_constraint_ll<IntervalT> const& c, bool& con
                 auto llo = c.lhs_.lower_unchecked();
                 gsl_AssertDebug(llo < xhi);
                 constraintApplied = true;
-                if constexpr (std::is_integral_v<typename IntervalT::value_type>)
+                if constexpr (std::is_integral_v<typename IntervalT::value_type> || std::random_access_iterator<typename IntervalT::value_type>)
                 {
-                    return LIntervalT{ std::max(llo + static_cast<typename IntervalT::value_type>(1), xlo), xhi };
+                    return LIntervalT{ std::max(detail::_next(llo), xlo), xhi };
                 }
                 else
                 {
@@ -619,17 +634,17 @@ constrain(LIntervalT const& x, inequality_constraint_lr<IntervalT> const& c, boo
                 auto rhi = c.rhs_.upper_unchecked();
                 gsl_AssertDebug(xlo != rhi || xhi != rlo);  // intervals not identical
                 constraintApplied = true;
-                if constexpr (std::is_integral_v<typename IntervalT::value_type>)
+                if constexpr (std::is_integral_v<typename IntervalT::value_type> || std::random_access_iterator<typename IntervalT::value_type>)
                 {
                     if (xlo != xhi && rlo == rhi)
                     {
                         if (xlo == rlo)
                         {
-                            return LIntervalT{ xlo + static_cast<typename IntervalT::value_type>(1), xhi };
+                            return LIntervalT{ detail::_next(xlo), xhi };
                         }
                         else if (xhi == rlo)
                         {
-                            return LIntervalT{ xlo, xhi - static_cast<typename IntervalT::value_type>(1) };
+                            return LIntervalT{ xlo, detail::_prev(xhi) };
                         }
                     }
                 }
@@ -659,28 +674,28 @@ constrain(LIntervalT const& x, inequality_constraint_ll<IntervalT> const& c, boo
                 auto rhi = c.rhs_.upper_unchecked();
                 gsl_AssertDebug(llo != rhi || lhi != rlo);  // intervals not identical
                 constraintApplied = true;
-                if constexpr (std::is_integral_v<typename IntervalT::value_type>)
+                if constexpr (std::is_integral_v<typename IntervalT::value_type> || std::random_access_iterator<typename IntervalT::value_type>)
                 {
                     if (std::addressof(x) == std::addressof(c.lhs_) && llo != lhi && rlo == rhi)
                     {
                         if (llo == rlo)
                         {
-                            return LIntervalT{ llo + static_cast<typename IntervalT::value_type>(1), lhi };
+                            return LIntervalT{ detail::_next(llo), lhi };
                         }
                         else if (lhi == rlo)
                         {
-                            return LIntervalT{ llo, lhi - static_cast<typename IntervalT::value_type>(1) };
+                            return LIntervalT{ llo, detail::_prev(lhi) };
                         }
                     }
                     if (std::addressof(x) == std::addressof(c.rhs_) && rlo != rhi && llo == lhi)
                     {
                         if (rlo == llo)
                         {
-                            return LIntervalT{ rlo + static_cast<typename IntervalT::value_type>(1), rhi };
+                            return LIntervalT{ detail::_next(rlo), rhi };
                         }
                         else if (rhi == llo)
                         {
-                            return LIntervalT{ rlo, rhi - static_cast<typename IntervalT::value_type>(1) };
+                            return LIntervalT{ rlo, detail::_prev(rhi) };
                         }
                     }
                 }

@@ -11,6 +11,7 @@
 #include <numbers>
 #include <utility>      // for pair<>
 #include <concepts>
+#include <iterator>     // for random_access_iterator<>
 #include <type_traits>  // for is_const<>, common_type<>
 
 #include <gsl-lite/gsl-lite.hpp>  // for gsl_Assert(), gsl_Expects(), gsl_ExpectsDebug(), gsl_FailFast(), narrow_cast<>(), narrow<>(), narrow_failfast<>()
@@ -623,20 +624,31 @@ public:
 
         return interval{ detail::_max(lhs, rhs.lower_), detail::_max(lhs, rhs.upper_) };
     }
+};
 
+template <typename DerivedT, typename T>
+class numeric_interval_base : public interval_base<DerivedT, T>
+{
+    using interval = DerivedT;
+    using base = interval_base<DerivedT, T>;
+
+protected:
+    using base::base;
+
+public:
     [[nodiscard]] constexpr interval
     operator +() const
     {
-        gsl_ExpectsDebug(assigned());
+        gsl_ExpectsDebug(this->assigned());
 
         return *this;
     }
     [[nodiscard]] constexpr interval
     operator -() const
     {
-        gsl_ExpectsDebug(assigned());
+        gsl_ExpectsDebug(this->assigned());
 
-        return interval{ -upper_, -lower_ };
+        return interval{ -this->upper_, -this->lower_ };
     }
 
     [[nodiscard]] friend constexpr interval
@@ -705,9 +717,12 @@ interval(T) -> interval<T>;
 template <typename T1, typename T2>
 interval(T1, T2) -> interval<std::common_type_t<T1, T2>>;
 template <detail::floating_point T>
-class interval<T> : public detail::interval_base<interval<T>, T>
+class interval<T> : public detail::numeric_interval_base<interval<T>, T>
 {
-    using base = detail::interval_base<interval<T>, T>;
+    using base = detail::numeric_interval_base<interval<T>, T>;
+
+        // Natvis debugging aid
+    static constexpr int specialization_ = 0;
 
     static constexpr T inf = std::numeric_limits<T>::infinity();
     static constexpr T nan = std::numeric_limits<T>::quiet_NaN();
@@ -1267,11 +1282,14 @@ public:
     }
 };
 template <detail::integral T>
-class interval<T> : public detail::interval_base<interval<T>, T>
+class interval<T> : public detail::numeric_interval_base<interval<T>, T>
 {
     static_assert(std::is_signed_v<T>);
 
-    using base = detail::interval_base<interval<T>, T>;
+    using base = detail::numeric_interval_base<interval<T>, T>;
+
+        // Natvis debugging aid
+    static constexpr int specialization_ = 1;
 
     static constexpr T min_ = std::numeric_limits<T>::min();
     static constexpr T max_ = std::numeric_limits<T>::max();
@@ -1452,6 +1470,142 @@ public:
         return interval{ detail::_min(v1, v2), detail::_max(v1, v2) };
     }
 };
+template <std::random_access_iterator T>
+class interval<T> : public detail::interval_base<interval<T>, T>
+{
+    using base = detail::interval_base<interval<T>, T>;
+
+        // Natvis debugging aid
+    static constexpr int specialization_ = 2;
+
+public:
+    /*constexpr interval() noexcept
+        : base(max_, min_)
+    {
+    }*/
+    constexpr interval(T value) noexcept
+        : base(value, value)
+    {
+    }
+    explicit constexpr interval(T _lower, T _upper)
+        : base(_lower, _upper)
+    {
+        gsl_Expects(!(_lower > _upper));
+    }
+    template <std::convertible_to<T> U>
+    constexpr interval(interval<U> const& rhs)
+        : base(rhs.lower_unchecked(), rhs.upper_unchecked())
+    {
+        gsl_Expects(rhs.assigned());
+    }
+
+    /*constexpr interval&
+    reset()
+    {
+        return this->_reset(max_, min_);
+    }*/
+    constexpr interval&
+    reset(interval const& rhs)
+    {
+        return this->_reset(rhs.lower_, rhs.upper_);
+    }
+
+    [[nodiscard]] friend constexpr interval
+    operator +(interval const& lhs, interval<std::iter_difference_t<T>> const& rhs)
+    {
+        gsl_ExpectsDebug(lhs.assigned() && rhs.assigned());
+
+        return interval{ lhs.lower_ + rhs.lower_, lhs.upper_ + rhs.upper_ };
+    }
+    [[nodiscard]] friend constexpr interval
+    operator +(interval<std::iter_difference_t<T>> const& lhs, interval const& rhs)
+    {
+        gsl_ExpectsDebug(lhs.assigned() && rhs.assigned());
+
+        return interval{ lhs.lower_ + rhs.lower_, lhs.upper_ + rhs.upper_ };
+    }
+    [[nodiscard]] friend constexpr interval
+    operator +(std::iter_difference_t<T> lhs, interval const& rhs)
+    {
+        gsl_ExpectsDebug(rhs.assigned());
+
+        return interval{ lhs + rhs.lower_, lhs + rhs.upper_ };
+    }
+    [[nodiscard]] friend constexpr interval
+    operator +(interval const& lhs, std::iter_difference_t<T> rhs)
+    {
+        gsl_ExpectsDebug(lhs.assigned());
+
+        return interval{ lhs.lower_ + rhs, lhs.upper_ + rhs };
+    }
+    [[nodiscard]] friend constexpr interval
+    operator -(interval const& lhs, interval<std::iter_difference_t<T>> const& rhs)
+    {
+        gsl_ExpectsDebug(lhs.assigned() && rhs.assigned());
+
+        return interval{ lhs.lower_ + rhs.lower_, lhs.upper_ + rhs.upper_ };
+    }
+    [[nodiscard]] friend constexpr interval
+    operator -(interval const& lhs, std::iter_difference_t<T> rhs)
+    {
+        gsl_ExpectsDebug(lhs.assigned());
+
+        return interval{ lhs.lower_ - rhs, lhs.upper_ - rhs };
+    }
+    [[nodiscard]] friend constexpr interval<std::iter_difference_t<T>>
+    operator -(interval const& lhs, interval const& rhs)
+    {
+        gsl_ExpectsDebug(lhs.assigned() && rhs.assigned());
+
+        return interval<std::iter_difference_t<T>>{ lhs.lower_ - rhs.upper_, lhs.upper_ - rhs.lower_ };
+    }
+    [[nodiscard]] friend constexpr interval<std::iter_difference_t<T>>
+    operator -(T lhs, interval const& rhs)
+    {
+        gsl_ExpectsDebug(rhs.assigned());
+
+        return interval<std::iter_difference_t<T>>{ lhs - rhs.upper_, lhs - rhs.lower_ };
+    }
+    [[nodiscard]] friend constexpr interval<std::iter_difference_t<T>>
+    operator -(interval const& lhs, T rhs)
+    {
+        gsl_ExpectsDebug(lhs.assigned());
+
+        return interval<std::iter_difference_t<T>>{ lhs.lower_ - rhs, lhs.upper_ - rhs };
+    }
+
+    [[nodiscard]] constexpr interval<std::iter_value_t<T>>
+    operator *() const
+    {
+        auto result = interval<std::iter_value_t<T>>{ };
+        for (T pos = this->lower_; pos <= this->upper_; ++pos)
+        {
+            result.assign(*pos);
+        }
+        return result;
+    }
+    [[nodiscard]] constexpr interval<std::iter_value_t<T>>
+    operator [](std::ptrdiff_t d) const
+    {
+        return *(*this + d);
+    }
+    [[nodiscard]] constexpr interval<std::iter_value_t<T>>
+    operator [](interval<std::ptrdiff_t> d) const
+    {
+        return *(*this + d);
+    }
+
+    [[nodiscard]] friend constexpr interval
+    prev(interval const& x)
+    {
+        return interval{ detail::_prev(x.lower_), detail::_prev(x.upper_) };
+    }
+    [[nodiscard]] friend constexpr interval
+    next(interval const& x)
+    {
+        return interval{ detail::_next(x.lower_), detail::_next(x.upper_) };
+    }
+};
 
 
 template <detail::instantiation_of<interval> T, detail::instantiation_of<interval> U>
@@ -1537,7 +1691,7 @@ get(interval<T> const& bound)
 }
 
 
-template <typename T>
+template <detail::arithmetic T>
 [[nodiscard]] constexpr interval<T>
 operator *(T lhs, set<sign> rhs)
 {
@@ -1556,7 +1710,7 @@ operator *(T lhs, set<sign> rhs)
     }
     return result;
 }
-template <typename T>
+template <detail::arithmetic T>
 [[nodiscard]] constexpr interval<T>
 operator *(set<sign> lhs, T rhs)
 {
@@ -1740,9 +1894,15 @@ template <> struct set_of<bool> { using type = set<bool>; };
 template <detail::enum_ T> struct set_of<T> { using type = set<T>; };
 template <detail::floating_point T> struct set_of<T> { using type = interval<T>; };
 template <detail::integral T> struct set_of<T> { using type = interval<T>; };
+template <std::random_access_iterator T> struct set_of<T> { using type = interval<T>; };
 template <typename T, typename ReflectorT> struct set_of<set<T, ReflectorT>> { using type = set<T, ReflectorT>; };
 template <typename T> struct set_of<interval<T>> { using type = interval<T>; };
 template <typename T> using set_of_t = typename set_of<T>::type;
+
+template <typename S, typename T> struct propagate_set { using type = T; };
+template <typename U, typename T> struct propagate_set<interval<U>, T> { using type = set_of_t<T>; };
+template <typename U, typename T> struct propagate_set<set<U>, T> { using type = set_of_t<T>; };
+template <typename S, typename T> using propagate_set_t = typename propagate_set<S, T>::type;
 
 
 template <typename T>
