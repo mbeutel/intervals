@@ -67,3 +67,11 @@ target_link_libraries(simple3
     PRIVATE
         simple-libs
 )
+
+add_executable(interpolation
+    "interpolation.cpp"
+)
+target_link_libraries(interpolation
+    PRIVATE
+        simple-libs
+)
