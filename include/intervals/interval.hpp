@@ -39,6 +39,10 @@ class interval_base
 {
     static_assert(!std::is_const_v<T>);
 
+        // Natvis debugging aid
+    static constexpr detail::interval_arithmetic_specialization<T> sp1_{ };
+    static constexpr detail::interval_iterator_specialization<T> sp2_{ };
+
     using interval = DerivedT;
 
 protected:

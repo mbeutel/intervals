@@ -21,6 +21,10 @@ namespace intervals {
 namespace detail {
 
 
+    // Natvis debugging aid
+template <typename T> struct interval_arithmetic_specialization { };
+template <typename T> struct interval_iterator_specialization { };
+
 template <typename T>
 constexpr inline T
 _sqrt(T const& x)
