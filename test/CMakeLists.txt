@@ -13,10 +13,10 @@ include(TargetCompileSettings)
 
 # common settings target
 add_executable(test-intervals
-    #"test-bound-algebra.cpp"
     "test-set.cpp"
     "test-sign.cpp"
     "test-interval.cpp"
+    "test-algorithm.cpp"
 )
 target_compile_definitions(test-intervals
     PRIVATE
