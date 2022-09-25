@@ -269,7 +269,7 @@ public:
         return { range_, predicate_, it - std::ranges::begin(range_) };
     }
     constexpr partitioning_interval_constraint<R, PredicateT>
-    operator [](interval<std::ranges::borrowed_iterator_t<R>> const& its)
+    operator [](interval_base<std::ranges::borrowed_iterator_t<R>> const& its)
     {
         return { range_, predicate_, its - std::ranges::begin(range_) };
     }

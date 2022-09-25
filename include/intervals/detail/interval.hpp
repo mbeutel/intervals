@@ -257,7 +257,7 @@ concept iterator_interval_arg = iterator_interval_value<T> || iterator_interval<
 
 template <interval_arg T> struct interval_arg_value_0_;
 template <interval_value T> struct interval_arg_value_0_<T> { using type = T; };
-template <std::derived_from<interval_functions> IntervalT> struct interval_arg_value_0_<IntervalT> { using type = typename IntervalT::value_type; };
+template <any_interval IntervalT> struct interval_arg_value_0_<IntervalT> { using type = typename IntervalT::value_type; };
 template <interval_arg T> struct interval_arg_value : interval_arg_value_0_<std::remove_cvref_t<T>> { };
 template <interval_arg T> using interval_arg_value_t = typename interval_arg_value<T>::type;
 
@@ -539,17 +539,23 @@ struct less_constraint : condition  // lhs < rhs
     R rhs_;
 };
 template <typename L, typename R>
-struct equality_constraint : condition  // lhs = rhs
+less_constraint(condition, L, R) -> less_constraint<L, R>;
+template <typename L, typename R>
+struct equal_constraint : condition  // lhs = rhs
 {
     L lhs_;
     R rhs_;
 };
 template <typename L, typename R>
-struct inequality_constraint : condition  // lhs ≠ rhs
+equal_constraint(condition, L, R) -> equal_constraint<L, R>;
+template <typename L, typename R>
+struct not_equal_constraint : condition  // lhs ≠ rhs
 {
     L lhs_;
     R rhs_;
 };
+template <typename L, typename R>
+not_equal_constraint(condition, L, R) -> not_equal_constraint<L, R>;
 template <std::derived_from<condition> L, std::derived_from<condition> R>
 struct constraint_conjunction : condition  // lhs ∧ rhs
 {
@@ -618,14 +624,14 @@ operator !(less_equal_constraint<L, R> const& c)
     return { { !c.as_set() }, c.rhs_, c.lhs_ };
 }
 template <typename L, typename R>
-constexpr inequality_constraint<L, R>
-operator !(equality_constraint<L, R> const& c)
+constexpr not_equal_constraint<L, R>
+operator !(equal_constraint<L, R> const& c)
 {
     return { { !c.as_set() }, c.lhs_, c.rhs_ };
 }
 template <typename L, typename R>
-constexpr equality_constraint<L, R>
-operator !(inequality_constraint<L, R> const& c)
+constexpr equal_constraint<L, R>
+operator !(not_equal_constraint<L, R> const& c)
 {
     return { { !c.as_set() }, c.lhs_, c.rhs_ };
 }
@@ -647,7 +653,6 @@ template <typename IntervalT>
 constexpr as_constrained_interval_t<IntervalT>
 constrain(IntervalT const& x, set<bool>, bool&)
 {
-    using CInterval = as_constrained_interval_t<IntervalT>;
     return x;
 }
 template <typename IntervalT, typename L, typename R>
@@ -730,7 +735,7 @@ constrain(IntervalT const& x, less_constraint<L, R> const& c, bool& constraintAp
 }
 template <typename IntervalT, typename L, typename R>
 constexpr as_constrained_interval_t<IntervalT>
-constrain(IntervalT const& x, equality_constraint<L, R> const& c, bool& constraintApplied)
+constrain(IntervalT const& x, equal_constraint<L, R> const& c, bool& constraintApplied)
 {
     using CInterval = as_constrained_interval_t<IntervalT>;
     using UInterval = interval_t<IntervalT>;
@@ -758,11 +763,10 @@ constrain(IntervalT const& x, equality_constraint<L, R> const& c, bool& constrai
 }
 template <typename IntervalT, typename L, typename R>
 constexpr as_constrained_interval_t<IntervalT>
-constrain(IntervalT const& x, inequality_constraint<L, R> const& c, bool& constraintApplied)
+constrain(IntervalT const& x, not_equal_constraint<L, R> const& c, bool& constraintApplied)
 {
     using CInterval = as_constrained_interval_t<IntervalT>;
     using UInterval = interval_t<IntervalT>;
-    using T = common_interval_value_t<L, R>;
 
     if constexpr (can_compare_id_v<IntervalT, L> || can_compare_id_v<IntervalT, R>)
     {

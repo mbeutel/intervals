@@ -168,6 +168,7 @@ upper_bound(R&& range, T const&& value, CompareT&& comp = { })
 
 
 template <typename T>
+requires detail::not_interval<T> && detail::not_instantiation_of<T, set>
 [[nodiscard]] constexpr detail::single_value_range<T>
 enumerate(T value)
 {
@@ -183,12 +184,12 @@ enumerate(set<T> const& value)
 }
 template <typename T>
 [[nodiscard]] constexpr detail::interval_value_range<T>
-enumerate(interval<T> const& value)
+enumerate(detail::interval_base<T> const& value)
 requires std::integral<T> || std::random_access_iterator<T>
 {
     gsl_Expects(value.assigned());
 
-    return { value };
+    return { interval<T>(value) };
 }
 
 

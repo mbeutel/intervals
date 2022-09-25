@@ -88,7 +88,7 @@
     </Type>
     <Type Name="intervals::detail::constraint_conjunction&lt;*,*&gt;">
         <DisplayString IncludeView="member">{ lhs_,view(member) } ∧ { rhs_,view(member) }</DisplayString>
-        <DisplayString>{ lhs_,view(member) } ∧ { rhs_,view(member) }: { *(intervals::set&lt;bool,makeshift::detail::reflector&gt;*) this }</DisplayString>
+        <DisplayString>({ lhs_,view(member) }) ∧ ({ rhs_,view(member) }): { *(intervals::set&lt;bool,makeshift::detail::reflector&gt;*) this }</DisplayString>
         <Expand>
             <Item Name="lhs">lhs_</Item>
             <Item Name="rhs">rhs_</Item>
@@ -96,7 +96,7 @@
     </Type>
     <Type Name="intervals::detail::constraint_disjunction&lt;*,*&gt;">
         <DisplayString IncludeView="member">{ lhs_,view(member) } ∨ { rhs_,view(member) }</DisplayString>
-        <DisplayString>{ lhs_,view(member) } ∨ { rhs_,view(member) }: { *(intervals::set&lt;bool,makeshift::detail::reflector&gt;*) this }</DisplayString>
+        <DisplayString>({ lhs_,view(member) }) ∨ ({ rhs_,view(member) }): { *(intervals::set&lt;bool,makeshift::detail::reflector&gt;*) this }</DisplayString>
         <Expand>
             <Item Name="lhs">lhs_</Item>
             <Item Name="rhs">rhs_</Item>

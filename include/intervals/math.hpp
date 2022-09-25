@@ -147,28 +147,6 @@ reset(T& lhs, gsl::type_identity_t<T> rhs)
 {
     lhs = rhs;
 }
-//template <typename T>
-//constexpr void
-//assign_if(bool cond, T& lhs, gsl::type_identity_t<T> rhs)
-//requires detail::non_const<T>
-//{
-//    //gsl_Expects(cond);
-//    if (cond)
-//    {
-//        lhs = rhs;
-//    }
-//}
-//template <typename T>
-//constexpr void
-//assign_if_not(bool cond, T& lhs, gsl::type_identity_t<T> rhs)
-//requires detail::non_const<T>
-//{
-//    //gsl_Expects(!cond);
-//    if (!cond)
-//    {
-//        lhs = rhs;
-//    }
-//}
 
 
 template <typename T>

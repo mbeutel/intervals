@@ -462,44 +462,6 @@ reset(set<T, R>& lhs, gsl::type_identity_t<set<T, R>> const& rhs)
 {
     lhs.reset(rhs);
 }
-//template <typename T, typename R>
-//constexpr void
-//assign_if(set<bool> cond, set<T, R>& lhs, gsl::type_identity_t<set<T, R>> const& rhs)
-//{
-//    if (cond.matches(true))
-//    {
-//        gsl_Expects(!lhs.assigned());
-//        lhs.reset(rhs);
-//    }
-//    else if (cond.matches(set{ false, true }))
-//    {
-//        lhs.assign(rhs);
-//    }
-//    else
-//    {
-//        //gsl_Expects(!cond.matches(false));
-//        // but just do nothing if `cond.matches(set{ })`
-//    }
-//}
-//template <typename T, typename R>
-//constexpr void
-//assign_if_not(set<bool> cond, set<T, R>& lhs, gsl::type_identity_t<set<T, R>> const& rhs)
-//{
-//    if (cond.matches(false))
-//    {
-//        gsl_Expects(!lhs.assigned());
-//        lhs.reset(rhs);
-//    }
-//    else if (cond.matches(set{ false, true }))
-//    {
-//        lhs.assign(rhs);
-//    }
-//    else
-//    {
-//        //gsl_Expects(!cond.matches(true));
-//        // but just do nothing if `cond.matches(set{ })`
-//    }
-//}
 
 
 [[nodiscard]] constexpr set<sign>

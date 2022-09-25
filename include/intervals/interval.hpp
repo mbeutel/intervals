@@ -157,7 +157,7 @@ public:
     {
         gsl_ExpectsDebug(assigned(lhs) && assigned(rhs));
 
-        return equality_constraint{
+        return equal_constraint{
             condition{ compare_eq(lhs, rhs) },
             as_interval(std::forward<L>(lhs)),
             as_interval(std::forward<R>(rhs))
@@ -170,7 +170,7 @@ public:
     {
         gsl_ExpectsDebug(assigned(lhs) && assigned(rhs));
 
-        return inequality_constraint{
+        return not_equal_constraint{
             condition{ compare_neq(lhs, rhs) },
             as_interval(std::forward<L>(lhs)),
             as_interval(std::forward<R>(rhs))
@@ -1035,7 +1035,7 @@ public:
         return *(*this + d);
     }
     [[nodiscard]] constexpr interval<std::iter_value_t<T>>
-    operator [](interval<std::ptrdiff_t> d) const
+    operator [](interval_base<std::ptrdiff_t> const& d) const
     {
         return *(*this + d);
     }
@@ -1212,7 +1212,7 @@ public:
         gsl_Expects(!(_lower > _upper));
     }
     template <std::convertible_to<T> U>
-    constexpr interval(interval<U> const& rhs)
+    constexpr interval(detail::interval_base<U> const& rhs)
         : base(rhs.lower_unchecked(), rhs.upper_unchecked())
     {
         gsl_Expects(rhs.assigned());
@@ -1381,44 +1381,6 @@ reset(IntervalT& lhs, gsl::type_identity_t<detail::interval_t<IntervalT>> const&
 {
     lhs.reset(rhs);
 }
-//template <typename T>
-//constexpr void
-//assign_if(set<bool> cond, interval<T>& lhs, gsl::type_identity_t<interval<T>> const& rhs)
-//{
-//    if (cond.matches(true))
-//    {
-//        gsl_Expects(!lhs.assigned());
-//        lhs.reset(rhs);
-//    }
-//    else if (cond.matches(set{ false, true }))
-//    {
-//        lhs.assign(rhs);
-//    }
-//    else
-//    {
-//        //gsl_Expects(!cond.matches(false));
-//        // but just do nothing if `cond.matches(set{ })`
-//    }
-//}
-//template <typename T>
-//constexpr void
-//assign_if_not(set<bool> cond, interval<T>& lhs, gsl::type_identity_t<interval<T>> const& rhs)
-//{
-//    if (cond.matches(false))
-//    {
-//        gsl_Expects(!lhs.assigned());
-//        lhs.reset(rhs);
-//    }
-//    else if (cond.matches(set{ false, true }))
-//    {
-//        lhs.assign(rhs);
-//    }
-//    else
-//    {
-//        //gsl_Expects(!cond.matches(true));
-//        // but just do nothing if `cond.matches(set{ })`
-//    }
-//}
 
 template <makeshift::tuple_like T, typename U>
 constexpr void
@@ -1459,44 +1421,6 @@ requires detail::non_const<T> && detail::not_interval<T>
         },
         lhs, std::forward<U>(rhs));
 }
-//template <makeshift::tuple_like T, typename U>
-//constexpr void
-//assign_if(set<bool> cond, T& lhs, U&& rhs)
-//requires detail::non_const<T> && detail::not_interval<T>
-//{
-//    if (cond.matches(true))
-//    {
-//        intervals::assign(lhs, std::forward<U>(rhs));
-//    }
-//    else if (cond.matches(set{ false, true }))
-//    {
-//        intervals::assign_partial(lhs, std::forward<U>(rhs));
-//    }
-//    else
-//    {
-//        //gsl_Expects(!cond.matches(false));
-//        // but just do nothing if `cond.matches(set{ })`
-//    }
-//}
-//template <makeshift::tuple_like T, typename U>
-//constexpr void
-//assign_if_not(set<bool> cond, T& lhs, U&& rhs)
-//requires detail::non_const<T> && detail::not_interval<T>
-//{
-//    if (cond.matches(false))
-//    {
-//        intervals::assign(lhs, std::forward<U>(rhs));
-//    }
-//    else if (cond.matches(set{ false, true }))
-//    {
-//        intervals::assign_partial(lhs, std::forward<U>(rhs));
-//    }
-//    else
-//    {
-//        //gsl_Expects(!cond.matches(true));
-//        // but just do nothing if `cond.matches(set{ })`
-//    }
-//}
 
 
     // Expression does not constrain given interval.
