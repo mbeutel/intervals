@@ -4,6 +4,8 @@
 
 
 #include <array>
+#include <ranges>       // for random_access_range
+#include <iterator>     // for random_access_iterator
 #include <type_traits>  // for is_same<>
 
 #include <makeshift/metadata.hpp>  // for metadata::values()
@@ -225,6 +227,66 @@ struct interval_value_range
     end() const
     {
         return { };
+    }
+};
+
+
+struct partitioning_constraint_base { };
+
+template <std::ranges::random_access_range R, std::invocable<std::ranges::range_value_t<R> const&> PredicateT>
+requires std::ranges::borrowed_range<R>
+struct partitioning_constraint : partitioning_constraint_base
+{
+    R range;
+    PredicateT predicate;
+    gsl::index index;
+};
+template <std::ranges::random_access_range R, std::invocable<std::ranges::range_value_t<R> const&> PredicateT>
+requires std::ranges::borrowed_range<R>
+struct partitioning_interval_constraint : partitioning_constraint_base
+{
+    R range;
+    PredicateT predicate;
+    interval<gsl::index> index;
+};
+
+template <std::ranges::random_access_range R, std::invocable<std::ranges::range_value_t<R> const&> PredicateT>
+requires std::ranges::borrowed_range<R>
+class partitioning
+{
+private:
+    R range_;
+    PredicateT predicate_;
+
+public:
+    constexpr partitioning(R&& _range, PredicateT&& _predicate)
+        : range_(std::forward<R>(_range)), predicate_(std::forward<PredicateT>(_predicate))
+    {
+    }
+    constexpr partitioning_constraint<R, PredicateT>
+    operator [](std::ranges::borrowed_iterator_t<R> it)
+    {
+        return { range_, predicate_, it - std::ranges::begin(range_) };
+    }
+    constexpr partitioning_interval_constraint<R, PredicateT>
+    operator [](interval<std::ranges::borrowed_iterator_t<R>> const& its)
+    {
+        return { range_, predicate_, its - std::ranges::begin(range_) };
+    }
+    constexpr partitioning_constraint<R, PredicateT>
+    operator [](gsl::index index)
+    {
+        gsl_ExpectsDebug(index >= 0 && index <= std::ranges::ssize(range_));
+
+        return { { }, range_, predicate_, index };
+    }
+    constexpr partitioning_interval_constraint<R, PredicateT>
+    operator [](interval_base<gsl::index> const& index)
+    {
+        gsl_Expects(index.assigned());
+        gsl_ExpectsDebug(index.lower_unchecked() >= 0 && index.upper_unchecked() <= std::ranges::ssize(range_));
+
+        return { { }, range_, predicate_, index };
     }
 };
 

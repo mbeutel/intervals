@@ -22,18 +22,18 @@ using makeshift::index_range;
 #include <intervals/algorithm.hpp>
 
 
-template <std::ranges::random_access_range R1, std::ranges::random_access_range R2, typename XT>
+template <std::ranges::random_access_range XR, std::ranges::random_access_range YR, typename X>
 auto
 interpolate_nearest_neighbour(
-        R1&& xs,  // points  xᵢ  with  x₁ ≤ ... ≤ xₙ
-        R2&& ys,  // corresponding values  yᵢ
-        XT const& x) {
+        XR&& xs,  // points  xᵢ  with  x₁ ≤ ... ≤ xₙ
+        YR&& ys,  // corresponding values  yᵢ
+        X const& x) {
     gsl_ExpectsDebug(std::ranges::size(xs) == std::ranges::size(ys));
     gsl_Expects(!std::ranges::empty(xs));  // at least one point of support
     gsl_ExpectsAudit(std::ranges::is_sorted(xs));
 
-    using YT = propagate_set_t<XT, std::ranges::range_value_t<R2>>;
-    auto result = YT{ };
+    using Y = propagate_set_t<X, std::ranges::range_value_t<YR>>;
+    auto result = Y{ };
     if (std::ranges::ssize(xs) == 1)
     {
             // If we have only a single point of support, just return it.
@@ -41,15 +41,14 @@ interpolate_nearest_neighbour(
     }
     else  // std::ranges::ssize(xs) > 1
     {
-        auto i = *lower_bound(
+        auto [_, it] = partition_point(
             index_range(std::ranges::ssize(xs) - 1),
-            x,
-            [&xs](index i, auto const& x)
+            [&xs, &x](index i)
             {
                 auto xhalf = std::midpoint(xs[i], xs[i + 1]);
                 return xhalf < x;
             });
-        assign(result, at(xs, i));
+        assign(result, at(xs, *it));
     }
     return result;
 }
@@ -89,44 +88,46 @@ interpolate_linear_0(
     auto y1 = yfirst[i];
     return y0 + (x - x0)/(x1 - x0)*(y1 - y0);
 }
-template <std::ranges::random_access_range R1, std::ranges::random_access_range R2, typename XT>
+template <std::ranges::random_access_range XR, std::ranges::random_access_range YR, typename X>
 auto
 interpolate_linear(
-        R1&& xs,  // points  xᵢ  with  x₁ ≤ ... ≤ xₙ
-        R2&& ys,  // corresponding values  yᵢ
-        XT x) {
+        XR&& xs,  // points  xᵢ  with  x₁ ≤ ... ≤ xₙ
+        YR&& ys,  // corresponding values  yᵢ
+        X x) {
     gsl_ExpectsDebug(std::ranges::size(xs) == std::ranges::size(ys));
     gsl_Expects(!std::ranges::empty(xs));  // at least one point of support
     gsl_ExpectsAudit(std::ranges::is_sorted(xs));
 
     auto n = std::ranges::ssize(xs);
 
-    auto xpos = lower_bound(xs, x);
-    using YT = propagate_set_t<XT, std::ranges::range_value_t<R2>>;
-    auto result = YT{ };
+    auto [partitioning, pos] = lower_bound(xs, x);
+
+    using Y = propagate_set_t<X, std::ranges::range_value_t<YR>>;
+    auto result = Y{ };
 
         // For values  x < x₁ , just extend the first point of support  y₁  as a constant.
-    auto below = xpos == std::ranges::begin(xs);
+    auto below = pos == std::ranges::begin(xs);
     if (maybe(below)) {
         assign_partial(result, ys[0]);
     }
 
         // For values  x > xₙ , just extend the last point of support  yₙ  as a constant.
-    auto above = xpos == std::ranges::end(xs);
+    auto above = pos == std::ranges::end(xs);
     if (maybe(above)) {
         assign_partial(result, ys[n - 1]);
     }
 
-        // Otherwise, return linear interpolation  yᵢ₋₁ + (x - xᵢ₋₁)/(xᵢ - xᵢ₋₁)⋅(yᵢ - yᵢ₋₁) .
+        // Otherwise, return linear interpolation  yᵢ + (x - xᵢ)/(xᵢ₊₁ - xᵢ)⋅(yᵢ₊₁ - yᵢ) .
     if (auto cond = !below & !above; maybe(cond)) {
-        auto xposc = constrain(xpos, cond);
-        auto ii = xposc - std::ranges::begin(xs);
+        auto posc = constrain(pos, cond);
+        auto ii = posc - std::ranges::begin(xs);
         for (gsl_lite::index i : intervals::enumerate(ii)) {
             auto x0 = xs[i - 1];
             auto x1 = xs[i];
             auto y0 = ys[i - 1];
             auto y1 = ys[i];
-            auto xc = constrain(x, (x >= x0) & (x < x1));
+            //auto xc = constrain(x, (x >= x0) & (x < x1));
+            auto xc = constrain(x, partitioning[i]);
             assign_partial(result, y0 + (xc - x0)/(x1 - x0)*(y1 - y0));
         }
     }
