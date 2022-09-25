@@ -3,6 +3,8 @@
 #define INCLUDED_INTERVALS_MATH_HPP_
 
 
+#include <concepts>  // for floating_point<>
+
 #include <gsl-lite/gsl-lite.hpp>  // for gsl_Expects(), gsl_ExpectsDebug()
 
 #include <intervals/detail/math.hpp>
@@ -27,7 +29,7 @@ cube(T x)
     return x*x*x;
 }
 
-template <detail::floating_point T>
+template <std::floating_point T>
 [[nodiscard]] inline T
 sqrt(T x)
 {
@@ -36,7 +38,7 @@ sqrt(T x)
     return std::sqrt(x);
 }
 
-template <detail::floating_point T>
+template <std::floating_point T>
 [[nodiscard]] inline T
 log(T x)
 {
@@ -45,7 +47,7 @@ log(T x)
     return std::log(x);
 }
 
-template <detail::floating_point T>
+template <std::floating_point T>
 [[nodiscard]] inline float
 asin(float x)
 {
@@ -54,7 +56,7 @@ asin(float x)
     return std::asin(x);
 }
 
-template <detail::floating_point T>
+template <std::floating_point T>
 [[nodiscard]] inline T
 acos(T x)
 {
@@ -63,7 +65,7 @@ acos(T x)
     return std::acos(x);
 }
 
-template <detail::floating_point T>
+template <std::floating_point T>
 [[nodiscard]] inline T
 atan2(T y, T x)
 {
@@ -72,7 +74,7 @@ atan2(T y, T x)
     return std::atan2(y, x);
 }
 
-template <detail::floating_point T>
+template <std::floating_point T>
 [[nodiscard]] inline T
 frac(T x)
 {
@@ -86,7 +88,7 @@ frac(T x)
     // This routine is not adequate for arguments vastly larger than the target range. To support these arguments with high
     // accuracy, use an approach that avoids cancellation, e.g. Payne–Hanek (cf. https://stackoverflow.com/a/30465751).
     //
-template <detail::floating_point T>
+template <std::floating_point T>
 [[nodiscard]] constexpr T
 wraparound(T x, T min, T max)
 {
@@ -97,7 +99,7 @@ wraparound(T x, T min, T max)
 }
 
 
-template <detail::floating_point T>
+template <std::floating_point T>
 [[nodiscard]] constexpr std::pair<T, T>
 fractional_weights(T a, T b)
 {
@@ -125,23 +127,23 @@ blend_quadratic(T a, T b, T x, T y)
 
 
 template <typename T>
+requires detail::non_const<T>
 constexpr void
 assign(T& lhs, gsl::type_identity_t<T> rhs)
-requires detail::non_const<T>
 {
     lhs = rhs;
 }
 template <typename T>
+requires detail::non_const<T>
 constexpr void
 assign_partial(T& lhs, gsl::type_identity_t<T> rhs)
-requires detail::non_const<T>
 {
     lhs = rhs;
 }
 template <typename T>
+requires detail::non_const<T>
 constexpr void
 reset(T& lhs, gsl::type_identity_t<T> rhs)
-requires detail::non_const<T>
 {
     lhs = rhs;
 }
@@ -170,9 +172,9 @@ requires detail::non_const<T>
 
 
 template <typename T>
+requires std::floating_point<T> || std::integral<T> || std::random_access_iterator<T>
 [[nodiscard]] constexpr T
 constrain(T x, bool c)
-requires detail::floating_point<T> || detail::integral<T> || std::random_access_iterator<T>
 {
     gsl_Assert(c);
     return x;

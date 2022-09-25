@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
 
+    <!--TODO: move to makeshift visualizer-->
+    <Type Name="makeshift::index_iterator">
+        <SmartPointer Usage="Indexable">&amp;i_,na</SmartPointer>
+        <Expand>
+            <Item Name="[index]">i_</Item>
+        </Expand>
+    </Type>
+    
     <Type Name="intervals::set&lt;*,*&gt;">
         <Expand>
             <CustomListItems>
@@ -13,24 +21,40 @@
             </CustomListItems>
         </Expand>
     </Type>
-    <Type Name="intervals::interval&lt;*&gt;">
-        <DisplayString Condition="intervals::interval&lt;$T1&gt;::specialization_ &lt; 2">{ *(intervals::detail::interval_arithmetic_specialization&lt;$T1&gt;*)this }</DisplayString>
-        <DisplayString Condition="intervals::interval&lt;$T1&gt;::specialization_ == 2">{ *(intervals::detail::interval_iterator_specialization&lt;$T1&gt;*)this }</DisplayString>
+    <!--Type Name="intervals::interval&lt;*&gt;">
+        <DisplayString Condition="intervals::interval&lt;$T1&gt;::specialization_ &lt; 2">{ *(intervals::detail::interval_base&lt;$T1&gt;*)this }</DisplayString>
+        <DisplayString Condition="intervals::interval&lt;$T1&gt;::specialization_ == 2">{ *(intervals::detail::iterator_interval_base&lt;$T1&gt;*)this }</DisplayString>
+        <Expand>
+            <Item Name="lower">lower_</Item>
+            <Item Name="upper">upper_</Item>
+        </Expand>
+    </Type-->
+    <Type Name="intervals::detail::iterator_interval_base&lt;makeshift::index_iterator&gt;">
+        <DisplayString Condition="*lower_ == *upper_">→{ *lower_ }</DisplayString>
+        <DisplayString>[→{ *lower_ }, →{ *upper_ }]</DisplayString>
         <Expand>
             <Item Name="lower">lower_</Item>
             <Item Name="upper">upper_</Item>
         </Expand>
     </Type>
-    <Type Name="intervals::detail::interval_arithmetic_specialization&lt;*&gt;">
-        <DisplayString Condition="((intervals::interval&lt;$T1&gt;*)this)->lower_ &gt; ((intervals::interval&lt;$T1&gt;*)this)->upper_">uninitialized</DisplayString>
-        <DisplayString Condition="((intervals::interval&lt;$T1&gt;*)this)->lower_ == ((intervals::interval&lt;$T1&gt;*)this)->upper_">{ ((intervals::interval&lt;$T1&gt;*)this)->lower_,g }</DisplayString>
-        <DisplayString>[{ ((intervals::interval&lt;$T1&gt;*)this)->lower_,g }, { ((intervals::interval&lt;$T1&gt;*)this)->upper_,g }]</DisplayString>
+    <Type Name="intervals::detail::iterator_interval_base&lt;*&gt;">
+        <DisplayString Condition="lower_ == upper_">→{ lower_,g }</DisplayString>
+        <DisplayString>[→{ lower_,g }, →{ upper_,g }]</DisplayString>
+        <Expand>
+            <Item Name="lower">lower_</Item>
+            <Item Name="upper">upper_</Item>
+        </Expand>
     </Type>
-    <Type Name="intervals::detail::interval_iterator_specialization&lt;*&gt;">
-        <DisplayString Condition="&amp;*((intervals::interval&lt;$T1&gt;*)this)->lower_ == &amp;*((intervals::interval&lt;$T1&gt;*)this)->upper_">→{ ((intervals::interval&lt;$T1&gt;*)this)->lower_,g }</DisplayString>
-        <DisplayString>[→{ ((intervals::interval&lt;$T1&gt;*)this)->lower_,g }, →{ ((intervals::interval&lt;$T1&gt;*)this)->upper_,g }]</DisplayString>
+    <Type Name="intervals::detail::arithmetic_interval_base&lt;*&gt;">
+        <DisplayString Condition="lower_ &gt; upper_">uninitialized</DisplayString>
+        <DisplayString Condition="lower_ == upper_">{ lower_,g }</DisplayString>
+        <DisplayString>[{ lower_,g }, { upper_,g }]</DisplayString>
+        <Expand>
+            <Item Name="lower">lower_</Item>
+            <Item Name="upper">upper_</Item>
+        </Expand>
     </Type>
-    <Type Name="intervals::detail::less_constraint_lr&lt;*&gt;">
+    <Type Name="intervals::detail::less_constraint&lt;*&gt;">
         <DisplayString IncludeView="member">{ lhs_ } &lt; { rhs_ }</DisplayString>
         <DisplayString>{ lhs_ } &lt; { rhs_ }: { *(intervals::set&lt;bool,makeshift::detail::reflector&gt;*) this }</DisplayString>
         <Expand>
@@ -38,23 +62,7 @@
             <Item Name="rhs">rhs_</Item>
         </Expand>
     </Type>
-    <Type Name="intervals::detail::less_constraint_rl&lt;*&gt;">
-        <DisplayString IncludeView="member">{ lhs_ } &lt; { rhs_ }</DisplayString>
-        <DisplayString>{ lhs_ } &lt; { rhs_ }: { *(intervals::set&lt;bool,makeshift::detail::reflector&gt;*) this }</DisplayString>
-        <Expand>
-            <Item Name="lhs">lhs_</Item>
-            <Item Name="rhs">rhs_</Item>
-        </Expand>
-    </Type>
-    <Type Name="intervals::detail::less_constraint_ll&lt;*&gt;">
-        <DisplayString IncludeView="member">{ lhs_ } &lt; { rhs_ }</DisplayString>
-        <DisplayString>{ lhs_ } &lt; { rhs_ }: { *(intervals::set&lt;bool,makeshift::detail::reflector&gt;*) this }</DisplayString>
-        <Expand>
-            <Item Name="lhs">lhs_</Item>
-            <Item Name="rhs">rhs_</Item>
-        </Expand>
-    </Type>
-    <Type Name="intervals::detail::less_equal_constraint_lr&lt;*&gt;">
+    <Type Name="intervals::detail::less_equal_constraint&lt;*&gt;">
         <DisplayString IncludeView="member">{ lhs_ } ≤ { rhs_ }</DisplayString>
         <DisplayString>{ lhs_ } ≤ { rhs_ }: { *(intervals::set&lt;bool,makeshift::detail::reflector&gt;*) this }</DisplayString>
         <Expand>
@@ -62,23 +70,7 @@
             <Item Name="rhs">rhs_</Item>
         </Expand>
     </Type>
-    <Type Name="intervals::detail::less_equal_constraint_rl&lt;*&gt;">
-        <DisplayString IncludeView="member">{ lhs_ } ≤ { rhs_ }</DisplayString>
-        <DisplayString>{ lhs_ } ≤ { rhs_ }: { *(intervals::set&lt;bool,makeshift::detail::reflector&gt;*) this }</DisplayString>
-        <Expand>
-            <Item Name="lhs">lhs_</Item>
-            <Item Name="rhs">rhs_</Item>
-        </Expand>
-    </Type>
-    <Type Name="intervals::detail::less_equal_constraint_ll&lt;*&gt;">
-        <DisplayString IncludeView="member">{ lhs_ } ≤ { rhs_ }</DisplayString>
-        <DisplayString>{ lhs_ } ≤ { rhs_ }: { *(intervals::set&lt;bool,makeshift::detail::reflector&gt;*) this }</DisplayString>
-        <Expand>
-            <Item Name="lhs">lhs_</Item>
-            <Item Name="rhs">rhs_</Item>
-        </Expand>
-    </Type>
-    <Type Name="intervals::detail::equality_constraint_lr&lt;*&gt;">
+    <Type Name="intervals::detail::equality_constraint&lt;*&gt;">
         <DisplayString IncludeView="member">{ lhs_ } = { rhs_ }</DisplayString>
         <DisplayString>{ lhs_ } = { rhs_ }: { *(intervals::set&lt;bool,makeshift::detail::reflector&gt;*) this }</DisplayString>
         <Expand>
@@ -86,23 +78,7 @@
             <Item Name="rhs">rhs_</Item>
         </Expand>
     </Type>
-    <Type Name="intervals::detail::equality_constraint_ll&lt;*&gt;">
-        <DisplayString IncludeView="member">{ lhs_ } = { rhs_ }</DisplayString>
-        <DisplayString>{ lhs_ } = { rhs_ }: { *(intervals::set&lt;bool,makeshift::detail::reflector&gt;*) this }</DisplayString>
-        <Expand>
-            <Item Name="lhs">lhs_</Item>
-            <Item Name="rhs">rhs_</Item>
-        </Expand>
-    </Type>
-    <Type Name="intervals::detail::inequality_constraint_lr&lt;*&gt;">
-        <DisplayString IncludeView="member">{ lhs_ } ≠ { rhs_ }</DisplayString>
-        <DisplayString>{ lhs_ } ≠ { rhs_ }: { *(intervals::set&lt;bool,makeshift::detail::reflector&gt;*) this }</DisplayString>
-        <Expand>
-            <Item Name="lhs">lhs_</Item>
-            <Item Name="rhs">rhs_</Item>
-        </Expand>
-    </Type>
-    <Type Name="intervals::detail::inequality_constraint_ll&lt;*&gt;">
+    <Type Name="intervals::detail::inequality_constraint&lt;*&gt;">
         <DisplayString IncludeView="member">{ lhs_ } ≠ { rhs_ }</DisplayString>
         <DisplayString>{ lhs_ } ≠ { rhs_ }: { *(intervals::set&lt;bool,makeshift::detail::reflector&gt;*) this }</DisplayString>
         <Expand>
