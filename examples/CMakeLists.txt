@@ -68,10 +68,18 @@ target_link_libraries(simple3
         simple-libs
 )
 
-add_executable(interpolation
-    "interpolation.cpp"
+add_executable(interpolate-nn
+    "interpolate-nn.cpp"
 )
-target_link_libraries(interpolation
+target_link_libraries(interpolate-nn
+    PRIVATE
+        simple-libs
+)
+
+add_executable(interpolate-linear
+    "interpolate-linear.cpp"
+)
+target_link_libraries(interpolate-linear
     PRIVATE
         simple-libs
 )

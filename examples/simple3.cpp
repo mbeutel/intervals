@@ -1,7 +1,9 @@
 
 #include <initializer_list>
+
 #include <fmt/core.h>
 #include <fmt/ostream.h>
+
 #include <intervals/set.hpp>
 #include <intervals/interval.hpp>
 using namespace intervals;
