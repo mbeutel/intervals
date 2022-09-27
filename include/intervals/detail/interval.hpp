@@ -304,11 +304,15 @@ concept floating_point_operands =
     interval_arg<R> &&
     floating_point_interval_value<common_interval_value_t<L, R>>;
 
-template <any_interval IntervalT> constexpr bool have_id_v = false;
+template <typename L, typename R> struct is_same_interval : std::false_type { };
+template <any_interval L, any_interval R> struct is_same_interval<L, R> : std::is_same<interval_t<L>, interval_t<R>> { };
+template <interval_arg T> constexpr bool have_id_v = false;
 template <any_interval IntervalT> constexpr bool have_id_v<constrained_interval<IntervalT>> = true;
-template <any_interval IntervalT, any_interval T>
-constexpr bool
-can_compare_id_v = std::is_same_v<interval_t<IntervalT>, interval_t<T>> && have_id_v<T>;
+template <interval_arg T> struct have_id : std::bool_constant<have_id_v<T>> { };
+template <any_interval L, interval_arg T>
+struct can_compare_id : std::conjunction<std::bool_constant<any_interval<T>>, is_same_interval<L, T>, have_id<T>> { };
+template <any_interval L, interval_arg T>
+constexpr bool can_compare_id_v = can_compare_id<L, T>::value;
 
 template <typename IntervalT> using as_constrained_interval_t = constrained_interval<interval_t<IntervalT>>;
 
@@ -434,7 +438,7 @@ constexpr inline struct _as_interval_t
         return std::move(x);
     }
     template <interval_value T>
-    constexpr inline interval<T>
+    constexpr inline T
     operator ()(T const& arg) const noexcept
     {
         return arg;
