@@ -22,40 +22,37 @@ using makeshift::index_range;
 using namespace intervals;
 
 
-template <ranges::random_access_range XR, ranges::random_access_range YR, typename X>
 auto
 interpolate_linear(
-        XR&& xs,  // points  xᵢ  with  x₁ ≤ ... ≤ xₙ
-        YR&& ys,  // corresponding values  yᵢ
-        X x) {
+        ranges::random_access_range auto&& xs,  // points  xᵢ  with  x₁ ≤ ... ≤ xₙ
+        ranges::random_access_range auto&& ys,  // corresponding values  yᵢ
+        auto x) {
     gsl_Expects(ranges::size(xs) >= 2);
     gsl_ExpectsDebug(ranges::size(xs) == ranges::size(ys));
     gsl_ExpectsAudit(ranges::is_sorted(xs));
 
-    auto n = ranges::ssize(xs);
+    auto [partitioning, it] = lower_bound(xs, x);
 
-    auto [partitioning, pos] = lower_bound(xs, x);
-
-    using Y = propagate_set_t<X, ranges::range_value_t<YR>>;
+    using Y = propagate_set_t<decltype(x), ranges::range_value_t<decltype(ys)>>;
     auto result = Y{ };
 
         // For values  x < x₁ , just extend the first point of support  y₁  as a constant.
-    auto below = pos == ranges::begin(xs);
+    auto below = it == ranges::begin(xs);
     if (maybe(below)) {
         assign_partial(result, ys[0]);
     }
 
         // For values  x > xₙ , just extend the last point of support  yₙ  as a constant.
-    auto above = pos == ranges::end(xs);
+    auto above = it == ranges::end(xs);
     if (maybe(above)) {
-        assign_partial(result, ys[n - 1]);
+        assign_partial(result, ys[ranges::ssize(xs) - 1]);
     }
 
         // Otherwise, return linear interpolation  yᵢ + (x - xᵢ)/(xᵢ₊₁ - xᵢ)⋅(yᵢ₊₁ - yᵢ) .
-    if (auto cond = !below & !above; maybe(cond)) {
-        auto posc = constrain(pos, cond);
-        auto ii = posc - ranges::begin(xs);
-        for (gsl_lite::index i : intervals::enumerate(ii)) {
+    if (auto c = !below & !above; maybe(c)) {
+        auto itc = constrain(it, c);
+        auto ii = itc - ranges::begin(xs);
+        for (index i : enumerate(ii)) {
             auto x0 = xs[i - 1];
             auto x1 = xs[i];
             auto y0 = ys[i - 1];
@@ -70,17 +67,21 @@ interpolate_linear(
 
 int main() {
     auto xs = std::array{ 1., 2., 4., 8. };
-    auto ys = std::array{ 1., 3., 9., 3. };
+    auto ys = std::array{ 1., 3., 9., -3. };
     auto y1 = [&](auto const& x) {
         return interpolate_linear(xs, ys, x);
     };
 
         // Linear interpolation:
     fmt::print("y({}) = {}\n", 1.5, y1(1.5));
-    fmt::print("y({}) = {}\n", interval{ 1.5 }, y1(interval{ 1.5 }));
-    fmt::print("y({}) = {}\n", interval{ 0, 1.2 }, y1(interval{ 0, 1.2 }));
-    fmt::print("y({}) = {}\n", interval{ 1.2, 1.7 }, y1(interval{ 1.2, 1.7 }));
-    fmt::print("y({}) = {}\n", interval{ 1.5, 5 }, y1(interval{ 1.5, 5 }));
+    fmt::print("y({}) = {}\n",
+        interval{1.5}, y1(interval{1.5}));
+    fmt::print("y({}) = {}\n",
+        interval{0,1.2}, y1(interval{0,1.2}));
+    fmt::print("y({}) = {}\n",
+        interval{1.2,1.7}, y1(interval{1.2,1.7}));
+    fmt::print("y({}) = {}\n",
+        interval{1.5,5}, y1(interval{1.5,5}));
 }
 // output:
 //     y(1.5) = 2
