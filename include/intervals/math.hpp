@@ -7,7 +7,7 @@
 
 #include <gsl-lite/gsl-lite.hpp>  // for gsl_Expects(), gsl_ExpectsDebug()
 
-#include <intervals/detail/math.hpp>
+#include <intervals/detail/concepts.hpp>
 
 
 namespace intervals {
@@ -42,7 +42,7 @@ template <std::floating_point T>
 [[nodiscard]] inline T
 log(T x)
 {
-    gsl_ExpectsDebug(x >= 0);  // 0 is allowed because floats can represent  -∞ .
+    gsl_ExpectsDebug(x >= 0);  // 0 is allowed because floats can represent -∞.
 
     return std::log(x);
 }
@@ -126,21 +126,21 @@ blend_quadratic(T a, T b, T x, T y)
 }
 
 
-template <typename T>
+template <detail::interval_value T>
 requires detail::non_const<T>
 constexpr void
 assign(T& lhs, gsl::type_identity_t<T> rhs)
 {
     lhs = rhs;
 }
-template <typename T>
+template <detail::interval_value T>
 requires detail::non_const<T>
 constexpr void
 assign_partial(T& lhs, gsl::type_identity_t<T> rhs)
 {
     lhs = rhs;
 }
-template <typename T>
+template <detail::interval_value T>
 requires detail::non_const<T>
 constexpr void
 reset(T& lhs, gsl::type_identity_t<T> rhs)

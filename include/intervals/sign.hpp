@@ -7,7 +7,7 @@
 
 #include <gsl-lite/gsl-lite.hpp>  // for type_identity<>
 
-#include <intervals/detail/math.hpp>
+#include <intervals/detail/concepts.hpp>
 #include <intervals/detail/sign.hpp>
 
 

@@ -19,17 +19,17 @@ int main() {
     auto x = interval{ 0., 1. };
     fmt::print("f1({}) = {}\n", x, f1(x));
     fmt::print("f1({}) > 0: {}\n", x, f1(x) > 0);
-    fmt::print("maybe(f1({}) > 0): {}\n",
-        x, maybe(f1(x) > 0));
+    fmt::print("possibly(f1({}) > 0): {}\n",
+        x, possibly(f1(x) > 0));
     fmt::print("f2({}) = {}\n", x, f2(x));
     fmt::print("f2({}) > 0: {}\n", x, f2(x) > 0);
-    fmt::print("maybe(f2({}) > 0): {}\n",
-        x, maybe(f2(x) > 0));
+    fmt::print("possibly(f2({}) > 0): {}\n",
+        x, possibly(f2(x) > 0));
 }
 // output:
 //     f1([0, 1]) = [-2, 1]
 //     f1([0, 1]) > 0: { 0, 1 }
-//     maybe(f1([0, 1]) > 0): true
+//     possibly(f1([0, 1]) > 0): true
 //     f2([0, 1]) = [-1, 0]
 //     f2([0, 1]) > 0: { 0 }
-//     maybe(f2([0, 1]) > 0): false
+//     possibly(f2([0, 1]) > 0): false

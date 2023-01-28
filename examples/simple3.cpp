@@ -14,11 +14,11 @@ T
 s(T x) {
     auto result = T{ };
     auto cond = x >= 0;
-    if (maybe(cond)) {
+    if (possibly(cond)) {
         auto xc = constrain(x, cond);
         assign_partial(result, sqrt(xc));
     }
-    if (maybe_not(cond)) {
+    if (possibly_not(cond)) {
         assign_partial(result, 0);
     }
     return result;

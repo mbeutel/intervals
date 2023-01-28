@@ -11,10 +11,10 @@ interval<double>
 imax0(interval<double> a, interval<double> b) {
     auto result = interval<double>{ };
     auto cond = a >= b;
-    if (maybe(cond)) {
+    if (possibly(cond)) {
         assign_partial(result, a);
     }
-    if (maybe_not(cond)) {
+    if (possibly_not(cond)) {
         assign_partial(result, b);
     }
     return result;
@@ -23,11 +23,11 @@ interval<double>
 imax(interval<double> a, interval<double> b) {
     auto result = interval<double>{ };
     auto cond = a >= b;
-    if (maybe(cond)) {
+    if (possibly(cond)) {
         auto ac = constrain(a, cond);
         assign_partial(result, ac);
     }
-    if (maybe_not(cond)) {
+    if (possibly_not(cond)) {
         auto bc = constrain(b, !cond);
         assign_partial(result, bc);
     }

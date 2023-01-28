@@ -16,7 +16,7 @@
 #include <intervals/sign.hpp>
 
 #include <intervals/math.hpp>   // to make assign*() and reset() available
-#include <intervals/logic.hpp>  // to make if_else(), maybe() et al. for Boolean arguments available
+#include <intervals/logic.hpp>  // to make if_else(), possibly() et al. for Boolean arguments available
 
 #include <intervals/detail/set.hpp>
 
@@ -260,7 +260,7 @@ operator !(set<bool> x)
 }
 
     // Instead of short-circuiting Boolean operators `&&` and `||`, use operators `&` and `|` for `set<bool>`,
-    // and use `maybe()`, `maybe_not()`, `definitely()`, `definitely_not()`, `contingent()` to evaluate a `set<bool>` as Boolean.
+    // and use `possibly()`, `possibly_not()`, `always()`, `never()`, `contingent()`, `vacuous()` to evaluate a `set<bool>` as Boolean.
 set<bool> operator &&(set<bool>, set<bool>) = delete;
 set<bool> operator &&(bool, set<bool>) = delete;
 set<bool> operator &&(set<bool>, bool) = delete;
@@ -271,168 +271,126 @@ set<bool> operator ||(set<bool>, bool) = delete;
 [[nodiscard]] constexpr set<bool>
 operator >=(set<bool> x, set<bool> y)
 {
-    gsl_ExpectsDebug(x.assigned() && y.assigned());
-
     return set<bool>::from_bits((detail::lut_4vK_geq >> (2*x.to_bits() + 8*y.to_bits())) & 0b11u);
 }
 [[nodiscard]] constexpr set<bool>
 operator >=(set<bool> x, bool y)
 {
-    gsl_ExpectsDebug(x.assigned());
-
     return set<bool>::from_bits((detail::lut_4vK_geq >> (2*x.to_bits() + 8*(1 + int(y)))) & 0b11u);
 }
 [[nodiscard]] constexpr set<bool>
 operator >=(bool x, set<bool> y)
 {
-    gsl_ExpectsDebug(y.assigned());
-
     return set<bool>::from_bits((detail::lut_4vK_geq >> (2*(1 + int(x)) + 8*y.to_bits())) & 0b11u);
 }
 [[nodiscard]] constexpr set<bool>
 operator >(set<bool> x, set<bool> y)
 {
-    gsl_ExpectsDebug(x.assigned() && y.assigned());
-
     return set<bool>::from_bits((detail::lut_4vK_gt >> (2*x.to_bits() + 8*y.to_bits())) & 0b11u);
 }
 [[nodiscard]] constexpr set<bool>
 operator >(set<bool> x, bool y)
 {
-    gsl_ExpectsDebug(x.assigned());
-
     return set<bool>::from_bits((detail::lut_4vK_gt >> (2*x.to_bits() + 8*(1 + int(y)))) & 0b11u);
 }
 [[nodiscard]] constexpr set<bool>
 operator >(bool x, set<bool> y)
 {
-    gsl_ExpectsDebug(y.assigned());
-
     return set<bool>::from_bits((detail::lut_4vK_gt >> (2*(1 + int(x)) + 8*y.to_bits())) & 0b11u);
 }
 [[nodiscard]] constexpr set<bool>
 operator <=(set<bool> x, set<bool> y)
 {
-    gsl_ExpectsDebug(x.assigned() && y.assigned());
-
     return set<bool>::from_bits((detail::lut_4vK_geq >> (2*y.to_bits() + 8*x.to_bits())) & 0b11u);
 }
 [[nodiscard]] constexpr set<bool>
 operator <=(set<bool> x, bool y)
 {
-    gsl_ExpectsDebug(x.assigned());
-
     return set<bool>::from_bits((detail::lut_4vK_geq >> (2*(1 + int(y)) + 8*x.to_bits())) & 0b11u);
 }
 [[nodiscard]] constexpr set<bool>
 operator <=(bool x, set<bool> y)
 {
-    gsl_ExpectsDebug(y.assigned());
-
     return set<bool>::from_bits((detail::lut_4vK_geq >> (2*y.to_bits() + 8*(1 + int(x)))) & 0b11u);
 }
 [[nodiscard]] constexpr set<bool>
 operator <(set<bool> x, set<bool> y)
 {
-    gsl_ExpectsDebug(x.assigned() && y.assigned());
-
     return set<bool>::from_bits((detail::lut_4vK_gt >> (2*y.to_bits() + 8*x.to_bits())) & 0b11u);
 }
 [[nodiscard]] constexpr set<bool>
 operator <(set<bool> x, bool y)
 {
-    gsl_ExpectsDebug(x.assigned());
-
     return set<bool>::from_bits((detail::lut_4vK_gt >> (2*(1 + int(y)) + 8*x.to_bits())) & 0b11u);
 }
 [[nodiscard]] constexpr set<bool>
 operator <(bool x, set<bool> y)
 {
-    gsl_ExpectsDebug(y.assigned());
-
     return set<bool>::from_bits((detail::lut_4vK_gt >> (2*y.to_bits() + 8*(1 + int(x)))) & 0b11u);
 }
 [[nodiscard]] constexpr set<bool>
 operator &(set<bool> x, set<bool> y)
 {
-    gsl_ExpectsDebug(x.assigned() && y.assigned());
-
     return set<bool>::from_bits((detail::lut_4vK_and >> (2*x.to_bits() + 8*y.to_bits())) & 0b11u);
 }
 [[nodiscard]] constexpr set<bool>
 operator &(set<bool> x, bool y)
 {
-    gsl_ExpectsDebug(x.assigned());
-
     return set<bool>::from_bits((detail::lut_4vK_and >> (2*x.to_bits() + 8*(1 + int(y)))) & 0b11u);
 }
 [[nodiscard]] constexpr set<bool>
 operator &(bool x, set<bool> y)
 {
-    gsl_ExpectsDebug(y.assigned());
-
     return set<bool>::from_bits((detail::lut_4vK_and >> (2*y.to_bits() + 8*(1 + int(x)))) & 0b11u);
 }
 [[nodiscard]] constexpr set<bool>
 operator |(set<bool> x, set<bool> y)
 {
-    gsl_ExpectsDebug(x.assigned() && y.assigned());
-
     return set<bool>::from_bits((detail::lut_4vK_or >> (2*x.to_bits() + 8*y.to_bits())) & 0b11u);
 }
 [[nodiscard]] constexpr set<bool>
 operator |(set<bool> x, bool y)
 {
-    gsl_ExpectsDebug(x.assigned());
-
     return set<bool>::from_bits((detail::lut_4vK_or >> (2*x.to_bits() + 8*(1 + int(y)))) & 0b11u);
 }
 [[nodiscard]] constexpr set<bool>
 operator |(bool x, set<bool> y)
 {
-    gsl_ExpectsDebug(y.assigned());
-
     return set<bool>::from_bits((detail::lut_4vK_or >> (2*y.to_bits() + 8*(1 + int(x)))) & 0b11u);
 }
 [[nodiscard]] constexpr set<bool>
 operator ^(set<bool> x, set<bool> y)
 {
-    gsl_ExpectsDebug(x.assigned() && y.assigned());
-
     return set<bool>::from_bits((detail::lut_4vK_xor >> (2*x.to_bits() + 8*y.to_bits())) & 0b11u);
 }
 [[nodiscard]] constexpr set<bool>
 operator ^(set<bool> x, bool y)
 {
-    gsl_ExpectsDebug(x.assigned());
-
     return set<bool>::from_bits((detail::lut_4vK_xor >> (2*x.to_bits() + 8*(1 + int(y)))) & 0b11u);
 }
 [[nodiscard]] constexpr set<bool>
 operator ^(bool x, set<bool> y)
 {
-    gsl_ExpectsDebug(y.assigned());
-
     return set<bool>::from_bits((detail::lut_4vK_xor >> (2*y.to_bits() + 8*(1 + int(x)))) & 0b11u);
 }
 
 [[nodiscard]] constexpr bool
-maybe(set<bool> x) noexcept
+possibly(set<bool> x) noexcept
 {
     return x.contains(true);
 }
 [[nodiscard]] constexpr bool
-maybe_not(set<bool> x) noexcept
+possibly_not(set<bool> x) noexcept
 {
     return x.contains(false);
 }
 [[nodiscard]] constexpr bool
-definitely(set<bool> x) noexcept
+always(set<bool> x) noexcept
 {
     return x.matches(true);
 }
 [[nodiscard]] constexpr bool
-definitely_not(set<bool> x) noexcept
+never(set<bool> x) noexcept
 {
     return x.matches(false);
 }
@@ -441,13 +399,17 @@ contingent(set<bool> x) noexcept
 {
     return x.matches(set{ false, true });
 }
+[[nodiscard]] constexpr bool
+vacuous(set<bool> x) noexcept
+{
+    return !x.assigned();
+}
 
 
 template <typename T, typename R>
 constexpr void
 assign(set<T, R>& lhs, gsl::type_identity_t<set<T, R>> const& rhs)
 {
-    gsl_Expects(!lhs.assigned());
     lhs.reset(rhs);
 }
 template <typename T, typename R>
@@ -528,11 +490,11 @@ template <typename T>
 if_else(set<bool> cond, set<T> resultIfTrue, set<T> resultIfFalse)
 {
     set<T> result;
-    if (intervals::maybe(cond))
+    if (intervals::possibly(cond))
     {
         result.assign(resultIfTrue);
     }
-    if (intervals::maybe_not(cond))
+    if (intervals::possibly_not(cond))
     {
         result.assign(resultIfFalse);
     }

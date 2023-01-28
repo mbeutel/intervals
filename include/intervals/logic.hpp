@@ -12,22 +12,22 @@ namespace gsl = gsl_lite;
 
 
 [[nodiscard]] constexpr bool
-maybe(bool x) noexcept
+possibly(bool x) noexcept
 {
     return x;
 }
 [[nodiscard]] constexpr bool
-maybe_not(bool x) noexcept
+possibly_not(bool x) noexcept
 {
     return !x;
 }
 [[nodiscard]] constexpr bool
-definitely(bool x) noexcept
+always(bool x) noexcept
 {
     return x;
 }
 [[nodiscard]] constexpr bool
-definitely_not(bool x) noexcept
+never(bool x) noexcept
 {
     return !x;
 }
@@ -36,6 +36,15 @@ contingent(bool) noexcept
 {
     return false;
 }
+[[nodiscard]] constexpr bool
+vacuous(bool) noexcept
+{
+    return false;
+}
+
+// TODO: define assign(), assign_partial(), and reset() for set values (i.e. bool, enum, anything that has value metadata available)
+//       - or alternatively, change the definitions in math.hpp such that they match any type except sets and intervals, which have
+//       their own overloads
 
 template <typename T>
 [[nodiscard]] constexpr T

@@ -16,13 +16,14 @@
 
 #include <gsl-lite/gsl-lite.hpp>  // for gsl_Assert(), gsl_Expects(), gsl_ExpectsDebug(), gsl_FailFast(), narrow_cast<>(), narrow<>(), narrow_failfast<>()
 
+#include <makeshift/tuple.hpp>        // for template_for()
 #include <makeshift/concepts.hpp>     // for tuple_like<>
 #include <makeshift/type_traits.hpp>  // for dependent_false<>
 
 #include <intervals/set.hpp>
 #include <intervals/sign.hpp>
 #include <intervals/math.hpp>   // for floating_point<>, integral<>, and to make assign*() and reset() available
-#include <intervals/logic.hpp>  // to make maybe() et al. for Boolean arguments available
+#include <intervals/logic.hpp>  // to make possibly() et al. for Boolean arguments available
 
 #include <intervals/detail/interval.hpp>
 
@@ -232,7 +233,7 @@ public:
     template <interval_arg L, interval_arg R>
     requires same_values<L, R> && relational_values<L, R>
     [[nodiscard]] friend constexpr interval_of_t<L>
-    min(L const& lhs, R const& rhs)
+    min(L&& lhs, R&& rhs)
     {
         gsl_ExpectsDebug(assigned(lhs) && assigned(rhs));
 
@@ -241,7 +242,7 @@ public:
     template <interval_arg L, interval_arg R>
     requires same_values<L, R> && relational_values<L, R>
     [[nodiscard]] friend constexpr interval_of_t<L>
-    max(L const& lhs, R const& rhs)
+    max(L&& lhs, R&& rhs)
     {
         gsl_ExpectsDebug(assigned(lhs) && assigned(rhs));
 
@@ -250,7 +251,7 @@ public:
 
     template <arithmetic_interval X>
     [[nodiscard]] friend constexpr interval_t<X>
-    operator +(X const& x)
+    operator +(X&& x)
     {
         gsl_ExpectsDebug(x.assigned());
 
@@ -258,7 +259,7 @@ public:
     }
     template <arithmetic_interval X>
     [[nodiscard]] friend constexpr interval_t<X>
-    operator -(X const& x)
+    operator -(X&& x)
     {
         gsl_ExpectsDebug(x.assigned());
 
@@ -267,7 +268,7 @@ public:
 
     template <arithmetic_interval X>
     [[nodiscard]] friend constexpr interval_t<X>
-    square(X const& x)
+    square(X&& x)
     {
         gsl_ExpectsDebug(x.assigned());
 
@@ -282,7 +283,7 @@ public:
     }
     template <arithmetic_interval X>
     [[nodiscard]] friend constexpr interval_t<X>
-    cube(X const& x)
+    cube(X&& x)
     {
         gsl_ExpectsDebug(x.assigned());
 
@@ -293,7 +294,7 @@ public:
 
     template <arithmetic_interval X>
     [[nodiscard]] friend constexpr interval_t<X>
-    abs(X const& x)
+    abs(X&& x)
     {
         gsl_ExpectsDebug(x.assigned());
 
@@ -308,7 +309,7 @@ public:
 
     template <arithmetic_interval X>
     [[nodiscard]] friend constexpr set<sign>
-    sgn(X const& x)
+    sgn(X&& x)
     {
         gsl_ExpectsDebug(x.assigned());
 
@@ -333,7 +334,7 @@ public:
     template <typename X, typename Y>
     requires arithmetic_operands<X, Y>
     [[nodiscard]] friend constexpr common_interval_t<X, Y>
-    operator +(X const& x, Y const& y)
+    operator +(X&& x, Y&& y)
     {
         gsl_ExpectsDebug(assigned(x) && assigned(y));
 
@@ -350,7 +351,7 @@ public:
     template <typename X, typename Y>
     requires arithmetic_operands<X, Y>
     [[nodiscard]] friend constexpr common_interval_t<X, Y>
-    operator -(X const& x, Y const& y)
+    operator -(X&& x, Y&& y)
     {
         gsl_ExpectsDebug(assigned(x) && assigned(y));
 
@@ -367,7 +368,7 @@ public:
     template <typename X, typename Y>
     requires arithmetic_operands<X, Y>
     [[nodiscard]] friend constexpr common_interval_t<X, Y>
-    operator *(X const& x, Y const& y)
+    operator *(X&& x, Y&& y)
     {
         gsl_ExpectsDebug(assigned(x) && assigned(y));
 
@@ -404,19 +405,19 @@ public:
 
     template <arithmetic_interval X>
     [[nodiscard]] friend constexpr interval_t<X>
-    operator *(sign x, X const& y)
+    operator *(sign x, X&& y)
     {
         return int(x)*y;
     }
     template <arithmetic_interval X>
     [[nodiscard]] friend constexpr interval_t<X>
-    operator *(X const& x, sign y)
+    operator *(X&& x, sign y)
     {
         return x*int(y);
     }
     template <arithmetic_interval X>
     [[nodiscard]] friend constexpr interval_t<X>
-    operator *(set<sign> x, X const& y)
+    operator *(set<sign> x, X&& y)
     {
         auto result = interval_t<X>{ };
         if (x.contains(positive_sign))
@@ -435,7 +436,7 @@ public:
     }
     template <arithmetic_interval X>
     [[nodiscard]] friend constexpr interval_t<X>
-    operator *(X const& x, set<sign> y)
+    operator *(X&& x, set<sign> y)
     {
         return y*x;
     }
@@ -443,7 +444,7 @@ public:
     template <typename X, typename Y>
     requires arithmetic_operands<X, Y>
     [[nodiscard]] friend constexpr common_interval_t<X, Y>
-    operator /(X const& x, Y const& y)
+    operator /(X&& x, Y&& y)
     {
         gsl_ExpectsDebug(assigned(x) && assigned(y));
 
@@ -543,7 +544,7 @@ public:
 
     template <floating_point_interval X>
     [[nodiscard]] friend constexpr interval_t<X>
-    sqrt(X const& x)
+    sqrt(X&& x)
     {
         gsl_ExpectsDebug(x.assigned());
 
@@ -551,7 +552,7 @@ public:
     }
     template <floating_point_interval X>
     [[nodiscard]] friend constexpr interval_t<X>
-    cbrt(X const& x)
+    cbrt(X&& x)
     {
         gsl_ExpectsDebug(x.assigned());
 
@@ -559,7 +560,7 @@ public:
     }
     template <floating_point_interval X>
     [[nodiscard]] friend constexpr interval_t<X>
-    log(X const& x)
+    log(X&& x)
     {
         gsl_ExpectsDebug(x.assigned());
 
@@ -567,7 +568,7 @@ public:
     }
     template <floating_point_interval X>
     [[nodiscard]] friend constexpr interval_t<X>
-    exp(X const& x)
+    exp(X&& x)
     {
         gsl_ExpectsDebug(x.assigned());
 
@@ -576,7 +577,7 @@ public:
     template <interval_arg X, interval_arg Y>
     requires floating_point_operands<X, Y>
     [[nodiscard]] friend constexpr common_interval_t<X, Y>
-    pow(X const& x, Y const& y)
+    pow(X&& x, Y&& y)
     {
         gsl_ExpectsDebug(assigned(x) && assigned(y));
 
@@ -586,11 +587,11 @@ public:
         using XV = interval_arg_value_t<X>;
         using YV = interval_arg_value_t<Y>;
         auto result = common_interval_t<X, Y>{ };
-        if (intervals::maybe(x >= 0))
+        if (intervals::possibly(x >= 0))
         {
-            result.assign(exp(_multiply_0<Y, X>(y, log(max(XV(0), x)))));
+            result.assign(exp(_multiply_0(y, log(max(XV(0), x)))));
         }
-        if (intervals::maybe(x < 0))
+        if (intervals::possibly(x < 0))
         {
             YV ylo = lower(y);
             YV yhi = upper(y);
@@ -598,7 +599,7 @@ public:
             if (ylo == yhi && gsl::narrow_cast<YV>(yi) == ylo)  // y ∈ ℤ
             {
                 int sign = yi % 2 == 0 ? 1 : -1;
-                result.assign(sign*exp(_multiply_0<YV, X>(ylo, log(max(XV(0), -x)))));
+                result.assign(sign*exp(_multiply_0(ylo, log(max(XV(0), -x)))));
             }
             else
             {
@@ -610,7 +611,7 @@ public:
 
     template <floating_point_interval X>
     [[nodiscard]] friend constexpr interval_t<X>
-    cos(X const& x)
+    cos(X&& x)
     {
         gsl_ExpectsDebug(x.assigned());
 
@@ -644,14 +645,14 @@ public:
     }
     template <floating_point_interval X>
     [[nodiscard]] friend constexpr interval_t<X>
-    sin(X const& x)
+    sin(X&& x)
     {
         using T = interval_value_t<X>;
         return cos(x - std::numbers::pi_v<T>/2);
     }
     template <floating_point_interval X>
     [[nodiscard]] friend constexpr interval_t<X>
-    tan(X const& x)
+    tan(X&& x)
     {
         gsl_ExpectsDebug(x.assigned());
 
@@ -667,7 +668,7 @@ public:
     }
     template <floating_point_interval X>
     [[nodiscard]] friend constexpr interval_t<X>
-    acos(X const& x)
+    acos(X&& x)
     {
         gsl_ExpectsDebug(x.assigned());
 
@@ -675,7 +676,7 @@ public:
     }
     template <floating_point_interval X>
     [[nodiscard]] friend constexpr interval_t<X>
-    asin(X const& x)
+    asin(X&& x)
     {
         gsl_ExpectsDebug(x.assigned());
 
@@ -683,7 +684,7 @@ public:
     }
     template <floating_point_interval X>
     [[nodiscard]] friend constexpr interval_t<X>
-    atan(X const& x)
+    atan(X&& x)
     {
         gsl_ExpectsDebug(x.assigned());
 
@@ -692,7 +693,7 @@ public:
     template <typename Y, typename X>
     requires floating_point_operands<Y, X>
     [[nodiscard]] friend constexpr common_interval_t<Y, X>
-    atan2(Y const& y, X const& x)
+    atan2(Y&& y, X&& x)
     {
         gsl_ExpectsDebug(assigned(y) && assigned(x));
 
@@ -724,7 +725,7 @@ public:
 
     template <floating_point_interval X>
     [[nodiscard]] friend constexpr interval_t<X>
-    floor(X const& x)
+    floor(X&& x)
     {
         gsl_ExpectsDebug(x.assigned());
 
@@ -732,7 +733,7 @@ public:
     }
     template <floating_point_interval X>
     [[nodiscard]] friend constexpr interval_t<X>
-    ceil(X const& x)
+    ceil(X&& x)
     {
         gsl_ExpectsDebug(x.assigned());
 
@@ -740,7 +741,7 @@ public:
     }
     template <floating_point_interval X>
     [[nodiscard]] friend constexpr interval_t<X>
-    frac(X const& x)
+    frac(X&& x)
     {
         gsl_ExpectsDebug(x.assigned());
 
@@ -757,12 +758,12 @@ public:
     template <typename A, typename B>
     requires floating_point_operands<A, B>
     [[nodiscard]] friend constexpr std::pair<common_interval_t<A, B>, common_interval_t<A, B>>
-    fractional_weights(A const& a, B const& b)
+    fractional_weights(A&& a, B&& b)
     {
         gsl_ExpectsDebug(assigned(a) && assigned(b));
-        gsl_ExpectsDebug(intervals::definitely(a >= 0));
-        gsl_ExpectsDebug(intervals::definitely(b >= 0));
-        gsl_ExpectsDebug(intervals::definitely(a + b > 0));
+        gsl_ExpectsDebug(intervals::always(a >= 0));
+        gsl_ExpectsDebug(intervals::always(b >= 0));
+        gsl_ExpectsDebug(intervals::always(a + b > 0));
 
         return {
             common_interval_t<A, B>{ lower(a)/(lower(a) + upper(b)), upper(a)/(upper(a) + lower(b)) },
@@ -773,12 +774,12 @@ public:
     template <typename AB, typename XY>
     requires floating_point_operands<AB, XY>
     [[nodiscard]] friend constexpr common_interval_t<AB, XY>
-    blend_linear(AB const& a, AB const& b, XY const& x, XY const& y)
+    blend_linear(AB&& a, AB&& b, XY&& x, XY&& y)
     {
         gsl_ExpectsDebug(assigned(a) && assigned(b) && assigned(x) && assigned(y));
-        gsl_ExpectsDebug(intervals::definitely(a >= 0));
-        gsl_ExpectsDebug(intervals::definitely(b >= 0));
-        gsl_ExpectsDebug(intervals::definitely(a + b > 0));
+        gsl_ExpectsDebug(intervals::always(a >= 0));
+        gsl_ExpectsDebug(intervals::always(b >= 0));
+        gsl_ExpectsDebug(intervals::always(a + b > 0));
 
             // q = 1/(1 + b/a)  with  0 ≤ q ≤ 1
         auto alo = lower(a);
@@ -810,7 +811,7 @@ public:
 
     template <floating_point_interval X>
     [[nodiscard]] friend constexpr set<bool>
-    isinf(X const& x)
+    isinf(X&& x)
     {
         using std::isinf;
 
@@ -829,13 +830,13 @@ public:
     }
     template <floating_point_interval X>
     [[nodiscard]] friend constexpr set<bool>
-    isfinite(X const& x)
+    isfinite(X&& x)
     {
         return !isinf(x);
     }
     template <floating_point_interval X>
     [[nodiscard]] friend constexpr set<bool>
-    isnan(X const& x)
+    isnan(X&& x)
     {
         gsl_ExpectsDebug(x.assigned());
 
@@ -848,7 +849,7 @@ public:
 
     template <iterator_interval_arg L, integral_interval_arg R>
     [[nodiscard]] friend constexpr interval_of_t<L>
-    operator +(L const& lhs, R const& rhs)
+    operator +(L&& lhs, R&& rhs)
     {
         gsl_ExpectsDebug(assigned(lhs) && assigned(rhs));
 
@@ -856,7 +857,7 @@ public:
     }
     template <integral_interval_arg L, iterator_interval_arg R>
     [[nodiscard]] friend constexpr interval_of_t<R>
-    operator +(L const& lhs, R const& rhs)
+    operator +(L&& lhs, R&& rhs)
     {
         gsl_ExpectsDebug(assigned(lhs) && assigned(rhs));
 
@@ -864,7 +865,7 @@ public:
     }
     template <iterator_interval_arg L, integral_interval_arg R>
     [[nodiscard]] friend constexpr interval_of_t<L>
-    operator -(L const& lhs, R const& rhs)
+    operator -(L&& lhs, R&& rhs)
     {
         gsl_ExpectsDebug(assigned(lhs) && assigned(rhs));
 
@@ -874,7 +875,7 @@ public:
     template <iterator_interval_arg L, iterator_interval_arg R>
     requires std::same_as<interval_arg_value_t<L>, interval_arg_value_t<R>>
     [[nodiscard]] friend constexpr interval<std::iter_difference_t<interval_arg_value_t<L>>>
-    operator -(L const& lhs, R const& rhs)
+    operator -(L&& lhs, R&& rhs)
     {
         gsl_ExpectsDebug(assigned(lhs) && assigned(rhs));
 
@@ -884,13 +885,13 @@ public:
 
     template <iterator_interval T>
     [[nodiscard]] friend constexpr interval_of_t<T>
-    prev(T const& x)
+    prev(T&& x)
     {
         return interval_of_t<T>{ pred(lower(x)), pred(upper(x)) };
     }
     template <iterator_interval T>
     [[nodiscard]] friend constexpr interval_of_t<T>
-    next(T const& x)
+    next(T&& x)
     {
         return interval_of_t<T>{ succ(lower(x)), succ(upper(x)) };
     }
@@ -1091,14 +1092,14 @@ class interval<T> : public detail::arithmetic_interval_base<T>
 {
     using basebase = detail::interval_base<T>;
 
-    static constexpr T inf = std::numeric_limits<T>::infinity();
+    static constexpr T inf_ = std::numeric_limits<T>::infinity();
 
 public:
     using base = detail::arithmetic_interval_base<T>;
     using interval_type = interval;
 
     constexpr interval() noexcept
-        : base(inf, -inf)
+        : base(inf_, -inf_)
     {
     }
     constexpr interval(T value) noexcept
@@ -1112,7 +1113,7 @@ public:
     }
     template <std::convertible_to<T> U>
     constexpr interval(detail::interval_base<U> const& rhs)
-        : base(inf, -inf)
+        : base(inf_, -inf_)
     {
         if (rhs.assigned())
         {
@@ -1123,7 +1124,7 @@ public:
     constexpr interval&
     reset() noexcept
     {
-        this->_reset(inf, -inf);
+        this->_reset(inf_, -inf_);
         return *this;
     }
     constexpr interval&
@@ -1160,15 +1161,15 @@ class interval<T> : public detail::arithmetic_interval_base<T>
 
     using basebase = detail::interval_base<T>;
 
-    static constexpr T min = std::numeric_limits<T>::min();
-    static constexpr T max = std::numeric_limits<T>::max();
+    static constexpr T min_ = std::numeric_limits<T>::min();
+    static constexpr T max_ = std::numeric_limits<T>::max();
 
 public:
     using base = detail::arithmetic_interval_base<T>;
     using interval_type = interval;
 
     constexpr interval() noexcept
-        : base(max, min)
+        : base(max_, min_)
     {
     }
     constexpr interval(T value) noexcept
@@ -1182,7 +1183,7 @@ public:
     }
     template <std::convertible_to<T> U>
     constexpr interval(detail::interval_base<U> const& rhs)
-        : base(max, min)
+        : base(max_, min_)
     {
         if (rhs.assigned())
         {
@@ -1193,7 +1194,7 @@ public:
     constexpr interval&
     reset() noexcept
     {
-        this->_reset(max, min);
+        this->_reset(max_, min_);
         return *this;
     }
     constexpr interval&
@@ -1306,7 +1307,7 @@ template <typename S, typename T> using propagate_set_t = typename propagate_set
 template <detail::any_interval T, detail::interval_arg U>
 requires std::convertible_to<detail::interval_arg_value_t<U>, detail::interval_value_t<T>>
 [[nodiscard]] constexpr inline T
-narrow_cast(U const& rhs) noexcept
+narrow_cast(U&& rhs) noexcept
 {
     using TV = detail::interval_value_t<T>;
     if (detail::assigned(rhs))
@@ -1318,7 +1319,7 @@ narrow_cast(U const& rhs) noexcept
 template <detail::any_interval T, detail::interval_arg U>
 requires std::convertible_to<detail::interval_arg_value_t<U>, detail::interval_value_t<T>>
 [[nodiscard]] constexpr inline T
-narrow(U const& rhs)
+narrow(U&& rhs)
 {
     using TV = detail::interval_value_t<T>;
     if (detail::assigned(rhs))
@@ -1330,7 +1331,7 @@ narrow(U const& rhs)
 template <detail::any_interval T, detail::interval_arg U>
 requires std::convertible_to<detail::interval_arg_value_t<U>, detail::interval_value_t<T>>
 [[nodiscard]] constexpr inline T
-narrow_failfast(U const& rhs)
+narrow_failfast(U&& rhs)
 {
     using TV = detail::interval_value_t<T>;
     if (detail::assigned(rhs))
@@ -1496,11 +1497,11 @@ template <detail::interval_value T>
 if_else(set<bool> cond, detail::interval_base<T> const& resultIfTrue, detail::interval_base<T> const& resultIfFalse)
 {
     interval<T> result;
-    if (intervals::maybe(cond))
+    if (intervals::possibly(cond))
     {
         result.assign(resultIfTrue);
     }
-    if (intervals::maybe_not(cond))
+    if (intervals::possibly_not(cond))
     {
         result.assign(resultIfFalse);
     }

@@ -86,18 +86,18 @@ interpolate_linear(
 
         // For values  x < x₁ , extend the first point of support  y₁  as a constant.
     auto below = i == 0;
-    if (maybe(below)) {
+    if (possibly(below)) {
         assign_partial(result, ys[0]);
     }
 
         // For values  x > xₙ , extend the last point of support  yₙ  as a constant.
     auto above = i == n;
-    if (maybe(above)) {
+    if (possibly(above)) {
         assign_partial(result, ys[n - 1]);
     }
 
         // Otherwise, return linear interpolation  yᵢ + (x - xᵢ)/(xᵢ₊₁ - xᵢ)⋅(yᵢ₊₁ - yᵢ) .
-    if (auto c = !below & !above; maybe(c)) {
+    if (auto c = !below & !above; possibly(c)) {
         auto ic = constrain(i, c);
         for (index j : enumerate(ic)) {
             auto x0 = xs[j - 1];

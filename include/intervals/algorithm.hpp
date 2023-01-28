@@ -106,12 +106,12 @@ partition_point(R&& range, PredicateT&& predicate)
             std::ranges::partition_point(range,
                 [&predicate](Value const& value)
                 {
-                    return intervals::definitely(predicate(value));
+                    return intervals::always(predicate(value));
                 }),
             std::ranges::partition_point(range,
                 [&predicate](Value const& value)
                 {
-                    return intervals::maybe(predicate(value));
+                    return intervals::possibly(predicate(value));
                 })
         };
         return std::pair{

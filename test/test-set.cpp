@@ -87,8 +87,8 @@ TEST_CASE("set<>", "algebra with bounds")
         CHECK((svalue != nsvalue).matches(set{ true }));
         CHECK((!svalue).matches(nsvalue));
         CHECK((!nsvalue).matches(svalue));
-        CHECK(maybe(svalue) == value);
-        CHECK(definitely(svalue) == value);
+        CHECK(possibly(svalue) == value);
+        CHECK(always(svalue) == value);
     }
     SECTION("multi-valued sets (bool)")
     {
@@ -106,8 +106,8 @@ TEST_CASE("set<>", "algebra with bounds")
         CHECK((s1 == svalue).matches(s1));
         CHECK((s1 != svalue).matches(s1));
         CHECK((!s1).matches(s1));
-        CHECK(maybe(s1));
-        CHECK_FALSE(definitely(s1));
+        CHECK(possibly(s1));
+        CHECK_FALSE(always(s1));
     }
     SECTION("assignment (bool)")
     {
@@ -119,12 +119,12 @@ TEST_CASE("set<>", "algebra with bounds")
         auto nsvalue = set{ !value };
         auto s = intervals::set<bool>{ };
         s.assign(value);
-        CHECK(maybe(s == set{ value }));
-        CHECK(definitely(s == set{ value }));
+        CHECK(possibly(s == set{ value }));
+        CHECK(always(s == set{ value }));
         CHECK((s == svalue).matches(set{ true }));
         s.assign(!value);
-        CHECK(maybe(s == set{ true, false }));
-        CHECK_FALSE(definitely(s == set{ true, false }));
+        CHECK(possibly(s == set{ true, false }));
+        CHECK_FALSE(always(s == set{ true, false }));
         s.reset();
         assign_partial(s, value);
         CHECK(s.matches(value));
@@ -419,33 +419,33 @@ TEST_CASE("set<>", "algebra with bounds")
     }
     SECTION("Boolean predicates")
     {
-            // maybe()
-        CHECK(intervals::maybe(true));
-        CHECK_FALSE(intervals::maybe(false));
-        CHECK(maybe(set{ true }));
-        CHECK(maybe(set{ false, true }));
-        CHECK_FALSE(maybe(set{ false }));
+            // possibly()
+        CHECK(intervals::possibly(true));
+        CHECK_FALSE(intervals::possibly(false));
+        CHECK(possibly(set{ true }));
+        CHECK(possibly(set{ false, true }));
+        CHECK_FALSE(possibly(set{ false }));
 
-            // maybe_not()
-        CHECK(intervals::maybe_not(false));
-        CHECK_FALSE(intervals::maybe_not(true));
-        CHECK(maybe_not(set{ false }));
-        CHECK(maybe_not(set{ false, true }));
-        CHECK_FALSE(maybe_not(set{ true }));
+            // possibly_not()
+        CHECK(intervals::possibly_not(false));
+        CHECK_FALSE(intervals::possibly_not(true));
+        CHECK(possibly_not(set{ false }));
+        CHECK(possibly_not(set{ false, true }));
+        CHECK_FALSE(possibly_not(set{ true }));
 
-            // definitely()
-        CHECK(intervals::definitely(true));
-        CHECK_FALSE(intervals::definitely(false));
-        CHECK(definitely(set{ true }));
-        CHECK_FALSE(definitely(set{ false, true }));
-        CHECK_FALSE(definitely(set{ false }));
+            // always()
+        CHECK(intervals::always(true));
+        CHECK_FALSE(intervals::always(false));
+        CHECK(always(set{ true }));
+        CHECK_FALSE(always(set{ false, true }));
+        CHECK_FALSE(always(set{ false }));
 
-            // definitely_not()
-        CHECK(intervals::definitely_not(false));
-        CHECK_FALSE(intervals::definitely_not(true));
-        CHECK(definitely_not(set{ false }));
-        CHECK_FALSE(definitely_not(set{ false, true }));
-        CHECK_FALSE(definitely_not(set{ true }));
+            // never()
+        CHECK(intervals::never(false));
+        CHECK_FALSE(intervals::never(true));
+        CHECK(never(set{ false }));
+        CHECK_FALSE(never(set{ false, true }));
+        CHECK_FALSE(never(set{ true }));
 
             // contingent()
         CHECK_FALSE(intervals::contingent(true));

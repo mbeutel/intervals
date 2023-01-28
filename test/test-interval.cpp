@@ -20,6 +20,11 @@ TEST_CASE("interval<>", "interval arithmetic")
 {
     using intervals::set;
     using intervals::interval;
+    using intervals::possibly;
+    using intervals::possibly_not;
+    using intervals::always;
+    using intervals::assign_partial;
+
     constexpr double inf = std::numeric_limits<double>::infinity();
     constexpr double nan = std::numeric_limits<double>::quiet_NaN();
 
@@ -58,21 +63,21 @@ TEST_CASE("interval<>", "interval arithmetic")
 
         if (!std::isnan(xbelow))
         {
-            CHECK(definitely(xbelow < x));
-            CHECK(!maybe(xbelow >= x));
+            CHECK(always(xbelow < x));
+            CHECK(!possibly(xbelow >= x));
         }
-        CHECK(definitely(a <= x));
-        CHECK(!maybe(a > x));
-        CHECK(maybe(xin <= x));
-        CHECK(!definitely(xin > x));
-        CHECK(maybe(xin >= x));
-        CHECK(!definitely(xin < x));
-        CHECK(definitely(b >= x));
-        CHECK(!maybe(b < x));
+        CHECK(always(a <= x));
+        CHECK(!possibly(a > x));
+        CHECK(possibly(xin <= x));
+        CHECK(!always(xin > x));
+        CHECK(possibly(xin >= x));
+        CHECK(!always(xin < x));
+        CHECK(always(b >= x));
+        CHECK(!possibly(b < x));
         if (!std::isnan(xabove))
         {
-            CHECK(definitely(xabove > x));
-            CHECK(!maybe(xabove <= x));
+            CHECK(always(xabove > x));
+            CHECK(!possibly(xabove <= x));
         }
     }
 
@@ -169,16 +174,16 @@ TEST_CASE("interval<>", "interval arithmetic")
         }
         SECTION("sgn()")
         {
-            CHECK(maybe(sgn(x) == intervals::positive_sign) == maybe(x > 0));
-            CHECK(maybe(sgn(x) == intervals::zero_sign) == maybe(x == 0));
-            CHECK(maybe(sgn(x) == intervals::negative_sign) == maybe(x < 0));
+            CHECK(possibly(sgn(x) == intervals::positive_sign) == possibly(x > 0));
+            CHECK(possibly(sgn(x) == intervals::zero_sign) == possibly(x == 0));
+            CHECK(possibly(sgn(x) == intervals::negative_sign) == possibly(x < 0));
         }
         SECTION("isinf()")
         {
-            CHECK(definitely(isinf(x)) == (std::isinf(x.lower()) && x.lower() == x.upper()));
-            CHECK(maybe(isinf(x)) == (std::isinf(x.lower()) || std::isinf(x.upper())));
-            CHECK(definitely(isfinite(x)) == (!std::isinf(x.lower()) && !std::isinf(x.upper())));
-            CHECK(maybe(isfinite(x)) == (x.lower() != x.upper() || !std::isinf(x.lower())));
+            CHECK(always(isinf(x)) == (std::isinf(x.lower()) && x.lower() == x.upper()));
+            CHECK(possibly(isinf(x)) == (std::isinf(x.lower()) || std::isinf(x.upper())));
+            CHECK(always(isfinite(x)) == (!std::isinf(x.lower()) && !std::isinf(x.upper())));
+            CHECK(possibly(isfinite(x)) == (x.lower() != x.upper() || !std::isinf(x.lower())));
         }
     }
     SECTION("binary operators")
@@ -236,12 +241,12 @@ TEST_CASE("interval<>", "interval arithmetic")
         {
             auto z = x + y;
             CAPTURE(z);
-            bool indefinite = maybe((x ==  inf & y == -inf)
+            bool indefinite = possibly((x ==  inf & y == -inf)
                                   | (x == -inf & y ==  inf));
             if (indefinite)
             {
                     // Subtracting infinities ⇒ NaN
-                CHECK(maybe(isnan(z)));
+                CHECK(possibly(isnan(z)));
             }
             else
             {
@@ -253,12 +258,12 @@ TEST_CASE("interval<>", "interval arithmetic")
         {
             auto z = x - y;
             CAPTURE(z);
-            bool indefinite = maybe((x == -inf & y == -inf)
+            bool indefinite = possibly((x == -inf & y == -inf)
                                   | (x ==  inf & y ==  inf));
             if (indefinite)
             {
                     // Subtracting infinities ⇒ NaN
-                CHECK(maybe(isnan(z)));
+                CHECK(possibly(isnan(z)));
             }
             else
             {
@@ -272,42 +277,42 @@ TEST_CASE("interval<>", "interval arithmetic")
             {
                 auto z = x*y;
                 CAPTURE(z);
-                bool indefinite = maybe((isinf(x) & y == 0)
+                bool indefinite = possibly((isinf(x) & y == 0)
                                       | (isinf(y) & x == 0));
                 if (indefinite)
                 {
                         // Subtracting infinities ⇒ NaN
-                    CHECK(maybe(isnan(z)));
+                    CHECK(possibly(isnan(z)));
                 }
                 else
                 {
                     CHECK(z.lower() == std::min({ a*c, a*d, b*c, b*d }));
                     CHECK(z.upper() == std::max({ a*c, a*d, b*c, b*d }));
-                    CHECK(maybe(z == a*yin));
-                    CHECK(maybe(z == xin*c));
-                    CHECK(maybe(z == xin*yin));
-                    CHECK(maybe(z == b*yin));
-                    CHECK(maybe(z == xin*d));
+                    CHECK(possibly(z == a*yin));
+                    CHECK(possibly(z == xin*c));
+                    CHECK(possibly(z == xin*yin));
+                    CHECK(possibly(z == b*yin));
+                    CHECK(possibly(z == xin*d));
                 }
             }
             SECTION("bound*scalar")
             {
                 auto z = x*c;
                 CAPTURE(z);
-                bool indefinite = maybe((isinf(x) & (c == 0))  // extra parentheses to silence Clang's `-Wparentheses`
+                bool indefinite = possibly((isinf(x) & (c == 0))  // extra parentheses to silence Clang's `-Wparentheses`
                                       | (std::isinf(c) & x == 0));
                 if (indefinite)
                 {
                         // Subtracting infinities ⇒ NaN
-                    CHECK(maybe(isnan(z)));
+                    CHECK(possibly(isnan(z)));
                 }
                 else
                 {
                     CHECK(z.lower() == std::min({ a*c, b*c }));
                     CHECK(z.upper() == std::max({ a*c, b*c }));
-                    CHECK(maybe(z == a*c));
-                    CHECK(maybe(z == xin*c));
-                    CHECK(maybe(z == b*c));
+                    CHECK(possibly(z == a*c));
+                    CHECK(possibly(z == xin*c));
+                    CHECK(possibly(z == b*c));
                 }
             }
         }
@@ -317,13 +322,13 @@ TEST_CASE("interval<>", "interval arithmetic")
             {
                 auto z = x/y;
                 CAPTURE(z);
-                bool indefinite = maybe((x == 0 & y == 0)
+                bool indefinite = possibly((x == 0 & y == 0)
                                       | (isinf(x) & isinf(y)));
-                bool infinite = definitely(x != 0) && y.encloses(0);
+                bool infinite = always(x != 0) && y.encloses(0);
                 if (indefinite)
                 {
                         // Subtracting infinities ⇒ NaN
-                    CHECK(maybe(isnan(z)));
+                    CHECK(possibly(isnan(z)));
                 }
                 else if (infinite)
                 {
@@ -335,44 +340,44 @@ TEST_CASE("interval<>", "interval arithmetic")
                 {
                     CHECK(z.lower() == std::min({ a/c, a/d, b/c, b/d }));
                     CHECK(z.upper() == std::max({ a/c, a/d, b/c, b/d }));
-                    CHECK(maybe(z == a/yin));
-                    CHECK(maybe(z == xin/c));
-                    CHECK(maybe(z == xin/yin));
-                    CHECK(maybe(z == b/yin));
-                    CHECK(maybe(z == xin/d));
+                    CHECK(possibly(z == a/yin));
+                    CHECK(possibly(z == xin/c));
+                    CHECK(possibly(z == xin/yin));
+                    CHECK(possibly(z == b/yin));
+                    CHECK(possibly(z == xin/d));
                 }
             }
             SECTION("bound/scalar")
             {
                 auto z = x/c;
                 CAPTURE(z);
-                bool indefinite = maybe(((x == 0) & (c == 0))  // extra parentheses to silence Clang's `-Wparentheses`
+                bool indefinite = possibly(((x == 0) & (c == 0))  // extra parentheses to silence Clang's `-Wparentheses`
                                       | (isinf(x) & std::isinf(c)));
                 if (indefinite)
                 {
                         // Subtracting infinities ⇒ NaN
-                    CHECK(maybe(isnan(z)));
+                    CHECK(possibly(isnan(z)));
                 }
                 else
                 {
                     CHECK(z.lower() == std::min({ a/c, b/c }));
                     CHECK(z.upper() == std::max({ a/c, b/c }));
-                    CHECK(maybe(z == a/c));
-                    CHECK(maybe(z == xin/c));
-                    CHECK(maybe(z == b/c));
+                    CHECK(possibly(z == a/c));
+                    CHECK(possibly(z == xin/c));
+                    CHECK(possibly(z == b/c));
                 }
             }
             SECTION("scalar/bound")
             {
                 auto z = a/y;
                 CAPTURE(z);
-                bool indefinite = maybe(((a == 0) & (y == 0))  // extra parentheses to silence Clang's `-Wparentheses`
+                bool indefinite = possibly(((a == 0) & (y == 0))  // extra parentheses to silence Clang's `-Wparentheses`
                                       | (std::isinf(a) & isinf(y)));
                 bool infinite = a != 0 && y.encloses(0);
                 if (indefinite)
                 {
                         // Subtracting infinities ⇒ NaN
-                    CHECK(maybe(isnan(z)));
+                    CHECK(possibly(isnan(z)));
                 }
                 else if (infinite)
                 {
@@ -384,9 +389,9 @@ TEST_CASE("interval<>", "interval arithmetic")
                 {
                     CHECK(z.lower() == std::min({ a/c, a/d }));
                     CHECK(z.upper() == std::max({ a/c, a/d }));
-                    CHECK(maybe(z == a/c));
-                    CHECK(maybe(z == a/yin));
-                    CHECK(maybe(z == a/d));
+                    CHECK(possibly(z == a/c));
+                    CHECK(possibly(z == a/yin));
+                    CHECK(possibly(z == a/d));
                 }
             }
         }
@@ -453,10 +458,10 @@ TEST_CASE("interval<>", "interval arithmetic")
         }
         SECTION("indefinite")
         {
-            CHECK(maybe(isnan(pow(interval{ -1., 0. }, -1.5))));
-            CHECK(maybe(isnan(pow(interval{ -1., 0. }, 1.5))));
-            CHECK(maybe(isnan(pow(interval{ -1., 0. }, interval{ -1., 0. }))));
-            CHECK(maybe(isnan(pow(interval{ -1., 0. }, interval{ 0., 1. }))));
+            CHECK(possibly(isnan(pow(interval{ -1., 0. }, -1.5))));
+            CHECK(possibly(isnan(pow(interval{ -1., 0. }, 1.5))));
+            CHECK(possibly(isnan(pow(interval{ -1., 0. }, interval{ -1., 0. }))));
+            CHECK(possibly(isnan(pow(interval{ -1., 0. }, interval{ 0., 1. }))));
         }
         SECTION("negative base")
         {
@@ -478,7 +483,7 @@ TEST_CASE("interval<>", "interval arithmetic")
                         auto z = pow(x, y);
                         CAPTURE(z);
 
-                        if (maybe(x == 0) && definitely(y < 0))
+                        if (possibly(x == 0) && always(y < 0))
                         {
                             auto signs = set<intervals::sign>{ };
                             if (gsl::narrow_cast<int>(c) % 2 == 0)
@@ -489,11 +494,11 @@ TEST_CASE("interval<>", "interval arithmetic")
                             {
                                 signs.assign(sgn(x));
                             }
-                            if (maybe(signs == intervals::positive_sign))
+                            if (possibly(signs == intervals::positive_sign))
                             {
                                 CHECK(z.upper() == inf);
                             }
-                            if (maybe(signs == intervals::negative_sign))
+                            if (possibly(signs == intervals::negative_sign))
                             {
                                 CHECK(z.lower() == -inf);
                             }
@@ -599,8 +604,8 @@ TEST_CASE("interval<>", "interval arithmetic")
                     }
                     else
                     {
-                        CHECK(maybe(isnan(asin(x))));
-                        CHECK(maybe(isnan(acos(x))));
+                        CHECK(possibly(isnan(asin(x))));
+                        CHECK(possibly(isnan(acos(x))));
                     }
                     auto atan_x = atan(x);
                     CHECK(atan_x.lower() == std::atan(a));
@@ -649,11 +654,11 @@ TEST_CASE("interval<>", "interval arithmetic")
             CAPTURE(z);
             if (indefinite)
             {
-                CHECK(maybe(isnan(z)));
+                CHECK(possibly(isnan(z)));
             }
             else
             {
-                CHECK(definitely(!isnan(z)));
+                CHECK(always(!isnan(z)));
                 auto v1 = std::atan2(y.lower(), x.lower());
                 auto v2 = std::atan2(y.lower(), x.upper());
                 auto v3 = std::atan2(y.upper(), x.lower());
@@ -703,7 +708,6 @@ TEST_CASE("interval<>", "interval arithmetic")
     SECTION("constrain()")
     {
         using intervals::constrain;
-        using intervals::maybe;
 
         SECTION("scalar")
         {
@@ -714,7 +718,7 @@ TEST_CASE("interval<>", "interval arithmetic")
             CAPTURE(a);
             CAPTURE(b);
     
-            if (auto cond = (x >= a) & (x <= b); maybe(cond))
+            if (auto cond = (x >= a) & (x <= b); possibly(cond))
             {
                 CHECK(constrain(x, cond) == x);
             }
@@ -1130,17 +1134,13 @@ TEST_CASE("interval<>", "interval arithmetic")
     {
         auto maxG0 = []<typename T>(T x, T y)
         {
-            using intervals::maybe;
-            using intervals::maybe_not;
-            using intervals::assign_partial;
-            
             auto result = T{ };
             auto cond = x >= y;
-            if (maybe(cond))
+            if (possibly(cond))
             {
                 assign_partial(result, x);
             }
-            if (maybe_not(x >= y))
+            if (possibly_not(x >= y))
             {
                 assign_partial(result, y);
             }
@@ -1148,25 +1148,20 @@ TEST_CASE("interval<>", "interval arithmetic")
         };
         auto maxG = []<typename T>(T x, T y)
         {
-            using intervals::maybe;
-            using intervals::maybe_not;
             using intervals::constrain;
-            using intervals::assign_partial;
-            
+
             auto result = T{ };
             auto cond = x >= y;
-            if (maybe(cond))
+            if (possibly(cond))
             {
                 assign_partial(result, constrain(x, cond));
             }
-            if (maybe_not(cond))
+            if (possibly_not(cond))
             {
                 assign_partial(result, constrain(y, !cond));
             }
             return result;
         };
-
-        using intervals::interval;
 
         {
             auto m = maxG0(interval{ 0., 2. }, interval{ 3., 4. });
@@ -1231,6 +1226,10 @@ TEST_CASE("interval<int>", "interval arithmetic")
 {
     using intervals::set;
     using intervals::interval;
+    using intervals::possibly;
+    using intervals::possibly_not;
+    using intervals::always;
+    using intervals::assign_partial;
 
     SECTION("value()")
     {
@@ -1256,18 +1255,18 @@ TEST_CASE("interval<int>", "interval arithmetic")
         auto x = interval{ a, b };
         CAPTURE(x);
 
-        CHECK(definitely(xbelow < x));
-        CHECK(!maybe(xbelow >= x));
-        CHECK(definitely(a <= x));
-        CHECK(!maybe(a > x));
-        CHECK(maybe(xin <= x));
-        CHECK(!definitely(xin > x));
-        CHECK(maybe(xin >= x));
-        CHECK(!definitely(xin < x));
-        CHECK(definitely(b >= x));
-        CHECK(!maybe(b < x));
-        CHECK(definitely(xabove > x));
-        CHECK(!maybe(xabove <= x));
+        CHECK(always(xbelow < x));
+        CHECK(!possibly(xbelow >= x));
+        CHECK(always(a <= x));
+        CHECK(!possibly(a > x));
+        CHECK(possibly(xin <= x));
+        CHECK(!always(xin > x));
+        CHECK(possibly(xin >= x));
+        CHECK(!always(xin < x));
+        CHECK(always(b >= x));
+        CHECK(!possibly(b < x));
+        CHECK(always(xabove > x));
+        CHECK(!possibly(xabove <= x));
     }
 
     // The `interval<>` type implements the transposition of the  min/max  operator and an unary/binary algebraic function, i.e.
@@ -1325,9 +1324,9 @@ TEST_CASE("interval<int>", "interval arithmetic")
         }
         SECTION("sgn()")
         {
-            CHECK(maybe(sgn(x) == intervals::positive_sign) == maybe(x > 0));
-            CHECK(maybe(sgn(x) == intervals::zero_sign) == maybe(x == 0));
-            CHECK(maybe(sgn(x) == intervals::negative_sign) == maybe(x < 0));
+            CHECK(possibly(sgn(x) == intervals::positive_sign) == possibly(x > 0));
+            CHECK(possibly(sgn(x) == intervals::zero_sign) == possibly(x == 0));
+            CHECK(possibly(sgn(x) == intervals::negative_sign) == possibly(x < 0));
         }
     }
     SECTION("binary operators")
@@ -1385,11 +1384,11 @@ TEST_CASE("interval<int>", "interval arithmetic")
                 CAPTURE(z);
                 CHECK(z.lower() == std::min({ a*c, a*d, b*c, b*d }));
                 CHECK(z.upper() == std::max({ a*c, a*d, b*c, b*d }));
-                CHECK(maybe(z == a*yin));
-                CHECK(maybe(z == xin*c));
-                CHECK(maybe(z == xin*yin));
-                CHECK(maybe(z == b*yin));
-                CHECK(maybe(z == xin*d));
+                CHECK(possibly(z == a*yin));
+                CHECK(possibly(z == xin*c));
+                CHECK(possibly(z == xin*yin));
+                CHECK(possibly(z == b*yin));
+                CHECK(possibly(z == xin*d));
             }
             SECTION("bound*scalar")
             {
@@ -1397,26 +1396,26 @@ TEST_CASE("interval<int>", "interval arithmetic")
                 CAPTURE(z);
                 CHECK(z.lower() == std::min({ a*c, b*c }));
                 CHECK(z.upper() == std::max({ a*c, b*c }));
-                CHECK(maybe(z == a*c));
-                CHECK(maybe(z == xin*c));
-                CHECK(maybe(z == b*c));
+                CHECK(possibly(z == a*c));
+                CHECK(possibly(z == xin*c));
+                CHECK(possibly(z == b*c));
             }
         }
         SECTION("operator /")
         {
             SECTION("bound/bound")
             {
-                if (definitely(y != 0))
+                if (always(y != 0))
                 {
                     auto z = x/y;
                     CAPTURE(z);
                     CHECK(z.lower() == std::min({ a/c, a/d, b/c, b/d }));
                     CHECK(z.upper() == std::max({ a/c, a/d, b/c, b/d }));
-                    CHECK(maybe(z == a/yin));
-                    CHECK(maybe(z == xin/c));
-                    CHECK(maybe(z == xin/yin));
-                    CHECK(maybe(z == b/yin));
-                    CHECK(maybe(z == xin/d));
+                    CHECK(possibly(z == a/yin));
+                    CHECK(possibly(z == xin/c));
+                    CHECK(possibly(z == xin/yin));
+                    CHECK(possibly(z == b/yin));
+                    CHECK(possibly(z == xin/d));
                 }
             }
             SECTION("bound/scalar")
@@ -1427,22 +1426,22 @@ TEST_CASE("interval<int>", "interval arithmetic")
                     CAPTURE(z);
                     CHECK(z.lower() == std::min({ a/c, b/c }));
                     CHECK(z.upper() == std::max({ a/c, b/c }));
-                    CHECK(maybe(z == a/c));
-                    CHECK(maybe(z == xin/c));
-                    CHECK(maybe(z == b/c));
+                    CHECK(possibly(z == a/c));
+                    CHECK(possibly(z == xin/c));
+                    CHECK(possibly(z == b/c));
                 }
             }
             SECTION("scalar/bound")
             {
-                if (definitely(y != 0))
+                if (always(y != 0))
                 {
                     auto z = a/y;
                     CAPTURE(z);
                     CHECK(z.lower() == std::min({ a/c, a/d }));
                     CHECK(z.upper() == std::max({ a/c, a/d }));
-                    CHECK(maybe(z == a/c));
-                    CHECK(maybe(z == a/yin));
-                    CHECK(maybe(z == a/d));
+                    CHECK(possibly(z == a/c));
+                    CHECK(possibly(z == a/yin));
+                    CHECK(possibly(z == a/d));
                 }
             }
         }
@@ -1469,7 +1468,6 @@ TEST_CASE("interval<int>", "interval arithmetic")
     SECTION("constrain()")
     {
         using intervals::constrain;
-        using intervals::maybe;
 
         SECTION("scalar")
         {
@@ -1480,7 +1478,7 @@ TEST_CASE("interval<int>", "interval arithmetic")
             CAPTURE(a);
             CAPTURE(b);
     
-            if (auto cond = (x >= a) & (x <= b); maybe(cond))
+            if (auto cond = (x >= a) & (x <= b); possibly(cond))
             {
                 CHECK(constrain(x, cond) == x);
             }
@@ -1858,7 +1856,7 @@ TEST_CASE("interval<int>", "interval arithmetic")
                     if (xhi >= xlo)
                     {
                         auto a = GENERATE(interval{ 1 }, interval{ 1, 2 }, interval{ 1, 4 }, interval{ 2, 4 }, interval{ 4 });
-                        auto b = GENERATE(interval{ 2 }, interval{ 2, 3 }, interval{ 4, 6 } );
+                        auto b = GENERATE(interval{ 2 }, interval{ 2, 3 }, interval{ 4, 6 });
                         auto c = set<bool>{ };
                         if (xhi >= std::min(a.lower(), b.lower()))
                         {
@@ -1905,21 +1903,57 @@ TEST_CASE("interval<int>", "interval arithmetic")
             CHECK_THROWS_AS(constrain(x, cy), gsl::fail_fast);
         }
     }
+    SECTION("min and max")
+    {
+        auto [a, b, minab, maxab] = GENERATE(
+            std::tuple{ interval{ 0., 2. }, interval{ 3. },     interval{ 0., 2. }, interval{ 3. }     },
+            std::tuple{ interval{ 0., 2. }, interval{ 1., 3. }, interval{ 0., 2. }, interval{ 1., 3. } },
+            std::tuple{ interval{ 0., 3. }, interval{ 1., 2. }, interval{ 0., 2. }, interval{ 1., 3. } }
+        );
+        CAPTURE(a);
+        CAPTURE(b);
+        {
+            CAPTURE(minab);
+            auto tminab = min(a, b);
+            CAPTURE(tminab);
+            CHECK(tminab.matches(minab));
+        }
+        {
+            CAPTURE(maxab);
+            auto tmaxab = max(a, b);
+            CAPTURE(tmaxab);
+            CHECK(tmaxab.matches(maxab));
+        }
+
+        auto c = (a >= 1) & (b >= 1);
+        if (possibly(c))
+        {
+            auto ac = constrain(a, c);
+            auto bc = constrain(b, c);
+            CAPTURE(ac);
+            CAPTURE(bc);
+            {
+                [[maybe_unused]] auto tminabc = min(a, bc);
+                [[maybe_unused]] auto tminacb = min(ac, b);
+                auto minacbc = max(1., minab);
+                auto tminacbc = min(ac, bc);
+                CAPTURE(minacbc);
+                CAPTURE(tminacbc);
+                CHECK(tminacbc.matches(minacbc));
+            }
+        }
+    }
     SECTION("example: max()")
     {
         auto maxG0 = []<typename T>(T x, T y)
         {
-            using intervals::maybe;
-            using intervals::maybe_not;
-            using intervals::assign_partial;
-            
             auto result = T{ };
             auto cond = x >= y;
-            if (maybe(cond))
+            if (possibly(cond))
             {
                 assign_partial(result, x);
             }
-            if (maybe_not(x >= y))
+            if (possibly_not(x >= y))
             {
                 assign_partial(result, y);
             }
@@ -1927,25 +1961,20 @@ TEST_CASE("interval<int>", "interval arithmetic")
         };
         auto maxG = []<typename T>(T x, T y)
         {
-            using intervals::maybe;
-            using intervals::maybe_not;
             using intervals::constrain;
-            using intervals::assign_partial;
-            
+
             auto result = T{ };
             auto cond = x >= y;
-            if (maybe(cond))
+            if (possibly(cond))
             {
                 assign_partial(result, constrain(x, cond));
             }
-            if (maybe_not(cond))
+            if (possibly_not(cond))
             {
                 assign_partial(result, constrain(y, !cond));
             }
             return result;
         };
-
-        using intervals::interval;
 
         {
             auto m = maxG0(interval{ 0, 2 }, interval{ 3, 4 });
