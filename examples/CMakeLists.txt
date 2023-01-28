@@ -83,3 +83,11 @@ target_link_libraries(interpolate-linear
     PRIVATE
         simple-libs
 )
+
+add_executable(preprocess
+    "preprocess.cpp"
+)
+target_link_libraries(preprocess
+    PRIVATE
+        simple-libs
+)
