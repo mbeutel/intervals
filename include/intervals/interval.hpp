@@ -895,10 +895,6 @@ class interval_base : public interval_functions
 {
     static_assert(!std::is_const_v<T>);
 
-        // Natvis debugging aid
-    static constexpr detail::interval_arithmetic_specialization<T> sp1_{ };
-    static constexpr detail::interval_iterator_specialization<T> sp2_{ };
-
 private:
     T lower_;
     T upper_;

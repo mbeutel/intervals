@@ -6,8 +6,6 @@
 #include <array>
 #include <type_traits>  // for is_same<>
 
-#include <makeshift/metadata.hpp>  // for metadata::values()
-
 
 namespace intervals {
 
@@ -21,7 +19,7 @@ namespace detail {
 //     2 : true
 //     3 : both
 //
-// The uninitialized state is infectious, i.e. every function of an undefined value yields an undefined value.
+// The uninitialized state is contagious, i.e. every function of an undefined value yields an undefined value.
 // (TODO: do we want infection traps? do we want them to be configurable?)
 //
 // Truth tables:

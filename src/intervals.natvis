@@ -1,14 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
 
-    <!--TODO: move to makeshift visualizer-->
-    <Type Name="makeshift::index_iterator">
-        <SmartPointer Usage="Indexable">&amp;i_,na</SmartPointer>
-        <Expand>
-            <Item Name="[index]">i_</Item>
-        </Expand>
-    </Type>
-    
     <Type Name="intervals::set&lt;*,*&gt;">
         <Expand>
             <CustomListItems>
@@ -21,14 +13,6 @@
             </CustomListItems>
         </Expand>
     </Type>
-    <!--Type Name="intervals::interval&lt;*&gt;">
-        <DisplayString Condition="intervals::interval&lt;$T1&gt;::specialization_ &lt; 2">{ *(intervals::detail::interval_base&lt;$T1&gt;*)this }</DisplayString>
-        <DisplayString Condition="intervals::interval&lt;$T1&gt;::specialization_ == 2">{ *(intervals::detail::iterator_interval_base&lt;$T1&gt;*)this }</DisplayString>
-        <Expand>
-            <Item Name="lower">lower_</Item>
-            <Item Name="upper">upper_</Item>
-        </Expand>
-    </Type-->
     <Type Name="intervals::detail::iterator_interval_base&lt;makeshift::index_iterator&gt;">
         <DisplayString Condition="*lower_ == *upper_">→{ *lower_ }</DisplayString>
         <DisplayString>[→{ *lower_ }, →{ *upper_ }]</DisplayString>
