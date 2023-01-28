@@ -110,19 +110,19 @@ fractional_weights(T a, T b)
     return { a/(a + b), b/(a + b) };
 }
 
-template <typename T>
+template <std::floating_point T>
 constexpr T
 blend_linear(T a, T b, T x, T y)
 {
-    auto [wa, wb] = fractional_weights(a, b);
+    auto [wa, wb] = intervals::fractional_weights(a, b);
     return wa*x + wb*y;
 }
-template <typename T>
+template <std::floating_point T>
 constexpr T
 blend_quadratic(T a, T b, T x, T y)
 {
-    auto [wa, wb] = fractional_weights(a, b);
-    return sqrt(square(wa*x) + square(wb*y));
+    auto [wa, wb] = intervals::fractional_weights(a, b);
+    return std::sqrt(intervals::square(wa*x) + intervals::square(wb*y));
 }
 
 

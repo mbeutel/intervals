@@ -770,6 +770,44 @@ public:
         };
     }
 
+    template <typename AB, typename XY>
+    requires floating_point_operands<AB, XY>
+    [[nodiscard]] friend constexpr common_interval_t<AB, XY>
+    blend_linear(AB const& a, AB const& b, XY const& x, XY const& y)
+    {
+        gsl_ExpectsDebug(assigned(a) && assigned(b) && assigned(x) && assigned(y));
+        gsl_ExpectsDebug(intervals::definitely(a >= 0));
+        gsl_ExpectsDebug(intervals::definitely(b >= 0));
+        gsl_ExpectsDebug(intervals::definitely(a + b > 0));
+
+            // q = 1/(1 + b/a)  with  0 ≤ q ≤ 1
+        auto alo = lower(a);
+        auto ahi = upper(a);
+        auto blo = lower(b);
+        auto bhi = upper(b);
+        auto qlo = 1/(1 + bhi/alo);
+        auto qhi = 1/(1 + blo/ahi);
+
+            // r = a/(a + b) x + b/(a + b) y
+            //   = q x + (1 - q) y
+        auto xlo = lower(x);
+        auto xhi = upper(x);
+        auto ylo = lower(y);
+        auto yhi = upper(y);
+        auto rlo = xlo > ylo
+            ? qlo*xlo + (1 - qlo)*ylo
+            : qhi*xlo + (1 - qhi)*ylo;
+        auto rhi = xhi < yhi
+            ? qlo*xhi + (1 - qlo)*yhi
+            : qhi*xhi + (1 - qhi)*yhi;
+
+            // We use `min()` and `max()` to mitigate rounding errors.
+        return common_interval_t<AB, XY>{
+            std::min(rlo, rhi),
+            std::max(rlo, rhi)
+        };
+    }
+
     template <floating_point_interval X>
     [[nodiscard]] friend constexpr set<bool>
     isinf(X const& x)
