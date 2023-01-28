@@ -16,8 +16,6 @@
 
 #include <gsl-lite/gsl-lite.hpp>  // for gsl_Assert(), gsl_Expects(), gsl_ExpectsDebug(), gsl_FailFast(), narrow_cast<>(), narrow<>(), narrow_failfast<>()
 
-#include <makeshift/tuple.hpp>        // for template_for()
-#include <makeshift/concepts.hpp>     // for tuple_like<>
 #include <makeshift/type_traits.hpp>  // for dependent_false<>
 
 #include <intervals/set.hpp>
@@ -1416,47 +1414,6 @@ reset(IntervalT& lhs, gsl::type_identity_t<detail::interval_t<IntervalT>> const&
 {
     lhs.reset(rhs);
 }
-
-template <makeshift::tuple_like T, typename U>
-constexpr void
-assign(T& lhs, U&& rhs)
-requires detail::non_const<T> && detail::not_interval<T>
-{
-    makeshift::template_for(
-        []<typename TT, typename UT>
-        (TT& lhs, UT&& rhs)
-        {
-            intervals::assign(lhs, std::forward<UT>(rhs));
-        },
-        lhs, std::forward<U>(rhs));
-}
-template <makeshift::tuple_like T, typename U>
-constexpr void
-reset(T& lhs, U&& rhs)
-requires detail::non_const<T> && detail::not_interval<T>
-{
-    makeshift::template_for(
-        []<typename TT, typename UT>
-        (TT& lhs, UT&& rhs)
-        {
-            intervals::reset(lhs, std::forward<UT>(rhs));
-        },
-        lhs, std::forward<U>(rhs));
-}
-template <makeshift::tuple_like T, typename U>
-constexpr void
-assign_partial(T& lhs, U&& rhs)
-requires detail::non_const<T> && detail::not_interval<T>
-{
-    makeshift::template_for(
-        []<typename TT, typename UT>
-        (TT& lhs, UT&& rhs)
-        {
-            intervals::assign_partial(lhs, std::forward<UT>(rhs));
-        },
-        lhs, std::forward<U>(rhs));
-}
-
 
     // Expression does not constrain given interval.
 template <detail::any_interval IntervalT>
