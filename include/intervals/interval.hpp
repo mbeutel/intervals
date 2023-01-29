@@ -125,7 +125,7 @@ private:
         using T = common_interval_value_t<X, Y>;
         T v1 = _multiply_0(x, lower(y));
         T v2 = _multiply_0(x, upper(y));
-        return common_interval_t<X, Y>{ detail::_min(v1, v2), detail::_max(v1, v2) };
+        return common_interval_t<X, Y>{ intervals::min(v1, v2), intervals::max(v1, v2) };
     }
     template <arithmetic_interval X, interval_value Y>
     static constexpr common_interval_t<X, Y>
@@ -134,7 +134,7 @@ private:
         using T = common_interval_value_t<X, Y>;
         T v1 = _multiply_0(lower(x), y);
         T v2 = _multiply_0(upper(x), y);
-        return common_interval_t<X, Y>{ detail::_min(v1, v2), detail::_max(v1, v2) };
+        return common_interval_t<X, Y>{ intervals::min(v1, v2), intervals::max(v1, v2) };
     }
     template <arithmetic_interval X, arithmetic_interval Y>
     static constexpr common_interval_t<X, Y>
@@ -145,7 +145,7 @@ private:
         T v2 = _multiply_0(lower(x), upper(y));
         T v3 = _multiply_0(upper(x), lower(y));
         T v4 = _multiply_0(upper(x), upper(y));
-        return common_interval_t<X, Y>{ detail::_min(detail::_min(v1, v2), detail::_min(v3, v4)), detail::_max(detail::_max(v1, v2), detail::_max(v3, v4)) };
+        return common_interval_t<X, Y>{ intervals::min(intervals::min(v1, v2), intervals::min(v3, v4)), intervals::max(intervals::max(v1, v2), intervals::max(v3, v4)) };
     }
 
 public:
@@ -235,7 +235,7 @@ public:
     {
         gsl_ExpectsDebug(assigned(lhs) && assigned(rhs));
 
-        return interval_of_t<L>{ detail::_min(lower(lhs), lower(rhs)), detail::_min(upper(lhs), upper(rhs)) };
+        return interval_of_t<L>{ intervals::min(lower(lhs), lower(rhs)), intervals::min(upper(lhs), upper(rhs)) };
     }
     template <interval_arg L, interval_arg R>
     requires same_values<L, R> && relational_values<L, R>
@@ -244,7 +244,7 @@ public:
     {
         gsl_ExpectsDebug(assigned(lhs) && assigned(rhs));
 
-        return interval_of_t<L>{ detail::_max(lower(lhs), lower(rhs)), detail::_max(upper(lhs), upper(rhs)) };
+        return interval_of_t<L>{ intervals::max(lower(lhs), lower(rhs)), intervals::max(upper(lhs), upper(rhs)) };
     }
 
     template <arithmetic_interval X>
@@ -275,8 +275,8 @@ public:
         return interval_t<X>{
             lo <= 0 && hi >= 0  // 0 ∈ [a, b]
                 ? 0
-                : detail::_min(lo*lo, hi*hi),
-            detail::_max(lo*lo, hi*hi)
+                : intervals::min(lo*lo, hi*hi),
+            intervals::max(lo*lo, hi*hi)
         };
     }
     template <arithmetic_interval X>
@@ -299,7 +299,7 @@ public:
         auto lo = lower(x);
         auto hi = upper(x);
         return lo <= 0 && hi >= 0                             // if  0 ∈ [a,b] :
-                 ? interval_t<X>{ 0, detail::_max(-lo, hi) }  //     → [0, max{-a,b}]
+                 ? interval_t<X>{ 0, intervals::max(-lo, hi) }  //     → [0, max{-a,b}]
              : lo < 0                                         // else if  a,b < 0 :
                  ? interval_t<X>{ -hi, -lo }                  //     → [-b,-a]
                : x;                                           // else → [a,b]
@@ -383,13 +383,13 @@ public:
         {
             T v1 = x*lower(y);
             T v2 = x*upper(y);
-            return common_interval_t<X, Y>{ detail::_min(v1, v2), detail::_max(v1, v2) };
+            return common_interval_t<X, Y>{ intervals::min(v1, v2), intervals::max(v1, v2) };
         }
         else if constexpr (interval_value<Y>)
         {
             T v1 = lower(x)*y;
             T v2 = upper(x)*y;
-            return common_interval_t<X, Y>{ detail::_min(v1, v2), detail::_max(v1, v2) };
+            return common_interval_t<X, Y>{ intervals::min(v1, v2), intervals::max(v1, v2) };
         }
         else
         {
@@ -397,7 +397,7 @@ public:
             T v2 = lower(x)*upper(y);
             T v3 = upper(x)*lower(y);
             T v4 = upper(x)*upper(y);
-            return common_interval_t<X, Y>{ detail::_min(detail::_min(v1, v2), detail::_min(v3, v4)), detail::_max(detail::_max(v1, v2), detail::_max(v3, v4)) };
+            return common_interval_t<X, Y>{ intervals::min(intervals::min(v1, v2), intervals::min(v3, v4)), intervals::max(intervals::max(v1, v2), intervals::max(v3, v4)) };
         }
     }
 
@@ -479,7 +479,7 @@ public:
             }
             T v1 = x/lower(y);
             T v2 = x/upper(y);
-            return common_interval_t<X, Y>{ detail::_min(v1, v2), detail::_max(v1, v2) };
+            return common_interval_t<X, Y>{ intervals::min(v1, v2), intervals::max(v1, v2) };
         }
         else if constexpr (interval_value<Y>)
         {
@@ -500,7 +500,7 @@ public:
 
             T v1 = lower(x)/y;
             T v2 = upper(x)/y;
-            return common_interval_t<X, Y>{ detail::_min(v1, v2), detail::_max(v1, v2) };
+            return common_interval_t<X, Y>{ intervals::min(v1, v2), intervals::max(v1, v2) };
         }
         else
         {
@@ -536,7 +536,7 @@ public:
             T v2 = lower(x)/upper(y);
             T v3 = upper(x)/lower(y);
             T v4 = upper(x)/upper(y);
-            return common_interval_t<X, Y>{ detail::_min(detail::_min(v1, v2), detail::_min(v3, v4)), detail::_max(detail::_max(v1, v2), detail::_max(v3, v4)) };
+            return common_interval_t<X, Y>{ intervals::min(intervals::min(v1, v2), intervals::min(v3, v4)), intervals::max(intervals::max(v1, v2), intervals::max(v3, v4)) };
         }
     }
 
@@ -546,7 +546,7 @@ public:
     {
         gsl_ExpectsDebug(x.assigned());
 
-        return interval_t<X>{ detail::_sqrt(lower(x)), detail::_sqrt(upper(x)) };
+        return interval_t<X>{ intervals::sqrt(lower(x)), intervals::sqrt(upper(x)) };
     }
     template <floating_point_interval X>
     [[nodiscard]] friend constexpr interval_t<X>
@@ -554,7 +554,7 @@ public:
     {
         gsl_ExpectsDebug(x.assigned());
 
-        return interval{ detail::_cbrt(lower(x)), detail::_cbrt(upper(x)) };
+        return interval{ intervals::cbrt(lower(x)), intervals::cbrt(upper(x)) };
     }
     template <floating_point_interval X>
     [[nodiscard]] friend constexpr interval_t<X>
@@ -562,7 +562,7 @@ public:
     {
         gsl_ExpectsDebug(x.assigned());
 
-        return interval{ detail::_log(lower(x)), detail::_log(upper(x)) };
+        return interval{ intervals::log(lower(x)), intervals::log(upper(x)) };
     }
     template <floating_point_interval X>
     [[nodiscard]] friend constexpr interval_t<X>
@@ -570,7 +570,7 @@ public:
     {
         gsl_ExpectsDebug(x.assigned());
 
-        return interval{ detail::_exp(lower(x)), detail::_exp(upper(x)) };
+        return interval{ intervals::exp(lower(x)), intervals::exp(upper(x)) };
     }
     template <interval_arg X, interval_arg Y>
     requires floating_point_operands<X, Y>
@@ -621,22 +621,22 @@ public:
         {
             if (hi <= T(0))
             {
-                return interval_t<X>{ detail::_cos(lo), detail::_cos(hi) };
+                return interval_t<X>{ intervals::cos(lo), intervals::cos(hi) };
             }
             else if (hi <= std::numbers::pi_v<T>)
             {
-                return interval_t<X>{ detail::_min(detail::_cos(lo), detail::_cos(hi)), 1 };
+                return interval_t<X>{ intervals::min(intervals::cos(lo), intervals::cos(hi)), 1 };
             }
         }
         else  // 0 < lo < π
         {
             if (hi <= std::numbers::pi_v<T>)
             {
-                return interval_t<X>{ detail::_cos(hi), detail::_cos(lo) };
+                return interval_t<X>{ intervals::cos(hi), intervals::cos(lo) };
             }
             else if (hi <= 2*std::numbers::pi_v<T>)
             {
-                return interval_t<X>{ -1, detail::_max(detail::_cos(lo), detail::_cos(hi)) };
+                return interval_t<X>{ -1, intervals::max(intervals::cos(lo), intervals::cos(hi)) };
             }
         }
         return interval{ T(-1), T(1) };
@@ -662,7 +662,7 @@ public:
         {
             return detail::inf_interval<T>();
         }
-        return interval_t<X>{ detail::_tan(lo), detail::_tan(hi) };
+        return interval_t<X>{ intervals::tan(lo), intervals::tan(hi) };
     }
     template <floating_point_interval X>
     [[nodiscard]] friend constexpr interval_t<X>
@@ -670,7 +670,7 @@ public:
     {
         gsl_ExpectsDebug(x.assigned());
 
-        return interval_t<X>{ detail::_acos(upper(x)), detail::_acos(lower(x)) };
+        return interval_t<X>{ intervals::acos(upper(x)), intervals::acos(lower(x)) };
     }
     template <floating_point_interval X>
     [[nodiscard]] friend constexpr interval_t<X>
@@ -678,7 +678,7 @@ public:
     {
         gsl_ExpectsDebug(x.assigned());
 
-        return interval_t<X>{ detail::_asin(lower(x)), detail::_asin(upper(x)) };
+        return interval_t<X>{ intervals::asin(lower(x)), intervals::asin(upper(x)) };
     }
     template <floating_point_interval X>
     [[nodiscard]] friend constexpr interval_t<X>
@@ -686,7 +686,7 @@ public:
     {
         gsl_ExpectsDebug(x.assigned());
 
-        return interval_t<X>{ detail::_atan(lower(x)), detail::_atan(upper(x)) };
+        return interval_t<X>{ intervals::atan(lower(x)), intervals::atan(upper(x)) };
     }
     template <typename Y, typename X>
     requires floating_point_operands<Y, X>
@@ -701,23 +701,23 @@ public:
         }
         if constexpr (interval_value<Y>)
         {
-            auto v1 = detail::_atan2(y, lower(x));
-            auto v2 = detail::_atan2(y, upper(x));
-            return common_interval_t<Y, X>{ detail::_min(v1, v2), detail::_max(v1, v2) };
+            auto v1 = intervals::atan2(y, lower(x));
+            auto v2 = intervals::atan2(y, upper(x));
+            return common_interval_t<Y, X>{ intervals::min(v1, v2), intervals::max(v1, v2) };
         }
         else if constexpr (interval_value<X>)
         {
-            auto v1 = detail::_atan2(lower(y), x);
-            auto v2 = detail::_atan2(upper(y), x);
-            return common_interval_t<Y, X>{ detail::_min(v1, v2), detail::_max(v1, v2) };
+            auto v1 = intervals::atan2(lower(y), x);
+            auto v2 = intervals::atan2(upper(y), x);
+            return common_interval_t<Y, X>{ intervals::min(v1, v2), intervals::max(v1, v2) };
         }
         else
         {
-            auto v1 = detail::_atan2(lower(y), lower(x));
-            auto v2 = detail::_atan2(lower(y), upper(x));
-            auto v3 = detail::_atan2(upper(y), lower(x));
-            auto v4 = detail::_atan2(upper(y), upper(x));
-            return common_interval_t<Y, X>{ detail::_min(detail::_min(v1, v2), detail::_min(v3, v4)), detail::_max(detail::_max(v1, v2), detail::_max(v3, v4)) };
+            auto v1 = intervals::atan2(lower(y), lower(x));
+            auto v2 = intervals::atan2(lower(y), upper(x));
+            auto v3 = intervals::atan2(upper(y), lower(x));
+            auto v4 = intervals::atan2(upper(y), upper(x));
+            return common_interval_t<Y, X>{ intervals::min(intervals::min(v1, v2), intervals::min(v3, v4)), intervals::max(intervals::max(v1, v2), intervals::max(v3, v4)) };
         }
     }
 
@@ -727,7 +727,7 @@ public:
     {
         gsl_ExpectsDebug(x.assigned());
 
-        return interval_t<X>{ detail::_floor(lower(x)), detail::_floor(upper(x)) };
+        return interval_t<X>{ intervals::floor(lower(x)), intervals::floor(upper(x)) };
     }
     template <floating_point_interval X>
     [[nodiscard]] friend constexpr interval_t<X>
@@ -735,7 +735,7 @@ public:
     {
         gsl_ExpectsDebug(x.assigned());
 
-        return interval_t<X>{ detail::_ceil(lower(x)), detail::_ceil(upper(x)) };
+        return interval_t<X>{ intervals::ceil(lower(x)), intervals::ceil(upper(x)) };
     }
     template <floating_point_interval X>
     [[nodiscard]] friend constexpr interval_t<X>
@@ -744,8 +744,8 @@ public:
         gsl_ExpectsDebug(x.assigned());
 
         using T = interval_value_t<X>;
-        T lfloor = detail::_floor(lower(x));
-        T ufloor = detail::_floor(upper(x));
+        T lfloor = intervals::floor(lower(x));
+        T ufloor = intervals::floor(upper(x));
         if (lfloor != ufloor)
         {
             return interval_t<X>{ 0, 1 };
@@ -951,8 +951,8 @@ protected:
     constexpr void
     _assign(T _lower, T _upper) noexcept
     {
-        lower_ = detail::_min(lower_, _lower);
-        upper_ = detail::_max(upper_, _upper);
+        lower_ = intervals::min(lower_, _lower);
+        upper_ = intervals::max(upper_, _upper);
     }
 
 public:

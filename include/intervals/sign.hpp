@@ -56,7 +56,7 @@ operator *(sign lhs, T rhs)
     return int(lhs)*rhs;
 }
 
-template <typename T>
+template <detail::arithmetic T>
 [[nodiscard]] constexpr sign
 sgn(T x)
 {

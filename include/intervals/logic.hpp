@@ -10,6 +10,8 @@ namespace intervals {
 
 namespace gsl = gsl_lite;
 
+inline namespace logic {
+
 
 [[nodiscard]] constexpr bool
 possibly(bool x) noexcept
@@ -46,13 +48,14 @@ vacuous(bool) noexcept
 //       - or alternatively, change the definitions in math.hpp such that they match any type except sets and intervals, which have
 //       their own overloads
 
-template <typename T>
+template <detail::interval_value T>
 [[nodiscard]] constexpr T
 if_else(bool cond, T resultIfTrue, T resultIfFalse)
 {
     return cond ? resultIfTrue : resultIfFalse;
 }
 
+} // inline namespace logic
 
 } // namespace intervals
 
