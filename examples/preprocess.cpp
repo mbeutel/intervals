@@ -8,8 +8,6 @@
 namespace ranges = std::ranges;
 
 #include <gsl-lite/gsl-lite.hpp>  // for gsl_Expects(), gsl_ExpectsDebug(), gsl_ExpectsAudit()
-using gsl_lite::dim;
-using gsl_lite::index;
 
 #include <fmt/core.h>
 #include <fmt/ostream.h>
