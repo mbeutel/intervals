@@ -38,18 +38,19 @@ concept enum_ = std::is_enum_v<T>;
 class interval_functions;
 
 template <typename T>
+concept not_interval = !std::derived_from<std::remove_cvref_t<T>, interval_functions>;
+
+template <typename T>
 concept floating_point_interval_value = std::floating_point<std::remove_cvref_t<T>>;
 template <typename T>
 concept integral_interval_value = std::integral<std::remove_cvref_t<T>>;
 template <typename T>
 concept arithmetic_interval_value = floating_point_interval_value<T> || integral_interval_value<T>;
 template <typename T>
-concept iterator_interval_value = std::random_access_iterator<std::remove_cvref_t<T>>;
+concept iterator_interval_value = not_interval<T> && std::random_access_iterator<std::remove_cvref_t<T>>;
 template <typename T>
 concept interval_value = arithmetic_interval_value<T> || iterator_interval_value<T>;
 
-template <typename T>
-concept not_interval = !std::derived_from<std::remove_cvref_t<T>, interval_functions>;
 template <typename T>
 concept any_interval = std::derived_from<std::remove_cvref_t<T>, interval_functions>;
 template <any_interval T>
