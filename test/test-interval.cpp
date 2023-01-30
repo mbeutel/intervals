@@ -607,8 +607,8 @@ TEST_CASE("interval<>", "interval arithmetic")
                     }
                     else
                     {
-                        CHECK(possibly(isnan(asin(x))));
-                        CHECK(possibly(isnan(acos(x))));
+                        CHECK_THROWS_AS(asin(x), gsl::fail_fast);
+                        CHECK_THROWS_AS(acos(x), gsl::fail_fast);
                     }
                     auto atan_x = atan(x);
                     CHECK(atan_x.lower() == std::atan(a));
