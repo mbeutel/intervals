@@ -51,8 +51,8 @@ concept iterator_interval_value = not_interval<T> && std::random_access_iterator
 template <typename T>
 concept interval_value = arithmetic_interval_value<T> || iterator_interval_value<T>;
 
-template <typename T>
-concept any_interval = std::derived_from<std::remove_cvref_t<T>, interval_functions>;
+template <typename... Ts>
+concept any_interval = (std::derived_from<std::remove_cvref_t<Ts>, interval_functions> || ...);
 template <any_interval T>
 using interval_value_t = typename std::remove_cvref_t<T>::value_type;
 template <typename T>
@@ -74,6 +74,9 @@ template <typename T>
 concept arithmetic_interval_arg = arithmetic_interval_value<T> || arithmetic_interval<T>;
 template <typename T>
 concept iterator_interval_arg = iterator_interval_value<T> || iterator_interval<T>;
+
+template <typename... Ts>
+concept any_interval_arg = (interval_arg<Ts> || ...);
 
 template <interval_arg T> struct interval_arg_value_0_;
 template <interval_value T> struct interval_arg_value_0_<T> { using type = T; };

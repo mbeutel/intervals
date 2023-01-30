@@ -42,7 +42,6 @@ class interval_functions
 {
 private:
     template <typename L, typename R>
-    requires relational_values<L, R>
     friend constexpr set<bool>
     compare_eq(L const& lhs, R const& rhs)
     {
@@ -58,7 +57,6 @@ private:
         return result;
     }
     template <typename L, typename R>
-    requires relational_values<L, R>
     friend constexpr set<bool>
     compare_neq(L const& lhs, R const& rhs)
     {
@@ -74,7 +72,6 @@ private:
         return result;
     }
     template <typename L, typename R>
-    requires relational_values<L, R>
     static constexpr set<bool>
     compare_lt(L const& lhs, R const& rhs)
     {
@@ -90,7 +87,6 @@ private:
         return result;
     }
     template <typename L, typename R>
-    requires relational_values<L, R>
     static constexpr set<bool>
     compare_leq(L const& lhs, R const& rhs)
     {
@@ -150,7 +146,7 @@ private:
 
 public:
     template <typename L, typename R>
-    requires relational_values<L, R>
+    requires any_interval<L, R> && relational_values<L, R>
     [[nodiscard]] friend constexpr auto
     operator ==(L&& lhs, R&& rhs)
     {
@@ -163,7 +159,7 @@ public:
         };
     }
     template <typename L, typename R>
-    requires relational_values<L, R>
+    requires any_interval<L, R> && relational_values<L, R>
     [[nodiscard]] friend constexpr auto
     operator !=(L&& lhs, R&& rhs)
     {
@@ -176,7 +172,7 @@ public:
         };
     }
     template <typename L, typename R>
-    requires relational_values<L, R>
+    requires any_interval<L, R> && relational_values<L, R>
     [[nodiscard]] friend constexpr auto
     operator <(L&& lhs, R&& rhs)
     {
@@ -189,7 +185,7 @@ public:
         };
     }
     template <typename L, typename R>
-    requires relational_values<L, R>
+    requires any_interval<L, R> && relational_values<L, R>
     [[nodiscard]] friend constexpr auto
     operator <=(L&& lhs, R&& rhs)
     {
@@ -202,7 +198,7 @@ public:
         };
     }
     template <typename L, typename R>
-    requires relational_values<L, R>
+    requires any_interval<L, R> && relational_values<L, R>
     [[nodiscard]] friend constexpr auto
     operator >(L&& lhs, R&& rhs)
     {
@@ -215,7 +211,7 @@ public:
         };
     }
     template <typename L, typename R>
-    requires relational_values<L, R>
+    requires any_interval<L, R> && relational_values<L, R>
     [[nodiscard]] friend constexpr auto
     operator >=(L&& lhs, R&& rhs)
     {
@@ -229,7 +225,7 @@ public:
     }
 
     template <interval_arg L, interval_arg R>
-    requires same_values<L, R> && relational_values<L, R>
+    requires any_interval<L, R> && same_values<L, R> && relational_values<L, R>
     [[nodiscard]] friend constexpr interval_of_t<L>
     min(L&& lhs, R&& rhs)
     {
@@ -238,7 +234,7 @@ public:
         return interval_of_t<L>{ intervals::min(lower(lhs), lower(rhs)), intervals::min(upper(lhs), upper(rhs)) };
     }
     template <interval_arg L, interval_arg R>
-    requires same_values<L, R> && relational_values<L, R>
+    requires any_interval<L, R> && same_values<L, R> && relational_values<L, R>
     [[nodiscard]] friend constexpr interval_of_t<L>
     max(L&& lhs, R&& rhs)
     {
@@ -330,7 +326,7 @@ public:
     }
 
     template <typename X, typename Y>
-    requires arithmetic_operands<X, Y>
+    requires any_interval<X, Y> && arithmetic_operands<X, Y>
     [[nodiscard]] friend constexpr common_interval_t<X, Y>
     operator +(X&& x, Y&& y)
     {
@@ -347,7 +343,7 @@ public:
         return common_interval_t<X, Y>{ lower(x) + lower(y), upper(x) + upper(y) };
     }
     template <typename X, typename Y>
-    requires arithmetic_operands<X, Y>
+    requires any_interval<X, Y> && arithmetic_operands<X, Y>
     [[nodiscard]] friend constexpr common_interval_t<X, Y>
     operator -(X&& x, Y&& y)
     {
@@ -364,7 +360,7 @@ public:
         return common_interval_t<X, Y>{ lower(x) - upper(y), upper(x) - lower(y) };
     }
     template <typename X, typename Y>
-    requires arithmetic_operands<X, Y>
+    requires any_interval<X, Y> && arithmetic_operands<X, Y>
     [[nodiscard]] friend constexpr common_interval_t<X, Y>
     operator *(X&& x, Y&& y)
     {
@@ -440,7 +436,7 @@ public:
     }
 
     template <typename X, typename Y>
-    requires arithmetic_operands<X, Y>
+    requires any_interval<X, Y> && arithmetic_operands<X, Y>
     [[nodiscard]] friend constexpr common_interval_t<X, Y>
     operator /(X&& x, Y&& y)
     {
@@ -573,7 +569,7 @@ public:
         return interval{ intervals::exp(lower(x)), intervals::exp(upper(x)) };
     }
     template <interval_arg X, interval_arg Y>
-    requires floating_point_operands<X, Y>
+    requires any_interval<X, Y> && floating_point_operands<X, Y>
     [[nodiscard]] friend constexpr common_interval_t<X, Y>
     pow(X&& x, Y&& y)
     {
@@ -689,7 +685,7 @@ public:
         return interval_t<X>{ intervals::atan(lower(x)), intervals::atan(upper(x)) };
     }
     template <typename Y, typename X>
-    requires floating_point_operands<Y, X>
+    requires any_interval<X, Y> && floating_point_operands<Y, X>
     [[nodiscard]] friend constexpr common_interval_t<Y, X>
     atan2(Y&& y, X&& x)
     {
@@ -754,7 +750,7 @@ public:
     }
 
     template <typename A, typename B>
-    requires floating_point_operands<A, B>
+    requires any_interval<A, B> && floating_point_operands<A, B>
     [[nodiscard]] friend constexpr std::pair<common_interval_t<A, B>, common_interval_t<A, B>>
     fractional_weights(A&& a, B&& b)
     {
@@ -770,7 +766,7 @@ public:
     }
 
     template <typename AB, typename XY>
-    requires floating_point_operands<AB, XY>
+    requires any_interval<AB, XY> && floating_point_operands<AB, XY>
     [[nodiscard]] friend constexpr common_interval_t<AB, XY>
     blend_linear(AB&& a, AB&& b, XY&& x, XY&& y)
     {
@@ -846,6 +842,7 @@ public:
     }
 
     template <iterator_interval_arg L, integral_interval_arg R>
+    requires any_interval<L, R>
     [[nodiscard]] friend constexpr interval_of_t<L>
     operator +(L&& lhs, R&& rhs)
     {
@@ -854,6 +851,7 @@ public:
         return interval_of_t<L>{ lower(lhs) + lower(rhs), upper(lhs) + upper(rhs) };
     }
     template <integral_interval_arg L, iterator_interval_arg R>
+    requires any_interval<L, R>
     [[nodiscard]] friend constexpr interval_of_t<R>
     operator +(L&& lhs, R&& rhs)
     {
@@ -862,6 +860,7 @@ public:
         return interval_of_t<R>{ lower(lhs) + lower(rhs), upper(lhs) + upper(rhs) };
     }
     template <iterator_interval_arg L, integral_interval_arg R>
+    requires any_interval<L, R>
     [[nodiscard]] friend constexpr interval_of_t<L>
     operator -(L&& lhs, R&& rhs)
     {
@@ -871,7 +870,7 @@ public:
     }
 
     template <iterator_interval_arg L, iterator_interval_arg R>
-    requires std::same_as<interval_arg_value_t<L>, interval_arg_value_t<R>>
+    requires any_interval<L, R> && std::same_as<interval_arg_value_t<L>, interval_arg_value_t<R>>
     [[nodiscard]] friend constexpr interval<std::iter_difference_t<interval_arg_value_t<L>>>
     operator -(L&& lhs, R&& rhs)
     {
