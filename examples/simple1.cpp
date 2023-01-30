@@ -6,6 +6,8 @@
 #include <intervals/interval.hpp>
 using namespace intervals;
 
+template <typename T> struct fmt::formatter<intervals::interval<T>> : fmt::ostream_formatter { };
+
 
 interval<double>
 f1(interval<double> x) {
@@ -18,11 +20,11 @@ f2(interval<double> x) {
 int main() {
     auto x = interval{ 0., 1. };
     fmt::print("f1({}) = {}\n", x, f1(x));
-    fmt::print("f1({}) > 0: {}\n", x, f1(x) > 0);
+    fmt::print("f1({}) > 0: {}\n", x, fmt::streamed(f1(x) > 0));
     fmt::print("possibly(f1({}) > 0): {}\n",
         x, possibly(f1(x) > 0));
     fmt::print("f2({}) = {}\n", x, f2(x));
-    fmt::print("f2({}) > 0: {}\n", x, f2(x) > 0);
+    fmt::print("f2({}) > 0: {}\n", x, fmt::streamed(f2(x) > 0));
     fmt::print("possibly(f2({}) > 0): {}\n",
         x, possibly(f2(x) > 0));
 }

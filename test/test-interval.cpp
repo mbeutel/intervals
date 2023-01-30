@@ -16,6 +16,9 @@ namespace {
 namespace gsl = ::gsl_lite;
 
 
+template <typename...> struct TD;
+
+
 TEST_CASE("interval<>", "interval arithmetic")
 {
     using intervals::set;

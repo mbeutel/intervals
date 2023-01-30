@@ -8,7 +8,6 @@
 namespace ranges = std::ranges;
 
 #include <gsl-lite/gsl-lite.hpp>  // for gsl_Expects(), gsl_ExpectsDebug(), gsl_ExpectsAudit()
-using gsl_lite::index;
 
 #include <fmt/core.h>
 #include <fmt/ostream.h>
@@ -20,6 +19,8 @@ using makeshift::index_range;
 #include <intervals/interval.hpp>
 #include <intervals/algorithm.hpp>
 using namespace intervals;
+
+template <typename T> struct fmt::formatter<intervals::interval<T>> : fmt::ostream_formatter { };
 
 
 template <typename T>
@@ -34,11 +35,11 @@ interpolate_nearest_neighbour_scalar(
 
     auto it = ranges::partition_point(
         index_range(ranges::ssize(xs) - 1),
-        [&xs, &x](index i) {
+        [&xs, &x](gsl_lite::index i) {
             auto xhalf = std::midpoint(xs[i], xs[i + 1]);
             return xhalf < x;
         });
-    index i = *it;
+    gsl_lite::index i = *it;
     return at(ys, i);
 }
 
@@ -54,7 +55,7 @@ interpolate_nearest_neighbour(
 
     auto [_, it] = intervals::partition_point(
         index_range(ranges::ssize(xs) - 1),
-        [&xs, &x](index i) {
+        [&xs, &x](gsl_lite::index i) {
             auto xhalf = std::midpoint(xs[i], xs[i + 1]);
             return xhalf < x;
         });

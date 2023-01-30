@@ -8,8 +8,6 @@
 namespace ranges = std::ranges;
 
 #include <gsl-lite/gsl-lite.hpp>  // for gsl_Expects(), gsl_ExpectsDebug(), gsl_ExpectsAudit()
-using gsl_lite::dim;
-using gsl_lite::index;
 
 #include <fmt/core.h>
 #include <fmt/ostream.h>
@@ -22,6 +20,8 @@ using makeshift::index_range;
 #include <intervals/algorithm.hpp>
 using namespace intervals;
 
+template <typename T> struct fmt::formatter<intervals::interval<T>> : fmt::ostream_formatter { };
+
 
 template <typename T>
 T
@@ -29,14 +29,14 @@ interpolate_linear_scalar(
         ranges::random_access_range auto&& xs,  // points  xᵢ  with  x₁ ≤ ... ≤ xₙ
         ranges::random_access_range auto&& ys,  // corresponding values  yᵢ
         T x) {
-    dim n = ranges::ssize(xs);
+    gsl_lite::dim n = ranges::ssize(xs);
 
     gsl_Expects(n >= 2);
     gsl_ExpectsDebug(ranges::ssize(ys) == n);
     gsl_ExpectsAudit(ranges::is_sorted(xs));
 
     auto pos = ranges::lower_bound(xs, x);
-    index i = pos - ranges::begin(xs);
+    gsl_lite::index i = pos - ranges::begin(xs);
 
     T result;
 
@@ -73,7 +73,7 @@ interpolate_linear(
         ranges::random_access_range auto&& xs,  // points  xᵢ  with  x₁ ≤ ... ≤ xₙ
         ranges::random_access_range auto&& ys,  // corresponding values  yᵢ
         T x) {
-    dim n = ranges::ssize(xs);
+    gsl_lite::dim n = ranges::ssize(xs);
 
     gsl_Expects(n >= 2);
     gsl_ExpectsDebug(ranges::ssize(ys) == n);
@@ -99,7 +99,7 @@ interpolate_linear(
         // Otherwise, return linear interpolation  yᵢ + (x - xᵢ)/(xᵢ₊₁ - xᵢ)⋅(yᵢ₊₁ - yᵢ) .
     if (auto c = !below & !above; possibly(c)) {
         auto ic = constrain(i, c);
-        for (index j : enumerate(ic)) {
+        for (gsl_lite::index j : enumerate(ic)) {
             auto x0 = xs[j - 1];
             auto x1 = xs[j];
             auto y0 = ys[j - 1];

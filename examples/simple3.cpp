@@ -8,6 +8,7 @@
 #include <intervals/interval.hpp>
 using namespace intervals;
 
+template <typename T> struct fmt::formatter<intervals::interval<T>> : fmt::ostream_formatter { };
 
 template <typename T>
 T

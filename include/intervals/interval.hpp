@@ -1082,6 +1082,8 @@ public:
 template <typename T>
 class interval;
 template <detail::interval_value T>
+interval(interval<T>) -> interval<T>;
+template <detail::interval_value T>
 interval(T) -> interval<T>;
 template <detail::interval_value T1, detail::interval_value T2>
 interval(T1, T2) -> interval<std::common_type_t<T1, T2>>;
@@ -1493,21 +1495,22 @@ template <intervals::detail::any_interval IntervalT> class std::tuple_size<Inter
 template <std::size_t I, intervals::detail::any_interval IntervalT> class std::tuple_element<I, IntervalT> { public: using type = typename IntervalT::value_type; };
 
     // Specialize `std::common_type<>` for intervals.
-template <intervals::detail::any_interval L, intervals::detail::any_interval R>
-struct std::common_type<L, R>
-{
-    using type = intervals::detail::common_interval_t<L, R>;
-};
-template <intervals::detail::any_interval L, intervals::detail::interval_value R>
-struct std::common_type<L, R>
-{
-    using type = intervals::detail::common_interval_t<L, R>;
-};
-template <intervals::detail::interval_value L, intervals::detail::any_interval R>
-struct std::common_type<L, R>
-{
-    using type = intervals::detail::common_interval_t<L, R>;
-};
+    // TODO: constraints are apparently inadequate here; we need to be more specific
+//template <intervals::detail::any_interval L, intervals::detail::any_interval R>
+//struct std::common_type<L, R>
+//{
+//    using type = intervals::detail::common_interval_t<L, R>;
+//};
+//template <intervals::detail::any_interval L, intervals::detail::interval_value R>
+//struct std::common_type<L, R>
+//{
+//    using type = intervals::detail::common_interval_t<L, R>;
+//};
+//template <intervals::detail::interval_value L, intervals::detail::any_interval R>
+//struct std::common_type<L, R>
+//{
+//    using type = intervals::detail::common_interval_t<L, R>;
+//};
 
 
 #endif // INCLUDED_INTERVALS_INTERVAL_HPP_
