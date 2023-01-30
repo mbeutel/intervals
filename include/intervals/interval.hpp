@@ -224,7 +224,7 @@ public:
         };
     }
 
-    template <interval_arg L, interval_arg R>
+    template <typename L, typename R>
     requires any_interval<L, R> && same_values<L, R> && relational_values<L, R>
     [[nodiscard]] friend constexpr interval_of_t<L>
     min(L&& lhs, R&& rhs)
@@ -233,7 +233,7 @@ public:
 
         return interval_of_t<L>{ intervals::min(lower(lhs), lower(rhs)), intervals::min(upper(lhs), upper(rhs)) };
     }
-    template <interval_arg L, interval_arg R>
+    template <typename L, typename R>
     requires any_interval<L, R> && same_values<L, R> && relational_values<L, R>
     [[nodiscard]] friend constexpr interval_of_t<L>
     max(L&& lhs, R&& rhs)
@@ -841,8 +841,8 @@ public:
         return set{ false };
     }
 
-    template <iterator_interval_arg L, integral_interval_arg R>
-    requires any_interval<L, R>
+    template <typename L, typename R>
+    requires any_interval<L, R> && iterator_interval_arg<L> && integral_interval_arg<R>
     [[nodiscard]] friend constexpr auto
     operator +(L&& lhs, R&& rhs)
     {
@@ -850,8 +850,8 @@ public:
 
         return interval_of_t<L>{ lower(lhs) + lower(rhs), upper(lhs) + upper(rhs) };
     }
-    template <integral_interval_arg L, iterator_interval_arg R>
-    requires any_interval<L, R>
+    template <typename L, typename R>
+    requires any_interval<L, R> && integral_interval_arg<L> && iterator_interval_arg<R>
     [[nodiscard]] friend constexpr auto
     operator +(L&& lhs, R&& rhs)
     {
@@ -859,8 +859,8 @@ public:
 
         return interval_of_t<R>{ lower(lhs) + lower(rhs), upper(lhs) + upper(rhs) };
     }
-    template <iterator_interval_arg L, integral_interval_arg R>
-    requires any_interval<L, R>
+    template <typename L, typename R>
+    requires any_interval<L, R> && iterator_interval_arg<L> && integral_interval_arg<R>
     [[nodiscard]] friend constexpr auto
     operator -(L&& lhs, R&& rhs)
     {
@@ -869,8 +869,8 @@ public:
         return interval_of_t<L>{ lower(lhs) - upper(rhs), upper(lhs) - lower(rhs) };
     }
 
-    template <iterator_interval_arg L, iterator_interval_arg R>
-    requires any_interval<L, R> && std::same_as<interval_arg_value_t<L>, interval_arg_value_t<R>>
+    template <typename L, typename R>
+    requires any_interval<L, R> && iterator_interval_arg<L> && std::same_as<interval_arg_value_t<L>, interval_arg_value_t<R>>
     [[nodiscard]] friend constexpr auto
     operator -(L&& lhs, R&& rhs)
     {
