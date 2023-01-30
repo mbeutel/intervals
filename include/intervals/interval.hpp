@@ -327,7 +327,7 @@ public:
 
     template <typename X, typename Y>
     requires any_interval<X, Y> && arithmetic_operands<X, Y>
-    [[nodiscard]] friend constexpr common_interval_t<X, Y>
+    [[nodiscard]] friend constexpr auto
     operator +(X&& x, Y&& y)
     {
         gsl_ExpectsDebug(assigned(x) && assigned(y));
@@ -344,7 +344,7 @@ public:
     }
     template <typename X, typename Y>
     requires any_interval<X, Y> && arithmetic_operands<X, Y>
-    [[nodiscard]] friend constexpr common_interval_t<X, Y>
+    [[nodiscard]] friend constexpr auto
     operator -(X&& x, Y&& y)
     {
         gsl_ExpectsDebug(assigned(x) && assigned(y));
@@ -361,7 +361,7 @@ public:
     }
     template <typename X, typename Y>
     requires any_interval<X, Y> && arithmetic_operands<X, Y>
-    [[nodiscard]] friend constexpr common_interval_t<X, Y>
+    [[nodiscard]] friend constexpr auto
     operator *(X&& x, Y&& y)
     {
         gsl_ExpectsDebug(assigned(x) && assigned(y));
@@ -437,7 +437,7 @@ public:
 
     template <typename X, typename Y>
     requires any_interval<X, Y> && arithmetic_operands<X, Y>
-    [[nodiscard]] friend constexpr common_interval_t<X, Y>
+    [[nodiscard]] friend constexpr auto
     operator /(X&& x, Y&& y)
     {
         gsl_ExpectsDebug(assigned(x) && assigned(y));
@@ -570,7 +570,7 @@ public:
     }
     template <interval_arg X, interval_arg Y>
     requires any_interval<X, Y> && floating_point_operands<X, Y>
-    [[nodiscard]] friend constexpr common_interval_t<X, Y>
+    [[nodiscard]] friend constexpr auto
     pow(X&& x, Y&& y)
     {
         gsl_ExpectsDebug(assigned(x) && assigned(y));
@@ -686,7 +686,7 @@ public:
     }
     template <typename Y, typename X>
     requires any_interval<X, Y> && floating_point_operands<Y, X>
-    [[nodiscard]] friend constexpr common_interval_t<Y, X>
+    [[nodiscard]] friend constexpr auto
     atan2(Y&& y, X&& x)
     {
         gsl_ExpectsDebug(assigned(y) && assigned(x));
@@ -751,7 +751,7 @@ public:
 
     template <typename A, typename B>
     requires any_interval<A, B> && floating_point_operands<A, B>
-    [[nodiscard]] friend constexpr std::pair<common_interval_t<A, B>, common_interval_t<A, B>>
+    [[nodiscard]] friend constexpr auto
     fractional_weights(A&& a, B&& b)
     {
         gsl_ExpectsDebug(assigned(a) && assigned(b));
@@ -759,7 +759,7 @@ public:
         gsl_ExpectsDebug(intervals::always(b >= 0));
         gsl_ExpectsDebug(intervals::always(a + b > 0));
 
-        return {
+        return std::pair{
             common_interval_t<A, B>{ lower(a)/(lower(a) + upper(b)), upper(a)/(upper(a) + lower(b)) },
             common_interval_t<A, B>{ lower(b)/(upper(a) + lower(b)), upper(b)/(lower(a) + upper(b)) }
         };
@@ -843,7 +843,7 @@ public:
 
     template <iterator_interval_arg L, integral_interval_arg R>
     requires any_interval<L, R>
-    [[nodiscard]] friend constexpr interval_of_t<L>
+    [[nodiscard]] friend constexpr auto
     operator +(L&& lhs, R&& rhs)
     {
         gsl_ExpectsDebug(assigned(lhs) && assigned(rhs));
@@ -852,7 +852,7 @@ public:
     }
     template <integral_interval_arg L, iterator_interval_arg R>
     requires any_interval<L, R>
-    [[nodiscard]] friend constexpr interval_of_t<R>
+    [[nodiscard]] friend constexpr auto
     operator +(L&& lhs, R&& rhs)
     {
         gsl_ExpectsDebug(assigned(lhs) && assigned(rhs));
@@ -861,7 +861,7 @@ public:
     }
     template <iterator_interval_arg L, integral_interval_arg R>
     requires any_interval<L, R>
-    [[nodiscard]] friend constexpr interval_of_t<L>
+    [[nodiscard]] friend constexpr auto
     operator -(L&& lhs, R&& rhs)
     {
         gsl_ExpectsDebug(assigned(lhs) && assigned(rhs));
@@ -871,7 +871,7 @@ public:
 
     template <iterator_interval_arg L, iterator_interval_arg R>
     requires any_interval<L, R> && std::same_as<interval_arg_value_t<L>, interval_arg_value_t<R>>
-    [[nodiscard]] friend constexpr interval<std::iter_difference_t<interval_arg_value_t<L>>>
+    [[nodiscard]] friend constexpr auto
     operator -(L&& lhs, R&& rhs)
     {
         gsl_ExpectsDebug(assigned(lhs) && assigned(rhs));
