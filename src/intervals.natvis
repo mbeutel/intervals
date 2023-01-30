@@ -40,7 +40,7 @@
     </Type>
     <Type Name="intervals::detail::less_constraint&lt;*&gt;">
         <DisplayString IncludeView="member">{ lhs_ } &lt; { rhs_ }</DisplayString>
-        <DisplayString>{ lhs_ } &lt; { rhs_ }: { *(intervals::set&lt;bool,makeshift::detail::reflector&gt;*) this }</DisplayString>
+        <DisplayString>{ *(intervals::set&lt;bool,makeshift::detail::reflector&gt;*) this } ⇔ { lhs_ } &lt; { rhs_ }</DisplayString>
         <Expand>
             <Item Name="lhs">lhs_</Item>
             <Item Name="rhs">rhs_</Item>
@@ -48,7 +48,7 @@
     </Type>
     <Type Name="intervals::detail::less_equal_constraint&lt;*&gt;">
         <DisplayString IncludeView="member">{ lhs_ } ≤ { rhs_ }</DisplayString>
-        <DisplayString>{ lhs_ } ≤ { rhs_ }: { *(intervals::set&lt;bool,makeshift::detail::reflector&gt;*) this }</DisplayString>
+        <DisplayString>{ *(intervals::set&lt;bool,makeshift::detail::reflector&gt;*) this } ⇔ { lhs_ } ≤ { rhs_ }</DisplayString>
         <Expand>
             <Item Name="lhs">lhs_</Item>
             <Item Name="rhs">rhs_</Item>
@@ -56,7 +56,7 @@
     </Type>
     <Type Name="intervals::detail::equality_constraint&lt;*&gt;">
         <DisplayString IncludeView="member">{ lhs_ } = { rhs_ }</DisplayString>
-        <DisplayString>{ lhs_ } = { rhs_ }: { *(intervals::set&lt;bool,makeshift::detail::reflector&gt;*) this }</DisplayString>
+        <DisplayString>{ *(intervals::set&lt;bool,makeshift::detail::reflector&gt;*) this } ⇔ { lhs_ } = { rhs_ }</DisplayString>
         <Expand>
             <Item Name="lhs">lhs_</Item>
             <Item Name="rhs">rhs_</Item>
@@ -64,7 +64,7 @@
     </Type>
     <Type Name="intervals::detail::inequality_constraint&lt;*&gt;">
         <DisplayString IncludeView="member">{ lhs_ } ≠ { rhs_ }</DisplayString>
-        <DisplayString>{ lhs_ } ≠ { rhs_ }: { *(intervals::set&lt;bool,makeshift::detail::reflector&gt;*) this }</DisplayString>
+        <DisplayString>{ *(intervals::set&lt;bool,makeshift::detail::reflector&gt;*) this } ⇔ { lhs_ } ≠ { rhs_ }</DisplayString>
         <Expand>
             <Item Name="lhs">lhs_</Item>
             <Item Name="rhs">rhs_</Item>
@@ -72,7 +72,7 @@
     </Type>
     <Type Name="intervals::detail::constraint_conjunction&lt;*,*&gt;">
         <DisplayString IncludeView="member">{ lhs_,view(member) } ∧ { rhs_,view(member) }</DisplayString>
-        <DisplayString>({ lhs_,view(member) }) ∧ ({ rhs_,view(member) }): { *(intervals::set&lt;bool,makeshift::detail::reflector&gt;*) this }</DisplayString>
+        <DisplayString>{ *(intervals::set&lt;bool,makeshift::detail::reflector&gt;*) this } ⇔ ({ lhs_,view(member) }) ∧ ({ rhs_,view(member) })</DisplayString>
         <Expand>
             <Item Name="lhs">lhs_</Item>
             <Item Name="rhs">rhs_</Item>
@@ -80,10 +80,17 @@
     </Type>
     <Type Name="intervals::detail::constraint_disjunction&lt;*,*&gt;">
         <DisplayString IncludeView="member">{ lhs_,view(member) } ∨ { rhs_,view(member) }</DisplayString>
-        <DisplayString>({ lhs_,view(member) }) ∨ ({ rhs_,view(member) }): { *(intervals::set&lt;bool,makeshift::detail::reflector&gt;*) this }</DisplayString>
+        <DisplayString>{ *(intervals::set&lt;bool,makeshift::detail::reflector&gt;*) this } ⇔ ({ lhs_,view(member) }) ∨ ({ rhs_,view(member) })</DisplayString>
         <Expand>
             <Item Name="lhs">lhs_</Item>
             <Item Name="rhs">rhs_</Item>
+        </Expand>
+    </Type>
+
+    <Type Name="intervals::as_regular&lt;*&gt;">
+        <DisplayString>{ value_ }</DisplayString>
+        <Expand>
+            <ExpandedItem>value_</ExpandedItem>
         </Expand>
     </Type>
 

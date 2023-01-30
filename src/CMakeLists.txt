@@ -9,7 +9,9 @@ cmake_minimum_required(VERSION 3.20)
 find_package(gsl-lite 0.40 REQUIRED)
 find_package(makeshift 4.0 REQUIRED)
 
-add_library(intervals INTERFACE)
+add_library(intervals INTERFACE
+    "intervals.natvis"
+)
 
 target_compile_features(intervals INTERFACE cxx_std_20)
 
