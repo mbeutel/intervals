@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 3.20)
 
 find_package(gsl-lite 0.40 REQUIRED)
 find_package(makeshift 4.0 REQUIRED)
-find_package(fmt 8 REQUIRED)
+find_package(fmt 9 REQUIRED)
 
 add_library(simple-libs INTERFACE)
 target_precompile_headers(simple-libs
