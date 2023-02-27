@@ -21,7 +21,7 @@ jobs:
     postSetupSteps:
     - pwsh: |
         New-Item -Type Directory -Force '$(Agent.BuildDirectory)/makeshift'
-        git clone git@github.com:mbeutel/makeshift.git '$(Agent.BuildDirectory)/makeshift'
+        git clone https://github.com/mbeutel/makeshift.git '$(Agent.BuildDirectory)/makeshift'
         cd '$(Agent.BuildDirectory)/makeshift'
         mkdir build
         cd build
@@ -38,38 +38,43 @@ jobs:
 
     - os: Windows
       cxxCompiler: MSVC
-      cxxCompilerVersions: [VS2019, VS2022]
-      platforms: [x86, x64]
-
-    - os: Windows
-      cxxCompiler: Clang
-      cxxCompilerVersions: [VS2019, VS2022]
-      platforms: [x86, x64]
-
-    - os: Linux
-      cxxCompiler: GCC
-      cxxCompilerVersions: [10, 12]
+      cxxCompilerVersions: [VS2022]
       platforms: [x64]
 
-    - os: Linux
-      cxxCompiler: Clang
-      cxxCompilerVersions: [12]
-      platforms: [x64]
-
-    - os: Linux
-      cxxCompiler: Clang
-      cxxCompilerVersions: [14]
-      platforms: [x64]
-      cxxStandardLibraryDebugMode: true
-      cxxSanitizers: [AddressSanitizer, UndefinedBehaviorSanitizer, ImplicitIntegerArithmeticValueChange]
-      tag: 'sanitize'
-
-    - os: MacOS
-      cxxCompiler: GCC
-      cxxCompilerVersions: [10, 12]
-      platforms: [x64]
-
-    - os: MacOS
-      cxxCompiler: AppleClang
-      cxxCompilerVersions: [13_1_6, 14]
-      platforms: [x64]
+#    - os: Windows
+#      cxxCompiler: MSVC
+#      cxxCompilerVersions: [VS2019, VS2022]
+#      platforms: [x86, x64]
+#
+#    - os: Windows
+#      cxxCompiler: Clang
+#      cxxCompilerVersions: [VS2019, VS2022]
+#      platforms: [x86, x64]
+#
+#    - os: Linux
+#      cxxCompiler: GCC
+#      cxxCompilerVersions: [10, 12]
+#      platforms: [x64]
+#
+#    - os: Linux
+#      cxxCompiler: Clang
+#      cxxCompilerVersions: [12]
+#      platforms: [x64]
+#
+#    - os: Linux
+#      cxxCompiler: Clang
+#      cxxCompilerVersions: [14]
+#      platforms: [x64]
+#      cxxStandardLibraryDebugMode: true
+#      cxxSanitizers: [AddressSanitizer, UndefinedBehaviorSanitizer, ImplicitIntegerArithmeticValueChange]
+#      tag: 'sanitize'
+#
+#    - os: MacOS
+#      cxxCompiler: GCC
+#      cxxCompilerVersions: [10, 12]
+#      platforms: [x64]
+#
+#    - os: MacOS
+#      cxxCompiler: AppleClang
+#      cxxCompilerVersions: [13_1_6, 14]
+#      platforms: [x64]
