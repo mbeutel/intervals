@@ -165,6 +165,12 @@ ceil(T x)
 }
 template <std::floating_point T>
 [[nodiscard]] inline T
+round(T x)
+{
+    return std::round(x);
+}
+template <std::floating_point T>
+[[nodiscard]] inline T
 frac(T x)
 {
     return x - std::floor(x);
@@ -227,6 +233,26 @@ constrain(T x, bool c)
 {
     gsl_Assert(c);
     return x;
+}
+
+
+template <detail::interval_value T, detail::interval_value U>
+[[nodiscard]] constexpr T
+narrow_cast(U const& u) noexcept
+{
+    return static_cast<T>(u);
+}
+template <detail::interval_value T, detail::interval_value U>
+[[nodiscard]] constexpr T
+narrow(U const& u)
+{
+    return gsl::narrow<T>(u);
+}
+template <detail::interval_value T, detail::interval_value U>
+[[nodiscard]] constexpr T
+narrow_failfast(U const& u)
+{
+    return gsl::narrow_failfast<T>(u);
 }
 
 

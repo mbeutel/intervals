@@ -735,6 +735,14 @@ public:
     }
     template <floating_point_interval X>
     [[nodiscard]] friend constexpr interval_t<X>
+    round(X&& x)
+    {
+        gsl_ExpectsDebug(x.assigned());
+
+        return interval_t<X>{ intervals::round(lower(x)), intervals::round(upper(x)) };
+    }
+    template <floating_point_interval X>
+    [[nodiscard]] friend constexpr interval_t<X>
     frac(X&& x)
     {
         gsl_ExpectsDebug(x.assigned());
@@ -1303,41 +1311,38 @@ template <typename U, typename T> struct propagate_set<set<U>, T> { using type =
 template <typename S, typename T> using propagate_set_t = typename propagate_set<S, T>::type;
 
 
-template <detail::any_interval T, detail::interval_arg U>
-requires std::convertible_to<detail::interval_arg_value_t<U>, detail::interval_value_t<T>>
+template <detail::interval_value T, detail::any_interval U>
+requires std::convertible_to<detail::interval_value_t<U>, T>
 [[nodiscard]] constexpr inline T
 narrow_cast(U&& rhs) noexcept
 {
-    using TV = detail::interval_value_t<T>;
     if (detail::assigned(rhs))
     {
-        return T{ gsl::narrow_cast<TV>(detail::lower(rhs)), gsl::narrow_cast<TV>(detail::upper(rhs)) };
+        return set_of_t<T>{ gsl::narrow_cast<T>(detail::lower(rhs)), gsl::narrow_cast<T>(detail::upper(rhs)) };
     }
-    return T{ };
+    return set_of_t<T>{ };
 }
-template <detail::any_interval T, detail::interval_arg U>
-requires std::convertible_to<detail::interval_arg_value_t<U>, detail::interval_value_t<T>>
+template <detail::interval_value T, detail::any_interval U>
+requires std::convertible_to<detail::interval_value_t<U>, T>
 [[nodiscard]] constexpr inline T
 narrow(U&& rhs)
 {
-    using TV = detail::interval_value_t<T>;
     if (detail::assigned(rhs))
     {
-        return T{ gsl::narrow<TV>(detail::lower(rhs)), gsl::narrow<TV>(detail::upper(rhs)) };
+        return set_of_t<T>{ gsl::narrow<T>(detail::lower(rhs)), gsl::narrow<T>(detail::upper(rhs)) };
     }
-    return T{ };
+    return set_of_t<T>{ };
 }
-template <detail::any_interval T, detail::interval_arg U>
-requires std::convertible_to<detail::interval_arg_value_t<U>, detail::interval_value_t<T>>
+template <detail::interval_value T, detail::any_interval U>
+requires std::convertible_to<detail::interval_value_t<U>, T>
 [[nodiscard]] constexpr inline T
 narrow_failfast(U&& rhs)
 {
-    using TV = detail::interval_value_t<T>;
     if (detail::assigned(rhs))
     {
-        return T{ gsl::narrow_failfast<TV>(detail::lower(rhs)), gsl::narrow_failfast<TV>(detail::upper(rhs)) };
+        return set_of_t<T>{ gsl::narrow_failfast<T>(detail::lower(rhs)), gsl::narrow_failfast<T>(detail::upper(rhs)) };
     }
-    return T{ };
+    return set_of_t<T>{ };
 }
 
 
