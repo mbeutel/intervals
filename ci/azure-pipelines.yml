@@ -38,17 +38,17 @@ jobs:
 
     - os: Windows
       cxxCompiler: MSVC
-      cxxCompilerVersions: [VS2019, VS2022]
+      cxxCompilerVersions: [VS2022]
       platforms: [x86, x64]
 
     - os: Windows
       cxxCompiler: Clang
-      cxxCompilerVersions: [VS2019, VS2022]
+      cxxCompilerVersions: [VS2022]
       platforms: [x86, x64]
 
     - os: Linux
       cxxCompiler: GCC
-      cxxCompilerVersions: [10, 12]
+      cxxCompilerVersions: [12]
       platforms: [x64]
 
     - os: Linux
@@ -57,19 +57,28 @@ jobs:
       platforms: [x64]
 
     - os: Linux
-      cxxCompiler: Clang
-      cxxCompilerVersions: [14]
+      cxxCompiler: GCC
+      cxxCompilerVersions: [12]
       platforms: [x64]
       cxxStandardLibraryDebugMode: true
       cxxSanitizers: [AddressSanitizer, UndefinedBehaviorSanitizer, ImplicitIntegerArithmeticValueChange]
       tag: 'sanitize'
 
-    - os: MacOS
-      cxxCompiler: GCC
-      cxxCompilerVersions: [10, 12]
-      platforms: [x64]
+    # TODO: something is broken about linking the ASAN runtime with Clang
+    #- os: Linux
+    #  cxxCompiler: Clang
+    #  cxxCompilerVersions: [14]
+    #  platforms: [x64]
+    #  cxxStandardLibraryDebugMode: true
+    #  cxxSanitizers: [AddressSanitizer, UndefinedBehaviorSanitizer, ImplicitIntegerArithmeticValueChange]
+    #  tag: 'sanitize'
 
     - os: MacOS
-      cxxCompiler: AppleClang
-      cxxCompilerVersions: [13_1_6, 14]
+      cxxCompiler: GCC
+      cxxCompilerVersions: [12]
       platforms: [x64]
+
+    #- os: MacOS
+    #  cxxCompiler: AppleClang
+    #  cxxCompilerVersions: [14]
+    #  platforms: [x64]

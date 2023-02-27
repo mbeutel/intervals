@@ -177,6 +177,26 @@ frac(T x)
 }
 
 template <std::floating_point T>
+[[nodiscard]] inline bool
+isinf(T x)
+{
+    return std::isinf(x);
+}
+template <std::floating_point T>
+[[nodiscard]] inline bool
+isfinite(T x)
+{
+    return std::isfinite(x);
+}
+template <std::floating_point T>
+[[nodiscard]] inline bool
+isnan(T x)
+{
+    return std::isnan(x);
+}
+
+
+template <std::floating_point T>
 [[nodiscard]] constexpr std::pair<T, T>
 fractional_weights(T a, T b)
 {
