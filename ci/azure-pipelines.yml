@@ -20,7 +20,7 @@ jobs:
 
     postSetupSteps:
     - pwsh: |
-        Write-Host 'Install makeshift'
+        New-Item -Type Directory -Force '$(Agent.BuildDirectory)/makeshift'
         git clone git@github.com:mbeutel/makeshift.git '$(Agent.BuildDirectory)/makeshift'
         cd '$(Agent.BuildDirectory)/makeshift'
         mkdir build
