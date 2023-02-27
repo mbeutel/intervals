@@ -18,6 +18,7 @@ jobs:
   parameters:
     vcpkgRef: 223d33be7d3ec6c3d64381ca37f501b8c87dda6a
 
+    # TODO: this should become unnecessary once Vcpkg knows about makeshift
     postSetupSteps:
     - pwsh: |
         New-Item -Type Directory -Force '$(Agent.BuildDirectory)/makeshift'
@@ -29,7 +30,7 @@ jobs:
         & cmake -G $env:CIMAKESHIFT_CMAKE_GENERATOR -DCMAKE_BUILD_TYPE=Debug $vcpkgArgs '$(Agent.BuildDirectory)/makeshift'
       displayName: 'Install makeshift'
     
-    cmakeConfigArgs: '-DBUILD_TESTING=ON -Dmakeshift_DIR=$(Agent.BuildDirectory)/makeshift/build'
+    cmakeConfigArgs: '-DBUILD_TESTING=ON -DBUILD_EXAMPLES=ON -Dmakeshift_DIR=$(Agent.BuildDirectory)/makeshift/build'
 
     cmakeBuildConfigurations: [Debug, RelWithDebInfo]
 
@@ -37,43 +38,38 @@ jobs:
 
     - os: Windows
       cxxCompiler: MSVC
-      cxxCompilerVersions: [VS2022]
+      cxxCompilerVersions: [VS2019, VS2022]
+      platforms: [x86, x64]
+
+    - os: Windows
+      cxxCompiler: Clang
+      cxxCompilerVersions: [VS2019, VS2022]
+      platforms: [x86, x64]
+
+    - os: Linux
+      cxxCompiler: GCC
+      cxxCompilerVersions: [10, 12]
       platforms: [x64]
 
-#    - os: Windows
-#      cxxCompiler: MSVC
-#      cxxCompilerVersions: [VS2019, VS2022]
-#      platforms: [x86, x64]
-#
-#    - os: Windows
-#      cxxCompiler: Clang
-#      cxxCompilerVersions: [VS2019, VS2022]
-#      platforms: [x86, x64]
-#
-#    - os: Linux
-#      cxxCompiler: GCC
-#      cxxCompilerVersions: [10, 12]
-#      platforms: [x64]
-#
-#    - os: Linux
-#      cxxCompiler: Clang
-#      cxxCompilerVersions: [12]
-#      platforms: [x64]
-#
-#    - os: Linux
-#      cxxCompiler: Clang
-#      cxxCompilerVersions: [14]
-#      platforms: [x64]
-#      cxxStandardLibraryDebugMode: true
-#      cxxSanitizers: [AddressSanitizer, UndefinedBehaviorSanitizer, ImplicitIntegerArithmeticValueChange]
-#      tag: 'sanitize'
-#
-#    - os: MacOS
-#      cxxCompiler: GCC
-#      cxxCompilerVersions: [10, 12]
-#      platforms: [x64]
-#
-#    - os: MacOS
-#      cxxCompiler: AppleClang
-#      cxxCompilerVersions: [13_1_6, 14]
-#      platforms: [x64]
+    - os: Linux
+      cxxCompiler: Clang
+      cxxCompilerVersions: [12]
+      platforms: [x64]
+
+    - os: Linux
+      cxxCompiler: Clang
+      cxxCompilerVersions: [14]
+      platforms: [x64]
+      cxxStandardLibraryDebugMode: true
+      cxxSanitizers: [AddressSanitizer, UndefinedBehaviorSanitizer, ImplicitIntegerArithmeticValueChange]
+      tag: 'sanitize'
+
+    - os: MacOS
+      cxxCompiler: GCC
+      cxxCompilerVersions: [10, 12]
+      platforms: [x64]
+
+    - os: MacOS
+      cxxCompiler: AppleClang
+      cxxCompilerVersions: [13_1_6, 14]
+      platforms: [x64]
