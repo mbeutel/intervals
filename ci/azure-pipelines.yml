@@ -20,8 +20,9 @@ jobs:
 
     postSetupSteps:
     - pwsh: |
-        New-Item -Type Directory -Force '$(Agent.BuildDirectory)/makeshift/build'
+        New-Item -Type Directory -Force '$(Agent.BuildDirectory)/makeshift'
         git clone https://github.com/mbeutel/makeshift.git '$(Agent.BuildDirectory)/makeshift'
+        New-Item -Type Directory -Force '$(Agent.BuildDirectory)/makeshift/build'
         cd '$(Agent.BuildDirectory)/makeshift/build'
         # TODO: make "CIMAKESHIFT_CMAKE_VCPKG_ARGS_" a public variable in CImakeshift
         $vcpkgArgs = $env:CIMAKESHIFT_CMAKE_VCPKG_ARGS_ -split ' '
