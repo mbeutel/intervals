@@ -58,8 +58,6 @@ target_precompile_headers(test-intervals
         <initializer_list>
         # other libraries
         <gsl-lite/gsl-lite.hpp>
-        <fmt/core.h>
-        <fmt/ostream.h>
         <makeshift/concepts.hpp>
         <makeshift/type_traits.hpp>
         <catch2/catch_test_macros.hpp>
