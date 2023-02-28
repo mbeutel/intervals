@@ -259,7 +259,7 @@ An instance of an object of type `interval<T>` can be created through one of its
   ```c++
   auto U = interval<int>{ };
   assert(!U.assigned());
-  ```
+  ```  
   The member function `U.assigned()` can be used to determine whether the interval has been
   assigned a value.  
   Note that the default constructor is not available for the specialization where `T` is a
@@ -420,23 +420,23 @@ Intervals can also be converted explicitly using one of the following casts insp
 - `narrow_cast<T>(U)`, which creates an object of type `interval<T>` from the interval `U` by casting
   the lower and upper bounds to `T` with a `static_cast<>()`.
   ```c++
-auto U = interval{ 0., 0.5 };  // `interval<double>`
-auto V = narrow_cast<int>(U);  // explicit lossy conversion to `interval<int>{ 0 }`
-```
+  auto U = interval{ 0., 0.5 };  // `interval<double>`
+  auto V = narrow_cast<int>(U);  // explicit lossy conversion to `interval<int>{ 0 }`
+  ```
 - `narrow_failfast<T>(U)`, which behaves like `narrow_cast<T>(U)` but uses a GSL precondition check to
   assert that the value of `U` can be represented exactly by type `interval<T>`.
   ```c++
-auto U = interval{ 0., 0.5 };  // `interval<double>`
-auto V = narrow_failfast<float>(U);  // explicit conversion to `interval<float>{ 0.f, 0.5f }`
-//auto V = narrow_failfast<int>(U);  // this would fail with a GSL precondition violation
-```
+  auto U = interval{ 0., 0.5 };  // `interval<double>`
+  auto V = narrow_failfast<float>(U);  // explicit conversion to `interval<float>{ 0.f, 0.5f }`
+  //auto V = narrow_failfast<int>(U);  // this would fail with a GSL precondition violation
+  ```
 - `narrow<T>(U)`, which behaves like `narrow_cast<T>(U)` but throws a `gsl_lite::narrowing_error` exception
   if the value of `U` cannot be represented exactly by type `interval<T>`.
   ```c++
-auto U = interval{ 0., 0.5 };  // `interval<double>`
-auto V = narrow<float>(U);  // explicit conversion to `interval<float>{ 0.f, 0.5f }`
-//auto V = narrow<int>(U);  // this would raise a `gsl_lite::narrowing_error` exception
-```
+  auto U = interval{ 0., 0.5 };  // `interval<double>`
+  auto V = narrow<float>(U);  // explicit conversion to `interval<float>{ 0.f, 0.5f }`
+  //auto V = narrow<int>(U);  // this would raise a `gsl_lite::narrowing_error` exception
+  ```
 
 
 ### `set<>`
