@@ -91,3 +91,11 @@ target_link_libraries(preprocess
     PRIVATE
         simple-libs
 )
+
+add_executable(doc_sample
+    "doc/sample.cpp"
+)
+target_link_libraries(doc_sample
+    PRIVATE
+        simple-libs
+)
