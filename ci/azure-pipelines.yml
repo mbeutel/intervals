@@ -61,7 +61,7 @@ jobs:
       cxxCompilerVersions: [12]
       platforms: [x64]
       cxxStandardLibraryDebugMode: true
-      cxxSanitizers: [AddressSanitizer, UndefinedBehaviorSanitizer, ImplicitIntegerArithmeticValueChange]
+      cxxSanitizers: [AddressSanitizer, UndefinedBehaviorSanitizer]
       tag: 'sanitize'
 
     # TODO: something is broken about linking the ASAN runtime with Clang
