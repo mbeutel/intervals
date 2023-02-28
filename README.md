@@ -2,7 +2,7 @@
 
 | metadata | build  | tests  |
 | -------- | ------ | ------ |
-| [![Language](https://badgen.net/badge/C++/20+/blue)](https://en.wikipedia.org/wiki/C%2B%2B#Standardization) <br> [![License](https://badgen.net/github/license/mbeutel/intervals)](https://opensource.org/licenses/BSL-1.0) <br> [![Version](https://badgen.net/github/release/mbeutel/intervals)](https://github.com/mbeutel/makeshift/releases)   |   [![Build Status](https://dev.azure.com/moritzbeutel/intervals/_apis/build/status/mbeutel.intervals?branchName=master)](https://dev.azure.com/moritzbeutel/intervals/_build/latest?definitionId=2&branchName=master)   |   [![Azure DevOps tests](https://img.shields.io/azure-devops/tests/moritzbeutel/intervals/2)](https://dev.azure.com/moritzbeutel/intervals/_testManagement/runs)  |
+| [![Language](https://badgen.net/badge/C++/20+/blue)](https://en.wikipedia.org/wiki/C%2B%2B#Standardization) <br> [![License](https://badgen.net/github/license/mbeutel/intervals)](https://opensource.org/licenses/BSL-1.0) <br> [![Version](https://badgen.net/github/release/mbeutel/intervals)](https://github.com/mbeutel/intervals/releases)   |   [![Build Status](https://dev.azure.com/moritzbeutel/intervals/_apis/build/status/mbeutel.intervals?branchName=master)](https://dev.azure.com/moritzbeutel/intervals/_build/latest?definitionId=9&branchName=master)   |   [![Azure DevOps tests](https://img.shields.io/azure-devops/tests/moritzbeutel/intervals/9)](https://dev.azure.com/moritzbeutel/intervals/_testManagement/runs)  |
 
 
 *intervals* implements traditional [interval arithmetic](https://en.wikipedia.org/wiki/Interval_arithmetic)
@@ -10,12 +10,12 @@ in C++.
 
 Unlike for real numbers, the relational comparison of intervals is ambiguous. Given two intervals
 𝑈 = [0, 2] and 𝑉 = [1, 3], what would "𝑈 < 𝑉" mean? Two possible interpretations are often referred to
-as "possibly", equivalent to "∃𝑢∈𝑈 ∃𝑣∈𝑉: 𝑢 < 𝑣", and "certainly", equivalent to "∀𝑢∈𝑈 ∀𝑣∈𝑉: 𝑢 < 𝑣".
+as "possibly" (∃𝑢∈𝑈 ∃𝑣∈𝑉: 𝑢 < 𝑣) and "certainly" (∀𝑢∈𝑈 ∀𝑣∈𝑉: 𝑢 < 𝑣).
 
-Both interpretations have their uses. However, we found that just having relational predicates adhere to
-one of the given interpretations leads to logical inconsistencies and brittle code. In pursuing our goal
-to write *interval-aware code*, we thus define the relational operators (`==`, `!=`, `<`, `>`, `<=`, `>=`)
-for intervals as [set-valued operators](#TODO).
+Both interpretations have their uses. However, we found that just defining relational predicates in
+accordance with one of the given interpretations leads to logical inconsistencies and brittle code.
+In pursuing our goal to write *interval-aware code*, we thus define the relational operators
+(`==`, `!=`, `<`, `>`, `<=`, `>=`) for intervals as [set-valued operators](#TODO).
 Together with a set of [Boolean projections](TODO), these operators ensure
 [logical consistency in branch conditions](#TODO) and give rise to a paradigm for
 [*interval-aware programming*](#TODO).
@@ -85,21 +85,23 @@ int main()
 *intervals* is a platform-independent header-only library and should work on all platforms with
 a compiler and standard library conforming with the C++20 standard.
 
-The following compilers are officially supported (that is, part of [our CI pipeline](TODO)):
+The following compilers are officially supported (that is, part of
+[our CI pipeline](https://dev.azure.com/moritzbeutel/intervals/_build/latest?definitionId=9&branchName=master)):
 
 - Microsoft Visual C++ 19.3 (Visual Studio 2022)
 - GCC 12 with libstdc++ (tested on Linux and MacOS)
 - Clang 14 with libc++ (tested on Windows and Linux)
 
-Please note that Apple Clang is not yet supported because the standard library it ships with does
-not implement [C++20 ranges](https://en.cppreference.com/w/cpp/ranges).
+Please note that Apple Clang is not yet supported because the standard library it ships with
+[does not currently implement](https://en.cppreference.com/w/cpp/compiler_support#C.2B.2B20_library_features)
+[C++20 ranges](https://en.cppreference.com/w/cpp/ranges).
  
 
 ## Dependencies
 
-* [makeshift](https://github.com/mbeutel/makeshift), a library for lightweight metaprogramming
-* [gsl-lite](https://github.com/gsl-lite/gsl-lite), an implementation of the [C++ Core Guidelines Support Library](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#S-gsl)
-* optional (for testing only): [Catch2](https://github.com/catchorg/Catch2)
+* [*makeshift*](https://github.com/mbeutel/makeshift), a library for lightweight metaprogramming
+* [*gsl-lite*](https://github.com/gsl-lite/gsl-lite), an implementation of the [C++ Core Guidelines Support Library](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#S-gsl)
+* optional (for testing only): [*Catch2*](https://github.com/catchorg/Catch2)
 
 
 ## Installation and use
@@ -173,24 +175,26 @@ or
 
 ## Version semantics
 
-*intervals* follows [Semantic Versioning](https://semver.org/) guidelines. We maintain
-[API](https://en.wikipedia.org/wiki/Application_programming_interface) and
-[ABI](https://en.wikipedia.org/wiki/Application_binary_interface) compatibility and avoid
-breaking changes in minor and patch releases.
+*intervals* follows [Semantic Versioning](https://semver.org/) guidelines with regard to its
+[API](https://en.wikipedia.org/wiki/Application_programming_interface). We aim to retain full
+API compatibility and to avoid breaking changes in minor and patch releases.
+
+We do not guarantee to maintain [ABI](https://en.wikipedia.org/wiki/Application_binary_interface)
+compatibility except in patch releases.
 
 Development happens in the `master` branch. Versioning semantics apply only to tagged releases:
 there is no stability guarantee between individual commits in the `master` branch, that is, anything
 added since the last tagged release may be renamed, removed, have the semantics changed, etc. without
 further notice.
 
-A minor-version release will be compatible (in both ABI and API) with the previous minor-version
-release. Thus, once a change is released, it becomes part of the API.
+A minor-version release will be API-compatible with the previous minor-version release. Thus, once
+a change is released, it becomes part of the API.
 
 
 ## Motivation
 
-*Note: this section only briefly recounts some basics of interval arithmetic (TODO: does it summarize
-the raison d'être of this library?). For the full story, please refer to our accompanying paper
+*Note: this section only gives a brief recap of some basics of interval arithmetic and summarizes
+the raison d'être of this library. For the full story, please refer to our accompanying paper
 [\[1\]](#references).*
 
 Let a unary function 𝑓: 𝒮 → ℝ be defined for a set 𝒮 ⊆ ℝ. For some subset 𝒰 ⊆ 𝒮, the *set extension*
@@ -222,14 +226,15 @@ TODO:
 
 ## Reference documentation
 
-*intervals* mainly consists of the two class templates [`interval<>`](#interval) and [`set<>`](#set)
+*intervals* mainly consists of the two class templates [**`interval<>`**](#interval) and [**`set<>`**](#set)
 along with supporting infrastructure.
 
 **Overview:**
 - [`interval<>`](#interval)
 - [`set<>`](#set)
 - [Relational operators and constraints](#relational-operators-and-constraints)
-- [Auxiliary types and aliases](#auxiliary-types-and-aliases)
+- [Algorithms](#algorithms)
+- [Utilities](#utilities)
 
 ### `interval<>`
 
@@ -255,7 +260,7 @@ are supported:
 #### Construction
 
 An instance of an object of type `interval<T>` can be created through one of its constructors:
-- The default constructor, which creates an object with an invalid state:
+- The **default constructor**, which creates an object with an invalid state:
   ```c++
   auto U = interval<int>{ };
   assert(!U.assigned());
@@ -264,68 +269,69 @@ An instance of an object of type `interval<T>` can be created through one of its
   assigned a value.  
   Note that the default constructor is not available for the specialization where `T` is a
   random-access iterator; this specialization has no invalid state.
-- The converting constructor, which accepts an argument of the endpoint type `T`:
+- The **converting constructor**, which accepts an argument of the endpoint type `T`:
   ```c++
-  auto V = interval{ 2. };  // represents degenerate interval [2, 2]
-  assert(V.matches(2.));
+  auto V = interval{ 2 };  // represents degenerate interval [2, 2]
+  assert(V.matches(2));
   ```
-- The endpoint constructor, which accepts the two interval endpoints a and b of type `T`,
+- The **endpoint constructor**, which accepts the two interval endpoints a and b of type `T`,
   where a ≤ b must hold:
   ```c++
-  auto W = interval{ 0., 1. };  // represents interval [0, 1]
-  //auto Z = interval{ 1., 0. };  // this would fail with a GSL precondition violation
+  auto W = interval{ 0, 1 };  // represents interval [0, 1]
+  //auto Z = interval{ 1, 0 };  // this would fail with a GSL precondition violation
   ```
 
 #### Accessors
 
-For an object `X` of type `interval<T>`, the interval bounds can be determined as `X.lower()` and
-`X.upper()`:
-```c++
-//U.lower();  // this would fail with a GSL precondition violation
-assert(V.lower() == V.upper());
-assert(W.lower() == 0.);
-assert(W.upper() == 1.);
-```
-Alternatively, an interval can be decomposed into its bounds using [structured bindings](https://en.cppreference.com/w/cpp/language/structured_binding):
-```c++
-auto [a, b] = W;
-assert(a == 0.);
-assert(b == 1.);
-```
-To access the interval bounds without the runtime validity check, use `X.lower_unchecked()`
-and `X.upper_unchecked()`.
-
-The single value of a degenerate interval `X = interval{ x, x }` can be accessed with the member function
-`X.value()`:
-```c++
-//U.value();  // this would fail with a GSL precondition violation
-assert(V.value() == 2.);
-//W.value();  // this would fail with a GSL precondition violation
-```
-
-To check whether an interval `Y = interval{ a, b }` *contains* another interval `Z = interval{ c, d }`
-of the same type – that is, whether 𝑐 ≥ 𝑎 ∧ 𝑑 ≤ 𝑏 –, the member function `Y.contains()` can be used:
-```c++
-assert(interval{ 0., 3. }.contains(1.));
-assert(interval{ 0., 3. }.contains(interval{ 0., 1. }));
-assert(!interval{ 0., 3. }.contains(interval{ 1., 4. }));
-```
-An interval `Y = interval{ a, b }` is said to *enclose* another interval `Z = interval{ c, d }` if
-𝑐 > 𝑎 ∧ 𝑑 < 𝑏, which can be checked with the member function `Y.encloses()`:
-```c++
-assert(interval{ 0., 3. }.encloses(1.));
-assert(!interval{ 0., 3. }.encloses(0.));
-assert(interval{ 0., 3. }.encloses(interval{ 1., 2. }));
-assert(!interval{ 0., 2. }.encloses(interval{ 0., 1. }));
-assert(!interval{ 0., 2. }.encloses(interval{ -1., 1. }));
-```
-An interval `Y = interval{ a, b }` *matches* another interval `Z = interval{ c, d }` if the endpoints
-of the intervals match exactly, 𝑐 = 𝑎 ∧ 𝑑 = 𝑏, which can be checked with the member function `Y.matches()`:
-```c++
-assert(!interval{ 0., 3. }.matches(0.));
-assert(interval{ 0., 3. }.matches(interval{ 0., 3. }));
-assert(!interval{ 0., 2. }.matches(interval{ 0., 1. }));
-```
+The bounds of an interval can be accessed directly or through a semantic accessor:
+- For an object `X` of type `interval<T>`, the interval bounds can be determined as **`X.lower()`**
+  and **`X.upper()`**:
+  ```c++
+  //U.lower();  // this would fail with a GSL precondition violation
+  assert(V.lower() == V.upper());
+  assert(W.lower() == 0);
+  assert(W.upper() == 1);
+  ```
+- Alternatively, an interval can be decomposed into its bounds using
+  [**structured bindings**](https://en.cppreference.com/w/cpp/language/structured_binding):
+  ```c++
+  auto [a, b] = W;
+  assert(a == 0);
+  assert(b == 1);
+  ```
+- To access the interval bounds without the runtime validity check, use **`X.lower_unchecked()`**
+  and **`X.upper_unchecked()`**.
+- The single value of a degenerate interval `X = interval{ x, x }` can be accessed with the member function
+  **`X.value()`**:
+  ```c++
+  //U.value();  // this would fail with a GSL precondition violation
+  assert(V.value() == 2);
+  //W.value();  // this would fail with a GSL precondition violation
+  ```
+- To check whether an interval `Y = interval{ a, b }` *contains* another interval `Z = interval{ c, d }`
+  of the same type – that is, whether 𝑐 ≥ 𝑎 ∧ 𝑑 ≤ 𝑏 –, the member function **`Y.contains()`** can be used:
+  ```c++
+  assert(interval{ 0., 3. }.contains(1.));
+  assert(interval{ 0., 3. }.contains(interval{ 0., 1. }));
+  assert(!interval{ 0., 3. }.contains(interval{ 1., 4. }));
+  ```
+- An interval `Y = interval{ a, b }` is said to *enclose* another interval `Z = interval{ c, d }` if
+  𝑐 > 𝑎 ∧ 𝑑 < 𝑏, which can be checked with the member function **`Y.encloses()`**:
+  ```c++
+  assert(interval{ 0., 3. }.encloses(1.));
+  assert(!interval{ 0., 3. }.encloses(0.));
+  assert(interval{ 0., 3. }.encloses(interval{ 1., 2. }));
+  assert(!interval{ 0., 2. }.encloses(interval{ 0., 1. }));
+  assert(!interval{ 0., 2. }.encloses(interval{ -1., 1. }));
+  ```
+- An interval `Y = interval{ a, b }` *matches* another interval `Z = interval{ c, d }` if the endpoints
+  of the intervals match exactly, 𝑐 = 𝑎 ∧ 𝑑 = 𝑏, which can be checked with the member function
+  **`Y.matches()`**:
+  ```c++
+  assert(!interval{ 0., 3. }.matches(0.));
+  assert(interval{ 0., 3. }.matches(interval{ 0., 3. }));
+  assert(!interval{ 0., 2. }.matches(interval{ 0., 1. }));
+  ```
 
 #### Assignment
 
@@ -344,61 +350,64 @@ auto U = interval{ 2 } + interval{ 0., 1. };  // `interval<int>` + `interval<dou
 auto V = interval{ 3.f } + 2.;  // `interval<float>` + `double` → `interval<double>`
 ```
 
-The following mathematical functions are defined for `interval<T>` for a floating-point type argument `T`
+The following mathematical functions are defined for `interval<T>` for a **floating-point** type argument `T`
 as the [interval extension](#motivation) (precise unless indicated otherwise) of the respective real-valued
 function:
-- The unary arithmetic operators `-` and `+` and the binary arithmetic operators `+`, `-`, `*`, and `/`.
-- `min(U, V)` and `max(U, V)`.
-- `square(U)` and `cube(U)`, corresponding to the functions  
+- The unary arithmetic operators **`-`** and **`+`** and the binary arithmetic operators **`+`**,
+  **`-`**, **`*`**, and **`/`**.
+- **`min(U, V)`** and **`max(U, V)`**.
+- **`square(U)`** and **`cube(U)`**, corresponding to the functions  
   𝑠𝑞𝑢𝑎𝑟𝑒: ℝ → ℝ, 𝑥 ↦ 𝑥²  
   and  
   𝑐𝑢𝑏𝑒: ℝ → ℝ, 𝑥 ↦ 𝑥³.
-- [`sqrt(U)`](https://en.cppreference.com/w/cpp/numeric/math/sqrt) and
-  [`cbrt(U)`](https://en.cppreference.com/w/cpp/numeric/math/cbrt), corresponding to the √ and ∛ functions.
-- [`abs(U)`](https://en.cppreference.com/w/cpp/numeric/math/abs).
-- [`log(U)`](https://en.cppreference.com/w/cpp/numeric/math/log),
-  [`exp(U)`](https://en.cppreference.com/w/cpp/numeric/math/exp), and
-  [`pow(U, V)`](https://en.cppreference.com/w/cpp/numeric/math/pow).
-- The trigonometric functions [`sin(U)`](https://en.cppreference.com/w/cpp/numeric/math/sin),
-  [`cos(U)`](https://en.cppreference.com/w/cpp/numeric/math/cos), and
-  [`tan(U)`](https://en.cppreference.com/w/cpp/numeric/math/tan) and their inverses
-  [`asin(U)`](https://en.cppreference.com/w/cpp/numeric/math/asin),
-  [`acos(U)`](https://en.cppreference.com/w/cpp/numeric/math/acos), and
-  [`atan(U)`](https://en.cppreference.com/w/cpp/numeric/math/atan).
-- [`atan2(V, U)`](https://en.cppreference.com/w/cpp/numeric/math/atan2).
-- [`floor(U)`](https://en.cppreference.com/w/cpp/numeric/math/floor),
-  [`ceil(U)`](https://en.cppreference.com/w/cpp/numeric/math/ceil), and
-  [`round(U)`](https://en.cppreference.com/w/cpp/numeric/math/round).
-- `frac(U)`, corresponding to the function 𝑓𝑟𝑎𝑐: ℝ → ℝ, x ↦ x - floor(x).
-- `fractional_weights(U)`, corresponding to the function  
+- [**`sqrt(U)`**](https://en.cppreference.com/w/cpp/numeric/math/sqrt) and
+  [**`cbrt(U)`**](https://en.cppreference.com/w/cpp/numeric/math/cbrt), corresponding to the √ and ∛ functions.
+- [**`abs(U)`**](https://en.cppreference.com/w/cpp/numeric/math/abs).
+- [**`log(U)`**](https://en.cppreference.com/w/cpp/numeric/math/log),
+  [**`exp(U)`**](https://en.cppreference.com/w/cpp/numeric/math/exp), and
+  [**`pow(U, V)`**](https://en.cppreference.com/w/cpp/numeric/math/pow).
+- The trigonometric functions [**`sin(U)`**](https://en.cppreference.com/w/cpp/numeric/math/sin),
+  [**`cos(U)`**](https://en.cppreference.com/w/cpp/numeric/math/cos), and
+  [**`tan(U)`**](https://en.cppreference.com/w/cpp/numeric/math/tan) and their inverses
+  [**`asin(U)`**](https://en.cppreference.com/w/cpp/numeric/math/asin),
+  [**`acos(U)`**](https://en.cppreference.com/w/cpp/numeric/math/acos), and
+  [**`atan(U)`**](https://en.cppreference.com/w/cpp/numeric/math/atan).
+- [**`atan2(V, U)`**](https://en.cppreference.com/w/cpp/numeric/math/atan2).
+- [**`floor(U)`**](https://en.cppreference.com/w/cpp/numeric/math/floor),
+  [**`ceil(U)`**](https://en.cppreference.com/w/cpp/numeric/math/ceil), and
+  [**`round(U)`**](https://en.cppreference.com/w/cpp/numeric/math/round).
+- **`frac(U)`**, corresponding to the function  
+  𝑓𝑟𝑎𝑐: ℝ → ℝ, x ↦ x - floor(x).
+- **`fractional_weights(U)`**, corresponding to the function  
   𝑓𝑟𝑎𝑐𝑡𝑖𝑜𝑛𝑎𝑙_𝑤𝑒𝑖𝑔ℎ𝑡𝑠: ℝ² → ℝ², (𝑎,𝑏) ↦ (𝑎/(𝑎 + 𝑏), 𝑏/(𝑎 + 𝑏)).
-- `blend_linear(U)`, as the non-precise interval extension of the function  
+- **`blend_linear(U)`**, as the non-precise interval extension of the function  
   𝑏𝑙𝑒𝑛𝑑_𝑙𝑖𝑛𝑒𝑎𝑟: ℝ² × ℝ² → ℝ, ((𝑎,𝑏), (𝑥,𝑦)) ↦ 𝑎/(𝑎 + 𝑏)⋅x + 𝑏/(𝑎 + 𝑏)⋅y.
-- `blend_quadratic(U)`, as the non-precise interval extension of the function  
+- **`blend_quadratic(U)`**, as the non-precise interval extension of the function  
   𝑏𝑙𝑒𝑛𝑑_𝑞𝑢𝑎𝑑𝑟𝑎𝑡𝑖𝑐: ℝ² × ℝ² → ℝ, ((𝑎,𝑏), (𝑥,𝑦)) ↦ √\[(𝑎/(𝑎 + 𝑏)⋅𝑥)² + (𝑏/(𝑎 + 𝑏)⋅𝑦)²\].
 
-The following mathematical functions are defined for `interval<T>` for a signed integral type argument `T`
+The following mathematical functions are defined for `interval<T>` for a **signed integral** type argument `T`
 as the precise interval extension of the respective integer-valued function:
-- The unary arithmetic operators `-` and `+` and the binary arithmetic operators `+`, `-`, `*`, and `/`.
-- `min(U, V)` and `max(U, V)`.
-- `square(U)` and `cube(U)`, corresponding to the functions  
+- The unary arithmetic operators **`-`** and **`+`** and the binary arithmetic operators **`+`**,
+  **`-`**, **`*`**, and **`/`**.
+- **`min(U, V)`** and **`max(U, V)`**.
+- **`square(U)`** and **`cube(U)`**, corresponding to the functions  
   𝑠𝑞𝑢𝑎𝑟𝑒: ℤ → ℤ, 𝑥 ↦ 𝑥²  
   and  
   𝑐𝑢𝑏𝑒: ℤ → ℤ, 𝑥 ↦ 𝑥³.
-- [`abs(U)`](https://en.cppreference.com/w/cpp/numeric/math/abs).
+- [**`abs(U)`**](https://en.cppreference.com/w/cpp/numeric/math/abs).
 
 The following mathematical functions are defined for `interval<T>` for a random-access iterator type
 argument `T` as the precise interval extension of the respective iterator-valued function:
-- `operator +(U, V)` (offset iterator) where one argument is convertible to type `interval<T>`, and the
+- **`operator +(U, V)`** (offset iterator) where one argument is convertible to type `interval<T>`, and the
   other is an integer or an interval of integers.
-- `operator -(U, V)` (offset iterator) where `U` is convertible to type `interval<T>`, and `V` is an
+- **`operator -(U, V)`** (offset iterator) where `U` is convertible to type `interval<T>`, and `V` is an
   integer or an interval of integers.
-- `operator -(U, V)` (iterator difference) where both arguments are convertible to type `interval<T>`.
-- `prev(U)` and `next(U)`.
+- **`operator -(U, V)`** (iterator difference) where both arguments are convertible to type `interval<T>`.
+- **`prev(U)`** and **`next(U)`**.
 
 #### Stream formatting
 
-Intervals can be written to a stream using the `<<` operator. For degenerate intervals holding
+Intervals can be written to a stream using the **`<<`** operator. For degenerate intervals holding
 only a single value, only the single endpoint is written.
 ```c++
 //std::cout << U;  // this would fail with a GSL precondition violation
@@ -409,7 +418,7 @@ std::cout << "W = " << W << "\n";  // prints "W = [0, 1]"
 #### Conversion
 
 Type conversions between different instantiations of `interval<>` are possible if the type arguments
-are convertible. `interval<>` has an implicit conversion constructor for this purpose:
+are convertible. `interval<>` has an **implicit conversion constructor** for this purpose:
 ```c++
 auto U = interval{ 0, 1 };  // `interval<int>`
 interval<double> V = U;  // implicit conversion
@@ -417,21 +426,21 @@ interval<double> V = U;  // implicit conversion
 
 Intervals can also be converted explicitly using one of the following casts inspired by the
 [Guidelines Support Library](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#gslutil-utilities):
-- `narrow_cast<T>(U)`, which creates an object of type `interval<T>` from the interval `U` by casting
+- **`narrow_cast<T>(U)`**, which creates an object of type `interval<T>` from the interval `U` by casting
   the lower and upper bounds to `T` with a `static_cast<>()`.
   ```c++
   auto U = interval{ 0., 0.5 };  // `interval<double>`
   auto V = narrow_cast<int>(U);  // explicit lossy conversion to `interval<int>{ 0 }`
   ```
-- `narrow_failfast<T>(U)`, which behaves like `narrow_cast<T>(U)` but uses a GSL precondition check to
-  assert that the value of `U` can be represented exactly by type `interval<T>`.
+- **`narrow_failfast<T>(U)`**, which behaves like `narrow_cast<T>(U)` but uses a GSL precondition
+  check to assert that the value of `U` can be represented exactly by type `interval<T>`.
   ```c++
   auto U = interval{ 0., 0.5 };  // `interval<double>`
   auto V = narrow_failfast<float>(U);  // explicit conversion to `interval<float>{ 0.f, 0.5f }`
   //auto V = narrow_failfast<int>(U);  // this would fail with a GSL precondition violation
   ```
-- `narrow<T>(U)`, which behaves like `narrow_cast<T>(U)` but throws a `gsl_lite::narrowing_error` exception
-  if the value of `U` cannot be represented exactly by type `interval<T>`.
+- **`narrow<T>(U)`**, which behaves like `narrow_cast<T>(U)` but throws a `gsl_lite::narrowing_error`
+  exception if the value of `U` cannot be represented exactly by type `interval<T>`.
   ```c++
   auto U = interval{ 0., 0.5 };  // `interval<double>`
   auto V = narrow<float>(U);  // explicit conversion to `interval<float>{ 0.f, 0.5f }`
