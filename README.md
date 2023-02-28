@@ -1,4 +1,4 @@
-# intervals: interval arithmetic for C++
+# intervals: interval-aware programming in C++
 
 | metadata | build  | tests  |
 | -------- | ------ | ------ |
@@ -9,8 +9,8 @@
 in C++.
 
 Unlike for real numbers, the relational comparison of intervals is ambiguous. Given two intervals
-U = [0, 2] and V = [1, 3], what would "U < V" mean? Two possible interpretations are often referred to
-as "possibly", equivalent to "∃u∈U ∃v∈V: u < v", and "certainly", equivalent to "∀u∈U ∀v∈V: u < v".
+𝑈 = [0, 2] and 𝑉 = [1, 3], what would "𝑈 < 𝑉" mean? Two possible interpretations are often referred to
+as "possibly", equivalent to "∃𝑢∈𝑈 ∃𝑣∈𝑉: 𝑢 < 𝑣", and "certainly", equivalent to "∀𝑢∈𝑈 ∀𝑣∈𝑉: 𝑢 < 𝑣".
 
 Both interpretations have their uses. However, we found that just having relational predicates adhere to
 one of the given interpretations leads to logical inconsistencies and brittle code. In pursuing our goal
@@ -196,7 +196,7 @@ the raison d'être of this library?). For the full story, please refer to our ac
 Let a unary function 𝑓: 𝒮 → ℝ be defined for a set 𝒮 ⊆ ℝ. For some subset 𝒰 ⊆ 𝒮, the *set extension*
 of 𝑓 is then defined as the set-valued function  
   
-𝑓(𝒰) := { 𝑓(x) | x ∈ 𝒰 } .
+𝑓(𝒰) := { 𝑓(𝑥) | 𝑥 ∈ 𝒰 } .
   
 The *interval enclosure* ℐ\[𝒮\] of a non-empty set 𝒮 ⊆ ℝ is defined as the minimal enclosing interval,
 
@@ -205,7 +205,7 @@ The *interval enclosure* ℐ\[𝒮\] of a non-empty set 𝒮 ⊆ ℝ is defined 
 Let the set of all closed intervals in a set 𝒮 ⊆ ℝ be denoted as \[𝒮\]. An interval-valued function
 𝐹: [𝒮] → [ℝ] is called an *interval extension* of 𝑓 if it satisfies the *inclusion property*:
 
-∀X∈[𝒮] ∀x∈X: 𝑓(x) ∈ 𝐹(X) .
+∀𝑋∈[𝒮] ∀𝑥∈𝑋: 𝑓(𝑥) ∈ 𝐹(𝑋) .
 
 Analogous definitions can be made for functions of higher arity.
 
@@ -257,24 +257,24 @@ are supported:
 An instance of an object of type `interval<T>` can be created through one of its constructors:
 - The default constructor, which creates an object with an invalid state:
   ```c++
-auto U = interval<int>{ };
-assert(!U.assigned());
-```
+  auto U = interval<int>{ };
+  assert(!U.assigned());
+  ```
   The member function `U.assigned()` can be used to determine whether the interval has been
   assigned a value.  
   Note that the default constructor is not available for the specialization where `T` is a
   random-access iterator; this specialization has no invalid state.
 - The converting constructor, which accepts an argument of the endpoint type `T`:
   ```c++
-auto V = interval{ 2. };  // represents degenerate interval [2, 2]
-assert(V.matches(2.));
-```
+  auto V = interval{ 2. };  // represents degenerate interval [2, 2]
+  assert(V.matches(2.));
+  ```
 - The endpoint constructor, which accepts the two interval endpoints a and b of type `T`,
   where a ≤ b must hold:
   ```c++
-auto W = interval{ 0., 1. };  // represents interval [0, 1]
-//auto Z = interval{ 1., 0. };  // this would fail with a GSL precondition violation
-```
+  auto W = interval{ 0., 1. };  // represents interval [0, 1]
+  //auto Z = interval{ 1., 0. };  // this would fail with a GSL precondition violation
+  ```
 
 #### Accessors
 
@@ -304,14 +304,14 @@ assert(V.value() == 2.);
 ```
 
 To check whether an interval `Y = interval{ a, b }` *contains* another interval `Z = interval{ c, d }`
-of the same type – that is, whether c ≥ a ∧ d ≤ b –, the member function `Y.contains()` can be used:
+of the same type – that is, whether 𝑐 ≥ 𝑎 ∧ 𝑑 ≤ 𝑏 –, the member function `Y.contains()` can be used:
 ```c++
 assert(interval{ 0., 3. }.contains(1.));
 assert(interval{ 0., 3. }.contains(interval{ 0., 1. }));
 assert(!interval{ 0., 3. }.contains(interval{ 1., 4. }));
 ```
 An interval `Y = interval{ a, b }` is said to *enclose* another interval `Z = interval{ c, d }` if
-c > a ∧ d < b, which can be checked with the member function `Y.encloses()`:
+𝑐 > 𝑎 ∧ 𝑑 < 𝑏, which can be checked with the member function `Y.encloses()`:
 ```c++
 assert(interval{ 0., 3. }.encloses(1.));
 assert(!interval{ 0., 3. }.encloses(0.));
@@ -320,7 +320,7 @@ assert(!interval{ 0., 2. }.encloses(interval{ 0., 1. }));
 assert(!interval{ 0., 2. }.encloses(interval{ -1., 1. }));
 ```
 An interval `Y = interval{ a, b }` *matches* another interval `Z = interval{ c, d }` if the endpoints
-of the intervals match exactly, c = a ∧ d = b, which can be checked with the member function `Y.matches()`:
+of the intervals match exactly, 𝑐 = 𝑎 ∧ 𝑑 = 𝑏, which can be checked with the member function `Y.matches()`:
 ```c++
 assert(!interval{ 0., 3. }.matches(0.));
 assert(interval{ 0., 3. }.matches(interval{ 0., 3. }));
@@ -350,9 +350,9 @@ function:
 - The unary arithmetic operators `-` and `+` and the binary arithmetic operators `+`, `-`, `*`, and `/`.
 - `min(U, V)` and `max(U, V)`.
 - `square(U)` and `cube(U)`, corresponding to the functions  
-  𝑠𝑞𝑢𝑎𝑟𝑒: ℝ → ℝ, x ↦ x²  
+  𝑠𝑞𝑢𝑎𝑟𝑒: ℝ → ℝ, 𝑥 ↦ 𝑥²  
   and  
-  𝑐𝑢𝑏𝑒: ℝ → ℝ, x ↦ x³.
+  𝑐𝑢𝑏𝑒: ℝ → ℝ, 𝑥 ↦ 𝑥³.
 - [`sqrt(U)`](https://en.cppreference.com/w/cpp/numeric/math/sqrt) and
   [`cbrt(U)`](https://en.cppreference.com/w/cpp/numeric/math/cbrt), corresponding to the √ and ∛ functions.
 - [`abs(U)`](https://en.cppreference.com/w/cpp/numeric/math/abs).
@@ -371,20 +371,20 @@ function:
   [`round(U)`](https://en.cppreference.com/w/cpp/numeric/math/round).
 - `frac(U)`, corresponding to the function 𝑓𝑟𝑎𝑐: ℝ → ℝ, x ↦ x - floor(x).
 - `fractional_weights(U)`, corresponding to the function  
-  𝑓𝑟𝑎𝑐𝑡𝑖𝑜𝑛𝑎𝑙_𝑤𝑒𝑖𝑔ℎ𝑡𝑠: ℝ² → ℝ², (a,b) ↦ (a/(a + b), b/(a + b)).
+  𝑓𝑟𝑎𝑐𝑡𝑖𝑜𝑛𝑎𝑙_𝑤𝑒𝑖𝑔ℎ𝑡𝑠: ℝ² → ℝ², (𝑎,𝑏) ↦ (𝑎/(𝑎 + 𝑏), 𝑏/(𝑎 + 𝑏)).
 - `blend_linear(U)`, as the non-precise interval extension of the function  
-  𝑏𝑙𝑒𝑛𝑑_𝑙𝑖𝑛𝑒𝑎𝑟: ℝ² × ℝ² → ℝ, ((a,b), (x,y)) ↦ a/(a + b)⋅x + b/(a + b)⋅y.
+  𝑏𝑙𝑒𝑛𝑑_𝑙𝑖𝑛𝑒𝑎𝑟: ℝ² × ℝ² → ℝ, ((𝑎,𝑏), (𝑥,𝑦)) ↦ 𝑎/(𝑎 + 𝑏)⋅x + 𝑏/(𝑎 + 𝑏)⋅y.
 - `blend_quadratic(U)`, as the non-precise interval extension of the function  
-  𝑏𝑙𝑒𝑛𝑑_𝑞𝑢𝑎𝑑𝑟𝑎𝑡𝑖𝑐: ℝ² × ℝ² → ℝ, ((a,b), (x,y)) ↦ √\[(a/(a + b)⋅x)² + (b/(a + b)⋅y)²\].
+  𝑏𝑙𝑒𝑛𝑑_𝑞𝑢𝑎𝑑𝑟𝑎𝑡𝑖𝑐: ℝ² × ℝ² → ℝ, ((𝑎,𝑏), (𝑥,𝑦)) ↦ √\[(𝑎/(𝑎 + 𝑏)⋅𝑥)² + (𝑏/(𝑎 + 𝑏)⋅𝑦)²\].
 
 The following mathematical functions are defined for `interval<T>` for a signed integral type argument `T`
 as the precise interval extension of the respective integer-valued function:
 - The unary arithmetic operators `-` and `+` and the binary arithmetic operators `+`, `-`, `*`, and `/`.
 - `min(U, V)` and `max(U, V)`.
 - `square(U)` and `cube(U)`, corresponding to the functions  
-  𝑠𝑞𝑢𝑎𝑟𝑒: ℤ → ℤ, x ↦ x²  
+  𝑠𝑞𝑢𝑎𝑟𝑒: ℤ → ℤ, 𝑥 ↦ 𝑥²  
   and  
-  𝑐𝑢𝑏𝑒: ℤ → ℤ, x ↦ x³.
+  𝑐𝑢𝑏𝑒: ℤ → ℤ, 𝑥 ↦ 𝑥³.
 - [`abs(U)`](https://en.cppreference.com/w/cpp/numeric/math/abs).
 
 The following mathematical functions are defined for `interval<T>` for a random-access iterator type
