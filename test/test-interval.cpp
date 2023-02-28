@@ -16,17 +16,12 @@ namespace {
 namespace gsl = ::gsl_lite;
 
 
-template <typename...> struct TD;
-
-
 TEST_CASE("interval<>", "interval arithmetic")
 {
+    using namespace intervals::logic;
+    using namespace intervals::math;
     using intervals::set;
     using intervals::interval;
-    using intervals::possibly;
-    using intervals::possibly_not;
-    using intervals::always;
-    using intervals::assign_partial;
 
     constexpr double inf = std::numeric_limits<double>::infinity();
     constexpr double nan = std::numeric_limits<double>::quiet_NaN();
@@ -183,10 +178,10 @@ TEST_CASE("interval<>", "interval arithmetic")
         }
         SECTION("isinf()")
         {
-            CHECK(always(isinf(x)) == (std::isinf(x.lower()) && x.lower() == x.upper()));
-            CHECK(possibly(isinf(x)) == (std::isinf(x.lower()) || std::isinf(x.upper())));
-            CHECK(always(isfinite(x)) == (!std::isinf(x.lower()) && !std::isinf(x.upper())));
-            CHECK(possibly(isfinite(x)) == (x.lower() != x.upper() || !std::isinf(x.lower())));
+            CHECK(always(intervals::isinf(x)) == (std::isinf(x.lower()) && x.lower() == x.upper()));
+            CHECK(possibly(intervals::isinf(x)) == (std::isinf(x.lower()) || std::isinf(x.upper())));
+            CHECK(always(intervals::isfinite(x)) == (!std::isinf(x.lower()) && !std::isinf(x.upper())));
+            CHECK(possibly(intervals::isfinite(x)) == (x.lower() != x.upper() || !std::isinf(x.lower())));
         }
     }
     SECTION("binary operators")
@@ -245,11 +240,11 @@ TEST_CASE("interval<>", "interval arithmetic")
             auto z = x + y;
             CAPTURE(z);
             bool indefinite = possibly((x ==  inf & y == -inf)
-                                  | (x == -inf & y ==  inf));
+                                     | (x == -inf & y ==  inf));
             if (indefinite)
             {
                     // Subtracting infinities ⇒ NaN
-                CHECK(possibly(isnan(z)));
+                CHECK(possibly(intervals::isnan(z)));
             }
             else
             {
@@ -262,11 +257,11 @@ TEST_CASE("interval<>", "interval arithmetic")
             auto z = x - y;
             CAPTURE(z);
             bool indefinite = possibly((x == -inf & y == -inf)
-                                  | (x ==  inf & y ==  inf));
+                                     | (x ==  inf & y ==  inf));
             if (indefinite)
             {
                     // Subtracting infinities ⇒ NaN
-                CHECK(possibly(isnan(z)));
+                CHECK(possibly(intervals::isnan(z)));
             }
             else
             {
@@ -280,12 +275,12 @@ TEST_CASE("interval<>", "interval arithmetic")
             {
                 auto z = x*y;
                 CAPTURE(z);
-                bool indefinite = possibly((isinf(x) & y == 0)
-                                      | (isinf(y) & x == 0));
+                bool indefinite = possibly((intervals::isinf(x) & y == 0)
+                                         | (intervals::isinf(y) & x == 0));
                 if (indefinite)
                 {
                         // Subtracting infinities ⇒ NaN
-                    CHECK(possibly(isnan(z)));
+                    CHECK(possibly(intervals::isnan(z)));
                 }
                 else
                 {
@@ -302,12 +297,12 @@ TEST_CASE("interval<>", "interval arithmetic")
             {
                 auto z = x*c;
                 CAPTURE(z);
-                bool indefinite = possibly((isinf(x) & (c == 0))  // extra parentheses to silence Clang's `-Wparentheses`
-                                      | (std::isinf(c) & x == 0));
+                bool indefinite = possibly((intervals::isinf(x) & (c == 0))  // extra parentheses to silence Clang's `-Wparentheses`
+                                         | (std::isinf(c) & x == 0));
                 if (indefinite)
                 {
                         // Subtracting infinities ⇒ NaN
-                    CHECK(possibly(isnan(z)));
+                    CHECK(possibly(intervals::isnan(z)));
                 }
                 else
                 {
@@ -326,12 +321,12 @@ TEST_CASE("interval<>", "interval arithmetic")
                 auto z = x/y;
                 CAPTURE(z);
                 bool indefinite = possibly((x == 0 & y == 0)
-                                      | (isinf(x) & isinf(y)));
+                                         | (intervals::isinf(x) & intervals::isinf(y)));
                 bool infinite = always(x != 0) && y.encloses(0);
                 if (indefinite)
                 {
                         // Subtracting infinities ⇒ NaN
-                    CHECK(possibly(isnan(z)));
+                    CHECK(possibly(intervals::isnan(z)));
                 }
                 else if (infinite)
                 {
@@ -355,11 +350,11 @@ TEST_CASE("interval<>", "interval arithmetic")
                 auto z = x/c;
                 CAPTURE(z);
                 bool indefinite = possibly(((x == 0) & (c == 0))  // extra parentheses to silence Clang's `-Wparentheses`
-                                      | (isinf(x) & std::isinf(c)));
+                                         | (intervals::isinf(x) & std::isinf(c)));
                 if (indefinite)
                 {
                         // Subtracting infinities ⇒ NaN
-                    CHECK(possibly(isnan(z)));
+                    CHECK(possibly(intervals::isnan(z)));
                 }
                 else
                 {
@@ -375,12 +370,12 @@ TEST_CASE("interval<>", "interval arithmetic")
                 auto z = a/y;
                 CAPTURE(z);
                 bool indefinite = possibly(((a == 0) & (y == 0))  // extra parentheses to silence Clang's `-Wparentheses`
-                                      | (std::isinf(a) & isinf(y)));
+                                         | (std::isinf(a) & intervals::isinf(y)));
                 bool infinite = a != 0 && y.encloses(0);
                 if (indefinite)
                 {
                         // Subtracting infinities ⇒ NaN
-                    CHECK(possibly(isnan(z)));
+                    CHECK(possibly(intervals::isnan(z)));
                 }
                 else if (infinite)
                 {
@@ -461,10 +456,10 @@ TEST_CASE("interval<>", "interval arithmetic")
         }
         SECTION("indefinite")
         {
-            CHECK(possibly(isnan(pow(interval{ -1., 0. }, -1.5))));
-            CHECK(possibly(isnan(pow(interval{ -1., 0. }, 1.5))));
-            CHECK(possibly(isnan(pow(interval{ -1., 0. }, interval{ -1., 0. }))));
-            CHECK(possibly(isnan(pow(interval{ -1., 0. }, interval{ 0., 1. }))));
+            CHECK(possibly(intervals::isnan(pow(interval{ -1., 0. }, -1.5))));
+            CHECK(possibly(intervals::isnan(pow(interval{ -1., 0. }, 1.5))));
+            CHECK(possibly(intervals::isnan(pow(interval{ -1., 0. }, interval{ -1., 0. }))));
+            CHECK(possibly(intervals::isnan(pow(interval{ -1., 0. }, interval{ 0., 1. }))));
         }
         SECTION("negative base")
         {
@@ -657,11 +652,11 @@ TEST_CASE("interval<>", "interval arithmetic")
             CAPTURE(z);
             if (indefinite)
             {
-                CHECK(possibly(isnan(z)));
+                CHECK(possibly(intervals::isnan(z)));
             }
             else
             {
-                CHECK(always(!isnan(z)));
+                CHECK(always(!intervals::isnan(z)));
                 auto v1 = std::atan2(y.lower(), x.lower());
                 auto v2 = std::atan2(y.lower(), x.upper());
                 auto v3 = std::atan2(y.upper(), x.lower());

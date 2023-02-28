@@ -195,6 +195,18 @@ isnan(T x)
     return std::isnan(x);
 }
 
+template <std::random_access_iterator T>
+[[nodiscard]] constexpr T
+prev(T x)
+{
+    return std::prev(x);
+}
+template <std::random_access_iterator T>
+[[nodiscard]] constexpr T
+next(T x)
+{
+    return std::next(x);
+}
 
 template <std::floating_point T>
 [[nodiscard]] constexpr std::pair<T, T>

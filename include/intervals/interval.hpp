@@ -42,7 +42,7 @@ class interval_functions
 {
 private:
     template <typename L, typename R>
-    friend constexpr set<bool>
+    static constexpr set<bool>
     compare_eq(L const& lhs, R const& rhs)
     {
         auto result = set<bool>{ };
@@ -57,7 +57,7 @@ private:
         return result;
     }
     template <typename L, typename R>
-    friend constexpr set<bool>
+    static constexpr set<bool>
     compare_neq(L const& lhs, R const& rhs)
     {
         auto result = set<bool>{ };
@@ -100,48 +100,6 @@ private:
             result.assign(false);
         }
         return result;
-    }
-
-        // Compute  x⋅y  but impose that  0⋅∞ = 0 .
-    template <interval_value X, interval_value Y>
-    static constexpr std::common_type_t<X, Y>
-    _multiply_0(X x, Y y)
-    {
-        auto result = x*y;
-        if (std::isnan(result) && (std::isinf(x) && y == 0 || std::isinf(y) && x == 0))
-        {
-            return 0;
-        }
-        return result;
-    }
-    template <interval_value X, arithmetic_interval Y>
-    static constexpr common_interval_t<X, Y>
-    _multiply_0(X const& x, Y const& y)
-    {
-        using T = common_interval_value_t<X, Y>;
-        T v1 = _multiply_0(x, lower(y));
-        T v2 = _multiply_0(x, upper(y));
-        return common_interval_t<X, Y>{ intervals::min(v1, v2), intervals::max(v1, v2) };
-    }
-    template <arithmetic_interval X, interval_value Y>
-    static constexpr common_interval_t<X, Y>
-    _multiply_0(X const& x, Y const& y)
-    {
-        using T = common_interval_value_t<X, Y>;
-        T v1 = _multiply_0(lower(x), y);
-        T v2 = _multiply_0(upper(x), y);
-        return common_interval_t<X, Y>{ intervals::min(v1, v2), intervals::max(v1, v2) };
-    }
-    template <arithmetic_interval X, arithmetic_interval Y>
-    static constexpr common_interval_t<X, Y>
-    _multiply_0(X const& x, Y const& y)
-    {
-        using T = common_interval_value_t<X, Y>;
-        T v1 = _multiply_0(lower(x), lower(y));
-        T v2 = _multiply_0(lower(x), upper(y));
-        T v3 = _multiply_0(upper(x), lower(y));
-        T v4 = _multiply_0(upper(x), upper(y));
-        return common_interval_t<X, Y>{ intervals::min(intervals::min(v1, v2), intervals::min(v3, v4)), intervals::max(intervals::max(v1, v2), intervals::max(v3, v4)) };
     }
 
 public:
@@ -224,25 +182,6 @@ public:
         };
     }
 
-    template <typename L, typename R>
-    requires any_interval<L, R> && same_values<L, R> && relational_values<L, R>
-    [[nodiscard]] friend constexpr interval_of_t<L>
-    min(L&& lhs, R&& rhs)
-    {
-        gsl_ExpectsDebug(assigned(lhs) && assigned(rhs));
-
-        return interval_of_t<L>{ intervals::min(lower(lhs), lower(rhs)), intervals::min(upper(lhs), upper(rhs)) };
-    }
-    template <typename L, typename R>
-    requires any_interval<L, R> && same_values<L, R> && relational_values<L, R>
-    [[nodiscard]] friend constexpr interval_of_t<L>
-    max(L&& lhs, R&& rhs)
-    {
-        gsl_ExpectsDebug(assigned(lhs) && assigned(rhs));
-
-        return interval_of_t<L>{ intervals::max(lower(lhs), lower(rhs)), intervals::max(upper(lhs), upper(rhs)) };
-    }
-
     template <arithmetic_interval X>
     [[nodiscard]] friend constexpr interval_t<X>
     operator +(X&& x)
@@ -258,71 +197,6 @@ public:
         gsl_ExpectsDebug(x.assigned());
 
         return interval_t<X>{ -upper(x), -lower(x) };
-    }
-
-    template <arithmetic_interval X>
-    [[nodiscard]] friend constexpr interval_t<X>
-    square(X&& x)
-    {
-        gsl_ExpectsDebug(x.assigned());
-
-        auto lo = lower(x);
-        auto hi = upper(x);
-        return interval_t<X>{
-            lo <= 0 && hi >= 0  // 0 ∈ [a, b]
-                ? 0
-                : intervals::min(lo*lo, hi*hi),
-            intervals::max(lo*lo, hi*hi)
-        };
-    }
-    template <arithmetic_interval X>
-    [[nodiscard]] friend constexpr interval_t<X>
-    cube(X&& x)
-    {
-        gsl_ExpectsDebug(x.assigned());
-
-        auto lo = lower(x);
-        auto hi = upper(x);
-        return interval_t<X>{ lo*lo*lo, hi*hi*hi };
-    }
-
-    template <arithmetic_interval X>
-    [[nodiscard]] friend constexpr interval_t<X>
-    abs(X&& x)
-    {
-        gsl_ExpectsDebug(x.assigned());
-
-        auto lo = lower(x);
-        auto hi = upper(x);
-        return lo <= 0 && hi >= 0                             // if  0 ∈ [a,b] :
-                 ? interval_t<X>{ 0, intervals::max(-lo, hi) }  //     → [0, max{-a,b}]
-             : lo < 0                                         // else if  a,b < 0 :
-                 ? interval_t<X>{ -hi, -lo }                  //     → [-b,-a]
-               : x;                                           // else → [a,b]
-    }
-
-    template <arithmetic_interval X>
-    [[nodiscard]] friend constexpr set<sign>
-    sgn(X&& x)
-    {
-        gsl_ExpectsDebug(x.assigned());
-
-        auto lo = lower(x);
-        auto hi = upper(x);
-        auto result = set<sign>{ };
-        if (hi > 0)
-        {
-            result.assign(positive_sign);
-        }
-        if (lo < 0)
-        {
-            result.assign(negative_sign);
-        }
-        if (lo <= 0 && hi >= 0)
-        {
-            result.assign(zero_sign);
-        }
-        return result;
     }
 
     template <typename X, typename Y>
@@ -536,319 +410,6 @@ public:
         }
     }
 
-    template <floating_point_interval X>
-    [[nodiscard]] friend constexpr interval_t<X>
-    sqrt(X&& x)
-    {
-        gsl_ExpectsDebug(x.assigned());
-
-        return interval_t<X>{ intervals::sqrt(lower(x)), intervals::sqrt(upper(x)) };
-    }
-    template <floating_point_interval X>
-    [[nodiscard]] friend constexpr interval_t<X>
-    cbrt(X&& x)
-    {
-        gsl_ExpectsDebug(x.assigned());
-
-        return interval{ intervals::cbrt(lower(x)), intervals::cbrt(upper(x)) };
-    }
-    template <floating_point_interval X>
-    [[nodiscard]] friend constexpr interval_t<X>
-    log(X&& x)
-    {
-        gsl_ExpectsDebug(x.assigned());
-
-        return interval{ intervals::log(lower(x)), intervals::log(upper(x)) };
-    }
-    template <floating_point_interval X>
-    [[nodiscard]] friend constexpr interval_t<X>
-    exp(X&& x)
-    {
-        gsl_ExpectsDebug(x.assigned());
-
-        return interval{ intervals::exp(lower(x)), intervals::exp(upper(x)) };
-    }
-    template <interval_arg X, interval_arg Y>
-    requires any_interval<X, Y> && floating_point_operands<X, Y>
-    [[nodiscard]] friend constexpr auto
-    pow(X&& x, Y&& y)
-    {
-        gsl_ExpectsDebug(assigned(x) && assigned(y));
-
-        using std::max;
-        using std::log;
-
-        using XV = interval_arg_value_t<X>;
-        using YV = interval_arg_value_t<Y>;
-        auto result = common_interval_t<X, Y>{ };
-        if (intervals::possibly(x >= 0))
-        {
-            result.assign(exp(_multiply_0(y, log(max(XV(0), x)))));
-        }
-        if (intervals::possibly(x < 0))
-        {
-            YV ylo = lower(y);
-            YV yhi = upper(y);
-            auto yi = gsl::narrow_cast<long long>(ylo);
-            if (ylo == yhi && gsl::narrow_cast<YV>(yi) == ylo)  // y ∈ ℤ
-            {
-                int sign = yi % 2 == 0 ? 1 : -1;
-                result.assign(sign*exp(_multiply_0(ylo, log(max(XV(0), -x)))));
-            }
-            else
-            {
-                return detail::nan_interval<X, Y>();
-            }
-        }
-        return result;
-    }
-
-    template <floating_point_interval X>
-    [[nodiscard]] friend constexpr interval_t<X>
-    cos(X&& x)
-    {
-        gsl_ExpectsDebug(x.assigned());
-
-        using T = interval_value_t<X>;
-        auto lo = intervals::wraparound(lower(x), -std::numbers::pi_v<T>, std::numbers::pi_v<T>);
-        auto delta = lo - lower(x);
-        auto hi = upper(x) + delta;
-        if (lo <= T(0))
-        {
-            if (hi <= T(0))
-            {
-                return interval_t<X>{ intervals::cos(lo), intervals::cos(hi) };
-            }
-            else if (hi <= std::numbers::pi_v<T>)
-            {
-                return interval_t<X>{ intervals::min(intervals::cos(lo), intervals::cos(hi)), 1 };
-            }
-        }
-        else  // 0 < lo < π
-        {
-            if (hi <= std::numbers::pi_v<T>)
-            {
-                return interval_t<X>{ intervals::cos(hi), intervals::cos(lo) };
-            }
-            else if (hi <= 2*std::numbers::pi_v<T>)
-            {
-                return interval_t<X>{ -1, intervals::max(intervals::cos(lo), intervals::cos(hi)) };
-            }
-        }
-        return interval{ T(-1), T(1) };
-    }
-    template <floating_point_interval X>
-    [[nodiscard]] friend constexpr interval_t<X>
-    sin(X&& x)
-    {
-        using T = interval_value_t<X>;
-        return cos(x - std::numbers::pi_v<T>/2);
-    }
-    template <floating_point_interval X>
-    [[nodiscard]] friend constexpr interval_t<X>
-    tan(X&& x)
-    {
-        gsl_ExpectsDebug(x.assigned());
-
-        using T = interval_value_t<X>;
-        auto lo = intervals::wraparound(lower(x), -std::numbers::pi_v<T>/2, std::numbers::pi_v<T>/2);
-        auto delta = lo - lower(x);
-        auto hi = upper(x) + delta;
-        if (hi - lo >= std::numbers::pi_v<T>)
-        {
-            return detail::inf_interval<T>();
-        }
-        return interval_t<X>{ intervals::tan(lo), intervals::tan(hi) };
-    }
-    template <floating_point_interval X>
-    [[nodiscard]] friend constexpr interval_t<X>
-    acos(X&& x)
-    {
-        gsl_ExpectsDebug(x.assigned());
-
-        return interval_t<X>{ intervals::acos(upper(x)), intervals::acos(lower(x)) };
-    }
-    template <floating_point_interval X>
-    [[nodiscard]] friend constexpr interval_t<X>
-    asin(X&& x)
-    {
-        gsl_ExpectsDebug(x.assigned());
-
-        return interval_t<X>{ intervals::asin(lower(x)), intervals::asin(upper(x)) };
-    }
-    template <floating_point_interval X>
-    [[nodiscard]] friend constexpr interval_t<X>
-    atan(X&& x)
-    {
-        gsl_ExpectsDebug(x.assigned());
-
-        return interval_t<X>{ intervals::atan(lower(x)), intervals::atan(upper(x)) };
-    }
-    template <typename Y, typename X>
-    requires any_interval<X, Y> && floating_point_operands<Y, X>
-    [[nodiscard]] friend constexpr auto
-    atan2(Y&& y, X&& x)
-    {
-        gsl_ExpectsDebug(assigned(y) && assigned(x));
-
-        if (lower(x) <= 0 && contains(y, 0))
-        {
-            return detail::nan_interval<Y, X>();
-        }
-        if constexpr (interval_value<Y>)
-        {
-            auto v1 = intervals::atan2(y, lower(x));
-            auto v2 = intervals::atan2(y, upper(x));
-            return common_interval_t<Y, X>{ intervals::min(v1, v2), intervals::max(v1, v2) };
-        }
-        else if constexpr (interval_value<X>)
-        {
-            auto v1 = intervals::atan2(lower(y), x);
-            auto v2 = intervals::atan2(upper(y), x);
-            return common_interval_t<Y, X>{ intervals::min(v1, v2), intervals::max(v1, v2) };
-        }
-        else
-        {
-            auto v1 = intervals::atan2(lower(y), lower(x));
-            auto v2 = intervals::atan2(lower(y), upper(x));
-            auto v3 = intervals::atan2(upper(y), lower(x));
-            auto v4 = intervals::atan2(upper(y), upper(x));
-            return common_interval_t<Y, X>{ intervals::min(intervals::min(v1, v2), intervals::min(v3, v4)), intervals::max(intervals::max(v1, v2), intervals::max(v3, v4)) };
-        }
-    }
-
-    template <floating_point_interval X>
-    [[nodiscard]] friend constexpr interval_t<X>
-    floor(X&& x)
-    {
-        gsl_ExpectsDebug(x.assigned());
-
-        return interval_t<X>{ intervals::floor(lower(x)), intervals::floor(upper(x)) };
-    }
-    template <floating_point_interval X>
-    [[nodiscard]] friend constexpr interval_t<X>
-    ceil(X&& x)
-    {
-        gsl_ExpectsDebug(x.assigned());
-
-        return interval_t<X>{ intervals::ceil(lower(x)), intervals::ceil(upper(x)) };
-    }
-    template <floating_point_interval X>
-    [[nodiscard]] friend constexpr interval_t<X>
-    round(X&& x)
-    {
-        gsl_ExpectsDebug(x.assigned());
-
-        return interval_t<X>{ intervals::round(lower(x)), intervals::round(upper(x)) };
-    }
-    template <floating_point_interval X>
-    [[nodiscard]] friend constexpr interval_t<X>
-    frac(X&& x)
-    {
-        gsl_ExpectsDebug(x.assigned());
-
-        using T = interval_value_t<X>;
-        T lfloor = intervals::floor(lower(x));
-        T ufloor = intervals::floor(upper(x));
-        if (lfloor != ufloor)
-        {
-            return interval_t<X>{ 0, 1 };
-        }
-        return interval_t<X>{ lower(x) - lfloor, upper(x) - ufloor };
-    }
-
-    template <typename A, typename B>
-    requires any_interval<A, B> && floating_point_operands<A, B>
-    [[nodiscard]] friend constexpr auto
-    fractional_weights(A&& a, B&& b)
-    {
-        gsl_ExpectsDebug(assigned(a) && assigned(b));
-        gsl_ExpectsDebug(intervals::always(a >= 0));
-        gsl_ExpectsDebug(intervals::always(b >= 0));
-        gsl_ExpectsDebug(intervals::always(a + b > 0));
-
-        return std::pair{
-            common_interval_t<A, B>{ lower(a)/(lower(a) + upper(b)), upper(a)/(upper(a) + lower(b)) },
-            common_interval_t<A, B>{ lower(b)/(upper(a) + lower(b)), upper(b)/(lower(a) + upper(b)) }
-        };
-    }
-
-    template <typename AB, typename XY>
-    requires any_interval<AB, XY> && floating_point_operands<AB, XY>
-    [[nodiscard]] friend constexpr common_interval_t<AB, XY>
-    blend_linear(AB&& a, AB&& b, XY&& x, XY&& y)
-    {
-        gsl_ExpectsDebug(assigned(a) && assigned(b) && assigned(x) && assigned(y));
-        gsl_ExpectsDebug(intervals::always(a >= 0));
-        gsl_ExpectsDebug(intervals::always(b >= 0));
-        gsl_ExpectsDebug(intervals::always(a + b > 0));
-
-            // q = 1/(1 + b/a)  with  0 ≤ q ≤ 1
-        auto alo = lower(a);
-        auto ahi = upper(a);
-        auto blo = lower(b);
-        auto bhi = upper(b);
-        auto qlo = 1/(1 + bhi/alo);
-        auto qhi = 1/(1 + blo/ahi);
-
-            // r = a/(a + b) x + b/(a + b) y
-            //   = q x + (1 - q) y
-        auto xlo = lower(x);
-        auto xhi = upper(x);
-        auto ylo = lower(y);
-        auto yhi = upper(y);
-        auto rlo = xlo > ylo
-            ? qlo*xlo + (1 - qlo)*ylo
-            : qhi*xlo + (1 - qhi)*ylo;
-        auto rhi = xhi < yhi
-            ? qlo*xhi + (1 - qlo)*yhi
-            : qhi*xhi + (1 - qhi)*yhi;
-
-            // We use `min()` and `max()` to mitigate rounding errors.
-        return common_interval_t<AB, XY>{
-            std::min(rlo, rhi),
-            std::max(rlo, rhi)
-        };
-    }
-
-    template <floating_point_interval X>
-    [[nodiscard]] friend constexpr set<bool>
-    isinf(X&& x)
-    {
-        using std::isinf;
-
-        gsl_ExpectsDebug(x.assigned());
-
-        auto result = set<bool>{ };
-        if (is_negative_inf(lower(x)) || is_positive_inf(upper(x)))
-        {
-            result.assign(true);
-        }
-        if (!is_negative_inf(upper(x)) && !is_positive_inf(lower(x)))
-        {
-            result.assign(false);
-        }
-        return result;
-    }
-    template <floating_point_interval X>
-    [[nodiscard]] friend constexpr set<bool>
-    isfinite(X&& x)
-    {
-        return !isinf(x);
-    }
-    template <floating_point_interval X>
-    [[nodiscard]] friend constexpr set<bool>
-    isnan(X&& x)
-    {
-        gsl_ExpectsDebug(x.assigned());
-
-        if (std::isnan(lower(x)) || std::isnan(upper(x)))
-        {
-            return set{ false, true };
-        }
-        return set{ false };
-    }
-
     template <typename L, typename R>
     requires any_interval<L, R> && iterator_interval_arg<L> && integral_interval_arg<R>
     [[nodiscard]] friend constexpr auto
@@ -888,20 +449,6 @@ public:
         return Result{ lower(lhs) - upper(rhs), upper(lhs) - lower(rhs) };
     }
 
-    template <iterator_interval T>
-    [[nodiscard]] friend constexpr interval_of_t<T>
-    prev(T&& x)
-    {
-        return interval_of_t<T>{ pred(lower(x)), pred(upper(x)) };
-    }
-    template <iterator_interval T>
-    [[nodiscard]] friend constexpr interval_of_t<T>
-    next(T&& x)
-    {
-        return interval_of_t<T>{ succ(lower(x)), succ(upper(x)) };
-    }
-
-
     //    // Given an interval  [a,b] , determines the interval classification as per Hickey et al. (2001).
     //enum class hickey_classification : unsigned
     //{
@@ -931,8 +478,49 @@ public:
     //    }
     //    else return hickey_classification::P1;
     //}
-
 };
+
+    // Compute  x⋅y  but impose that  0⋅∞ = 0 .
+template <interval_value X, interval_value Y>
+constexpr std::common_type_t<X, Y>
+_multiply_0(X x, Y y)
+{
+    auto result = x*y;
+    if (std::isnan(result) && (std::isinf(x) && y == 0 || std::isinf(y) && x == 0))
+    {
+        return 0;
+    }
+    return result;
+}
+template <interval_value X, arithmetic_interval Y>
+constexpr common_interval_t<X, Y>
+_multiply_0(X const& x, Y const& y)
+{
+    using T = common_interval_value_t<X, Y>;
+    T v1 = _multiply_0(x, lower(y));
+    T v2 = _multiply_0(x, upper(y));
+    return common_interval_t<X, Y>{ intervals::min(v1, v2), intervals::max(v1, v2) };
+}
+template <arithmetic_interval X, interval_value Y>
+constexpr common_interval_t<X, Y>
+_multiply_0(X const& x, Y const& y)
+{
+    using T = common_interval_value_t<X, Y>;
+    T v1 = _multiply_0(lower(x), y);
+    T v2 = _multiply_0(upper(x), y);
+    return common_interval_t<X, Y>{ intervals::min(v1, v2), intervals::max(v1, v2) };
+}
+template <arithmetic_interval X, arithmetic_interval Y>
+constexpr common_interval_t<X, Y>
+_multiply_0(X const& x, Y const& y)
+{
+    using T = common_interval_value_t<X, Y>;
+    T v1 = _multiply_0(lower(x), lower(y));
+    T v2 = _multiply_0(lower(x), upper(y));
+    T v3 = _multiply_0(upper(x), lower(y));
+    T v4 = _multiply_0(upper(x), upper(y));
+    return common_interval_t<X, Y>{ intervals::min(intervals::min(v1, v2), intervals::min(v3, v4)), intervals::max(intervals::max(v1, v2), intervals::max(v3, v4)) };
+}
 
 template <typename T>
 class interval_base : public interval_functions
@@ -1040,6 +628,23 @@ public:
         return lower_ == rhs.lower_ && upper_ == rhs.upper_;
     }
 };
+
+template <typename ElemT, typename TraitsT, typename T>
+std::basic_ostream<ElemT, TraitsT>&
+operator <<(std::basic_ostream<ElemT, TraitsT>& stream, detail::interval_base<T> const& x)
+{
+    gsl_ExpectsDebug(x.assigned());
+    if (x.lower_unchecked() == x.upper_unchecked())
+    {
+        return stream << x.lower_unchecked();
+    }
+    else
+    {
+        static constexpr char const* cs = ", ";
+        static constexpr ElemT ecs[] = { ElemT(cs[0]), ElemT(cs[1]), 0 };
+        return stream << ElemT('[') << x.lower_unchecked() << ecs << x.upper_unchecked() << ElemT(']');
+    }
+}
 
 template <typename T>
 class arithmetic_interval_base : public interval_base<T>
@@ -1311,6 +916,424 @@ template <typename U, typename T> struct propagate_set<set<U>, T> { using type =
 template <typename S, typename T> using propagate_set_t = typename propagate_set<S, T>::type;
 
 
+inline namespace math {
+
+
+template <typename L, typename R>
+requires detail::any_interval<L, R> && detail::same_values<L, R> && detail::relational_values<L, R>
+[[nodiscard]] constexpr detail::interval_of_t<L>
+min(L&& lhs, R&& rhs)
+{
+    gsl_ExpectsDebug(detail::assigned(lhs) && detail::assigned(rhs));
+
+    return detail::interval_of_t<L>{ intervals::min(detail::lower(lhs), detail::lower(rhs)), intervals::min(detail::upper(lhs), detail::upper(rhs)) };
+}
+template <typename L, typename R>
+requires detail::any_interval<L, R> && detail::same_values<L, R> && detail::relational_values<L, R>
+[[nodiscard]] constexpr detail::interval_of_t<L>
+max(L&& lhs, R&& rhs)
+{
+    gsl_ExpectsDebug(detail::assigned(lhs) && detail::assigned(rhs));
+
+    return detail::interval_of_t<L>{ intervals::max(detail::lower(lhs), detail::lower(rhs)), intervals::max(detail::upper(lhs), detail::upper(rhs)) };
+}
+
+template <detail::arithmetic_interval X>
+[[nodiscard]] constexpr detail::interval_t<X>
+square(X&& x)
+{
+    gsl_ExpectsDebug(x.assigned());
+
+    auto lo = detail::lower(x);
+    auto hi = detail::upper(x);
+    return detail::interval_t<X>{
+        lo <= 0 && hi >= 0  // 0 ∈ [a, b]
+            ? 0
+            : intervals::min(lo*lo, hi*hi),
+        intervals::max(lo*lo, hi*hi)
+    };
+}
+template <detail::arithmetic_interval X>
+[[nodiscard]] constexpr detail::interval_t<X>
+cube(X&& x)
+{
+    gsl_ExpectsDebug(x.assigned());
+
+    auto lo = detail::lower(x);
+    auto hi = detail::upper(x);
+    return detail::interval_t<X>{ lo*lo*lo, hi*hi*hi };
+}
+
+template <detail::arithmetic_interval X>
+[[nodiscard]] constexpr detail::interval_t<X>
+abs(X&& x)
+{
+    gsl_ExpectsDebug(x.assigned());
+
+    auto lo = detail::lower(x);
+    auto hi = detail::upper(x);
+    return lo <= 0 && hi >= 0                             // if  0 ∈ [a,b] :
+                ? detail::interval_t<X>{ 0, intervals::max(-lo, hi) } //     → [0, max{-a,b}]
+            : lo < 0                                      // else if  a,b < 0 :
+                ? detail::interval_t<X>{ -hi, -lo }                   //     → [-b,-a]
+            : x;                                          // else            → [a,b]
+}
+
+template <detail::arithmetic_interval X>
+[[nodiscard]] constexpr set<sign>
+sgn(X&& x)
+{
+    gsl_ExpectsDebug(x.assigned());
+
+    auto lo = detail::lower(x);
+    auto hi = detail::upper(x);
+    auto result = set<sign>{ };
+    if (hi > 0)
+    {
+        result.assign(positive_sign);
+    }
+    if (lo < 0)
+    {
+        result.assign(negative_sign);
+    }
+    if (lo <= 0 && hi >= 0)
+    {
+        result.assign(zero_sign);
+    }
+    return result;
+}
+
+template <detail::floating_point_interval X>
+[[nodiscard]] constexpr detail::interval_t<X>
+sqrt(X&& x)
+{
+    gsl_ExpectsDebug(x.assigned());
+
+    return detail::interval_t<X>{ intervals::sqrt(detail::lower(x)), intervals::sqrt(detail::upper(x)) };
+}
+template <detail::floating_point_interval X>
+[[nodiscard]] constexpr detail::interval_t<X>
+cbrt(X&& x)
+{
+    gsl_ExpectsDebug(x.assigned());
+
+    return detail::interval_t<X>{ intervals::cbrt(detail::lower(x)), intervals::cbrt(detail::upper(x)) };
+}
+template <detail::floating_point_interval X>
+[[nodiscard]] constexpr detail::interval_t<X>
+log(X&& x)
+{
+    gsl_ExpectsDebug(x.assigned());
+
+    return detail::interval_t<X>{ intervals::log(detail::lower(x)), intervals::log(detail::upper(x)) };
+}
+template <detail::floating_point_interval X>
+[[nodiscard]] constexpr detail::interval_t<X>
+exp(X&& x)
+{
+    gsl_ExpectsDebug(x.assigned());
+
+    return detail::interval_t<X>{ intervals::exp(detail::lower(x)), intervals::exp(detail::upper(x)) };
+}
+template <detail::interval_arg X, detail::interval_arg Y>
+requires detail::any_interval<X, Y> && detail::floating_point_operands<X, Y>
+[[nodiscard]] constexpr auto
+pow(X&& x, Y&& y)
+{
+    gsl_ExpectsDebug(detail::assigned(x) && detail::assigned(y));
+
+    using std::max;
+    using std::log;
+
+    using XV = detail::interval_arg_value_t<X>;
+    using YV = detail::interval_arg_value_t<Y>;
+    auto result = detail::common_interval_t<X, Y>{ };
+    if (intervals::possibly(x >= 0))
+    {
+        result.assign(intervals::exp(detail::_multiply_0(y, intervals::log(intervals::max(XV(0), x)))));
+    }
+    if (intervals::possibly(x < 0))
+    {
+        YV ylo = detail::lower(y);
+        YV yhi = detail::upper(y);
+        auto yi = gsl::narrow_cast<long long>(ylo);
+        if (ylo == yhi && gsl::narrow_cast<YV>(yi) == ylo)  // y ∈ ℤ
+        {
+            int sign = yi % 2 == 0 ? 1 : -1;
+            result.assign(sign*intervals::exp(detail::_multiply_0(ylo, intervals::log(intervals::max(XV(0), -x)))));
+        }
+        else
+        {
+            return detail::nan_interval<X, Y>();
+        }
+    }
+    return result;
+}
+
+template <detail::floating_point_interval X>
+[[nodiscard]] constexpr detail::interval_t<X>
+cos(X&& x)
+{
+    gsl_ExpectsDebug(x.assigned());
+
+    using T = detail::interval_value_t<X>;
+    auto lo = intervals::wraparound(detail::lower(x), -std::numbers::pi_v<T>, std::numbers::pi_v<T>);
+    auto delta = lo - detail::lower(x);
+    auto hi = detail::upper(x) + delta;
+    if (lo <= T(0))
+    {
+        if (hi <= T(0))
+        {
+            return detail::interval_t<X>{ intervals::cos(lo), intervals::cos(hi) };
+        }
+        else if (hi <= std::numbers::pi_v<T>)
+        {
+            return detail::interval_t<X>{ intervals::min(intervals::cos(lo), intervals::cos(hi)), 1 };
+        }
+    }
+    else  // 0 < lo < π
+    {
+        if (hi <= std::numbers::pi_v<T>)
+        {
+            return detail::interval_t<X>{ intervals::cos(hi), intervals::cos(lo) };
+        }
+        else if (hi <= 2*std::numbers::pi_v<T>)
+        {
+            return detail::interval_t<X>{ -1, intervals::max(intervals::cos(lo), intervals::cos(hi)) };
+        }
+    }
+    return detail::interval_t<X>{ T(-1), T(1) };
+}
+template <detail::floating_point_interval X>
+[[nodiscard]] constexpr detail::interval_t<X>
+sin(X&& x)
+{
+    using T = detail::interval_value_t<X>;
+    return intervals::cos(x - std::numbers::pi_v<T>/2);
+}
+template <detail::floating_point_interval X>
+[[nodiscard]] constexpr detail::interval_t<X>
+tan(X&& x)
+{
+    gsl_ExpectsDebug(x.assigned());
+
+    using T = detail::interval_value_t<X>;
+    auto lo = intervals::wraparound(detail::lower(x), -std::numbers::pi_v<T>/2, std::numbers::pi_v<T>/2);
+    auto delta = lo - detail::lower(x);
+    auto hi = detail::upper(x) + delta;
+    if (hi - lo >= std::numbers::pi_v<T>)
+    {
+        return detail::inf_interval<T>();
+    }
+    return detail::interval_t<X>{ intervals::tan(lo), intervals::tan(hi) };
+}
+template <detail::floating_point_interval X>
+[[nodiscard]] constexpr detail::interval_t<X>
+acos(X&& x)
+{
+    gsl_ExpectsDebug(x.assigned());
+
+    return detail::interval_t<X>{ intervals::acos(detail::upper(x)), intervals::acos(detail::lower(x)) };
+}
+template <detail::floating_point_interval X>
+[[nodiscard]] constexpr detail::interval_t<X>
+asin(X&& x)
+{
+    gsl_ExpectsDebug(x.assigned());
+
+    return detail::interval_t<X>{ intervals::asin(detail::lower(x)), intervals::asin(detail::upper(x)) };
+}
+template <detail::floating_point_interval X>
+[[nodiscard]] constexpr detail::interval_t<X>
+atan(X&& x)
+{
+    gsl_ExpectsDebug(x.assigned());
+
+    return detail::interval_t<X>{ intervals::atan(detail::lower(x)), intervals::atan(detail::upper(x)) };
+}
+template <typename Y, typename X>
+requires detail::any_interval<X, Y> && detail::floating_point_operands<Y, X>
+[[nodiscard]] constexpr auto
+atan2(Y&& y, X&& x)
+{
+    gsl_ExpectsDebug(detail::assigned(y) && detail::assigned(x));
+
+    if (detail::lower(x) <= 0 && detail::contains(y, 0))
+    {
+        return detail::nan_interval<Y, X>();
+    }
+    if constexpr (detail::interval_value<Y>)
+    {
+        auto v1 = intervals::atan2(y, detail::lower(x));
+        auto v2 = intervals::atan2(y, detail::upper(x));
+        return detail::common_interval_t<Y, X>{ intervals::min(v1, v2), intervals::max(v1, v2) };
+    }
+    else if constexpr (detail::interval_value<X>)
+    {
+        auto v1 = intervals::atan2(detail::lower(y), x);
+        auto v2 = intervals::atan2(detail::upper(y), x);
+        return detail::common_interval_t<Y, X>{ intervals::min(v1, v2), intervals::max(v1, v2) };
+    }
+    else
+    {
+        auto v1 = intervals::atan2(detail::lower(y), detail::lower(x));
+        auto v2 = intervals::atan2(detail::lower(y), detail::upper(x));
+        auto v3 = intervals::atan2(detail::upper(y), detail::lower(x));
+        auto v4 = intervals::atan2(detail::upper(y), detail::upper(x));
+        return detail::common_interval_t<Y, X>{ intervals::min(intervals::min(v1, v2), intervals::min(v3, v4)), intervals::max(intervals::max(v1, v2), intervals::max(v3, v4)) };
+    }
+}
+
+template <detail::floating_point_interval X>
+[[nodiscard]] constexpr detail::interval_t<X>
+floor(X&& x)
+{
+    gsl_ExpectsDebug(x.assigned());
+
+    return detail::interval_t<X>{ intervals::floor(detail::lower(x)), intervals::floor(detail::upper(x)) };
+}
+template <detail::floating_point_interval X>
+[[nodiscard]] constexpr detail::interval_t<X>
+ceil(X&& x)
+{
+    gsl_ExpectsDebug(x.assigned());
+
+    return detail::interval_t<X>{ intervals::ceil(detail::lower(x)), intervals::ceil(detail::upper(x)) };
+}
+template <detail::floating_point_interval X>
+[[nodiscard]] constexpr detail::interval_t<X>
+round(X&& x)
+{
+    gsl_ExpectsDebug(x.assigned());
+
+    return detail::interval_t<X>{ intervals::round(detail::lower(x)), intervals::round(detail::upper(x)) };
+}
+template <detail::floating_point_interval X>
+[[nodiscard]] constexpr detail::interval_t<X>
+frac(X&& x)
+{
+    gsl_ExpectsDebug(x.assigned());
+
+    using T = detail::interval_value_t<X>;
+    T lfloor = intervals::floor(detail::lower(x));
+    T ufloor = intervals::floor(detail::upper(x));
+    if (lfloor != ufloor)
+    {
+        return detail::interval_t<X>{ 0, 1 };
+    }
+    return detail::interval_t<X>{ detail::lower(x) - lfloor, detail::upper(x) - ufloor };
+}
+
+template <typename A, typename B>
+requires detail::any_interval<A, B> && detail::floating_point_operands<A, B>
+[[nodiscard]] constexpr auto
+fractional_weights(A&& a, B&& b)
+{
+    gsl_ExpectsDebug(detail::assigned(a) && detail::assigned(b));
+    gsl_ExpectsDebug(intervals::always(a >= 0));
+    gsl_ExpectsDebug(intervals::always(b >= 0));
+    gsl_ExpectsDebug(intervals::always(a + b > 0));
+
+    auto alo = detail::lower(a);
+    auto ahi = detail::upper(a);
+    auto blo = detail::lower(b);
+    auto bhi = detail::upper(b);
+    return std::pair{
+        detail::common_interval_t<A, B>{ alo/(alo + bhi), ahi/(ahi + blo) },
+        detail::common_interval_t<A, B>{ blo/(ahi + blo), bhi/(alo + bhi) }
+    };
+}
+
+template <typename AB, typename XY>
+requires detail::any_interval<AB, XY> && detail::floating_point_operands<AB, XY>
+[[nodiscard]] constexpr detail::common_interval_t<AB, XY>
+blend_linear(AB&& a, AB&& b, XY&& x, XY&& y)
+{
+    gsl_ExpectsDebug(detail::assigned(a) && detail::assigned(b) && detail::assigned(x) && detail::assigned(y));
+    gsl_ExpectsDebug(intervals::always(a >= 0));
+    gsl_ExpectsDebug(intervals::always(b >= 0));
+    gsl_ExpectsDebug(intervals::always(a + b > 0));
+
+        // q = 1/(1 + b/a)  with  0 ≤ q ≤ 1
+    auto alo = detail::lower(a);
+    auto ahi = detail::upper(a);
+    auto blo = detail::lower(b);
+    auto bhi = detail::upper(b);
+    auto qlo = 1/(1 + bhi/alo);
+    auto qhi = 1/(1 + blo/ahi);
+
+        // r = a/(a + b) x + b/(a + b) y
+        //   = q x + (1 - q) y
+    auto xlo = detail::lower(x);
+    auto xhi = detail::upper(x);
+    auto ylo = detail::lower(y);
+    auto yhi = detail::upper(y);
+    auto rlo = xlo > ylo
+        ? qlo*xlo + (1 - qlo)*ylo
+        : qhi*xlo + (1 - qhi)*ylo;
+    auto rhi = xhi < yhi
+        ? qlo*xhi + (1 - qlo)*yhi
+        : qhi*xhi + (1 - qhi)*yhi;
+
+        // We use `min()` and `max()` to mitigate rounding errors.
+    return detail::common_interval_t<AB, XY>{
+        intervals::min(rlo, rhi),
+        intervals::max(rlo, rhi)
+    };
+}
+
+template <detail::floating_point_interval X>
+[[nodiscard]] constexpr set<bool>
+isinf(X&& x)
+{
+    using std::isinf;
+
+    gsl_ExpectsDebug(x.assigned());
+
+    auto result = set<bool>{ };
+    if (detail::is_negative_inf(detail::lower(x)) || detail::is_positive_inf(detail::upper(x)))
+    {
+        result.assign(true);
+    }
+    if (!detail::is_negative_inf(detail::upper(x)) && !detail::is_positive_inf(detail::lower(x)))
+    {
+        result.assign(false);
+    }
+    return result;
+}
+template <detail::floating_point_interval X>
+[[nodiscard]] constexpr set<bool>
+isfinite(X&& x)
+{
+    return !intervals::isinf(x);
+}
+template <detail::floating_point_interval X>
+[[nodiscard]] constexpr set<bool>
+isnan(X&& x)
+{
+    gsl_ExpectsDebug(x.assigned());
+
+    if (std::isnan(detail::lower(x)) || std::isnan(detail::upper(x)))
+    {
+        return set{ false, true };
+    }
+    return set{ false };
+}
+
+template <detail::iterator_interval T>
+[[nodiscard]] constexpr detail::interval_of_t<T>
+prev(T&& x)
+{
+    return detail::interval_of_t<T>{ detail::pred(detail::lower(x)), detail::pred(detail::upper(x)) };
+}
+template <detail::iterator_interval T>
+[[nodiscard]] constexpr detail::interval_of_t<T>
+next(T&& x)
+{
+    return detail::interval_of_t<T>{ detail::succ(detail::lower(x)), detail::succ(detail::upper(x)) };
+}
+
+
 template <detail::interval_value T, detail::any_interval U>
 requires std::convertible_to<detail::interval_value_t<U>, T>
 [[nodiscard]] constexpr inline T
@@ -1343,24 +1366,6 @@ narrow_failfast(U&& rhs)
         return set_of_t<T>{ gsl::narrow_failfast<T>(detail::lower(rhs)), gsl::narrow_failfast<T>(detail::upper(rhs)) };
     }
     return set_of_t<T>{ };
-}
-
-
-template <typename ElemT, typename TraitsT, typename T>
-std::basic_ostream<ElemT, TraitsT>&
-operator <<(std::basic_ostream<ElemT, TraitsT>& stream, detail::interval_base<T> const& x)
-{
-    gsl_ExpectsDebug(x.assigned());
-    if (x.lower_unchecked() == x.upper_unchecked())
-    {
-        return stream << x.lower_unchecked();
-    }
-    else
-    {
-        static constexpr char const* cs = ", ";
-        static constexpr ElemT ecs[] = { ElemT(cs[0]), ElemT(cs[1]), 0 };
-        return stream << ElemT('[') << x.lower_unchecked() << ecs << x.upper_unchecked() << ElemT(']');
-    }
 }
 
 
@@ -1490,6 +1495,8 @@ if_else(set<bool> cond, T resultIfTrue, T resultIfFalse)
     return intervals::if_else(cond, set_of_t<T>(resultIfTrue), set_of_t<T>(resultIfFalse));
 }
 
+
+} // inline namespace math
 
 } // namespace intervals
 
