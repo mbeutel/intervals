@@ -2,23 +2,23 @@
 
 | metadata | build  | tests  |
 | -------- | ------ | ------ |
-| [![Language](https://badgen.net/badge/C++/20+/blue)](https://en.wikipedia.org/wiki/C%2B%2B#Standardization) <br> [![License](https://badgen.net/github/license/mbeutel/intervals)](https://opensource.org/licenses/BSL-1.0) <br> [![Version](https://badgen.net/github/release/mbeutel/intervals)](https://github.com/mbeutel/intervals/releases)   |   [![Build Status](https://dev.azure.com/moritzbeutel/intervals/_apis/build/status/mbeutel.intervals?branchName=master)](https://dev.azure.com/moritzbeutel/intervals/_build/latest?definitionId=9&branchName=master)   |   [![Azure DevOps tests](https://img.shields.io/azure-devops/tests/moritzbeutel/intervals/9)](https://dev.azure.com/moritzbeutel/intervals/_testManagement/runs)  |
+| [![Language](https://badgen.net/badge/language/C++%E2%89%A520/blue)](https://en.wikipedia.org/wiki/C%2B%2B#Standardization) <br> [![License](https://badgen.net/github/license/mbeutel/intervals)](https://opensource.org/licenses/BSL-1.0) <br> [![Version](https://badgen.net/github/release/mbeutel/intervals)](https://github.com/mbeutel/intervals/releases)   |   [![Build Status](https://dev.azure.com/moritzbeutel/intervals/_apis/build/status/mbeutel.intervals?branchName=master)](https://dev.azure.com/moritzbeutel/intervals/_build/latest?definitionId=9&branchName=master)   |   [![Azure DevOps tests](https://img.shields.io/azure-devops/tests/moritzbeutel/intervals/9)](https://dev.azure.com/moritzbeutel/intervals/_testManagement/runs)  |
 
 
 *intervals* implements traditional [interval arithmetic](https://en.wikipedia.org/wiki/Interval_arithmetic)
 in C++.
 
 Unlike for real numbers, the relational comparison of intervals is ambiguous. Given two intervals
-𝑈 = [0, 2] and 𝑉 = [1, 3], what would "𝑈 < 𝑉" mean? Two possible interpretations are often referred to
+𝑈 = [0,2] and 𝑉 = [1,3], what would "𝑈 < 𝑉" mean? Two possible interpretations are often referred to
 as "possibly" (∃𝑢∈𝑈 ∃𝑣∈𝑉: 𝑢 < 𝑣) and "certainly" (∀𝑢∈𝑈 ∀𝑣∈𝑉: 𝑢 < 𝑣).
 
 Both interpretations have their uses. However, we found that just defining relational predicates in
 accordance with one of the given interpretations leads to logical inconsistencies and brittle code.
 In pursuing our goal to write *interval-aware code*, we thus define the relational operators
-(`==`, `!=`, `<`, `>`, `<=`, `>=`) for intervals as [set-valued operators](#TODO).
-Together with a set of [Boolean projections](TODO), these operators ensure
-[logical consistency in branch conditions](#TODO) and give rise to a paradigm for
-[*interval-aware programming*](#TODO).
+(`==`, `!=`, `<`, `>`, `<=`, `>=`) for intervals as [set-valued operators](#set-valued-logic).
+Together with a set of [Boolean projections](#boolean-projections), these operators ensure
+[logical consistency](#relational-predicates) in branch conditions and give rise to a paradigm for
+[*interval-aware programming*](#interval-aware-programming).
 
 
 ## Contents
@@ -90,13 +90,13 @@ a compiler and standard library conforming with the C++20 standard.
 The following compilers are officially supported (that is, part of
 [our CI pipeline](https://dev.azure.com/moritzbeutel/intervals/_build/latest?definitionId=9&branchName=master)):
 
-- Microsoft Visual C++ 19.3 (Visual Studio 2022)
-- GCC 12 with libstdc++ (tested on Linux and MacOS)
-- Clang 14 with libc++ (tested on Windows and Linux)
+- Microsoft Visual C++ 19.3 and newer (Visual Studio 2022 and newer)
+- GCC 12 and newer with libstdc++ (tested on Linux and MacOS)
+- Clang 14 and newer with libc++ (tested on Windows and Linux)
 
 Please note that Apple Clang is not yet supported because the standard library it ships with
 [does not currently implement](https://en.cppreference.com/w/cpp/compiler_support#C.2B.2B20_library_features)
-[C++20 ranges](https://en.cppreference.com/w/cpp/ranges).
+C++20 [ranges](https://en.cppreference.com/w/cpp/ranges).
  
 
 ## Dependencies
@@ -195,15 +195,25 @@ a change is released, it becomes part of the API.
 
 ## Motivation
 
-*Note: this section only gives a brief recap of some basics of interval arithmetic and summarizes
+This section  gives a brief recap of some basics of interval arithmetic and summarizes
 the raison d'être of this library. For the full story, please refer to our accompanying paper
-[\[1\]](#references).*
+[\[1\]](#references).
+
+**Overview:**
+- [Set and interval arithmetic](#set-and-interval-arithmetic)
+- [Fundamental theorem of interval arithmetic](#fundamental-theorem-of-interval-arithmetic)
+- [Dependency problem](#dependency-problem)
+- [Algorithms](#algorithms)
+- [Utilities](#utilities)
+
+
+### Set and interval arithmetic
 
 Let a unary function 𝑓: 𝒮 → ℝ be defined for a set 𝒮 ⊆ ℝ. For some subset 𝒰 ⊆ 𝒮, the *set extension*
-of 𝑓 is then defined as the set-valued function  
-  
+of 𝑓 is then defined as the set-valued function
+
 𝑓(𝒰) := { 𝑓(𝑥) | 𝑥 ∈ 𝒰 } .
-  
+
 The *interval enclosure* ℐ\[𝒮\] of a non-empty set 𝒮 ⊆ ℝ is defined as the minimal enclosing interval,
 
 ℐ\[𝒮\] := [inf 𝒮, sup 𝒮] .
@@ -211,20 +221,192 @@ The *interval enclosure* ℐ\[𝒮\] of a non-empty set 𝒮 ⊆ ℝ is defined 
 Let the set of all closed intervals in a set 𝒮 ⊆ ℝ be denoted as \[𝒮\]. An interval-valued function
 𝐹: [𝒮] → [ℝ] is called an *interval extension* of 𝑓 if it satisfies the *inclusion property*:
 
-∀𝑋∈[𝒮] ∀𝑥∈𝑋: 𝑓(𝑥) ∈ 𝐹(𝑋) .
+∀𝑋 ∈ [𝒮] ∀𝑥 ∈ 𝑋: 𝑓(𝑥) ∈ 𝐹(𝑋) .
 
 Analogous definitions can be made for functions of higher arity.
 
-Most mathematical functions defined by *intervals* implement the *precise interval extension* of the
-eponymous functions defined for the underlying arithmetic type. The precise interval extension
-is identical to the *interval enclosure* of the *set extension*. 
+Interval extensions can be defined for all basic arithmetic operations such as +, -, ⋅, √.
+Some examples:
 
-TODO:
-- fundamental theorem
-- interpretations of relational operators
-- set-valued relational predicates
-- constraining
+- [𝐴⁻,𝐴⁺] + [B⁻,B⁺] := [𝐴⁻ + 𝐵⁻, 𝐴⁺ + 𝐵⁺]
+- -[𝐴⁻,𝐴⁺] := [-𝐴⁺,-𝐴⁻]
+- √𝐴 := [√𝐴⁻,√𝐴⁺]
 
+An interval extension 𝐹: [𝒮] → [ℝ] of some function 𝑓: 𝒮 → ℝ is called *precise* if it is identical to
+the interval enclosure of the set extension ℐ\[𝐹(𝒮)\] for every argument 𝑋∈[𝒮].
+
+Most mathematical functions defined by the *intervals* library implement the precise interval extension
+of the eponymous functions defined for the underlying arithmetic type.
+
+### Fundamental theorem of interval arithmetic
+
+Let a function
+
+𝑓: 𝒮 → ℝ,  𝑥 ↦ 𝑓(𝑥)
+
+be composed of interval-extensible operations, for example 𝑓(𝑥) = 𝑥² − 2𝑥.
+
+Then construct a function
+
+𝐹: [𝒮] → [ℝ], 𝑋 ↦ 𝐹(𝑋)
+
+by replacing operations with their interval extensions. For the given example, this would be
+𝐹(𝑋) = 𝑋² − 2𝑋. The "Fundamental Theorem of Interval Arithmetic" [\[2,3\]](#references) then
+states that *𝐹 is an interval extension of 𝑓*.
+
+Observing that the interval-valued function 𝐹 is syntactically identical to the real-valued function
+𝑓, we assume that it may be possible to repurpose numerical code for interval arithmetic. Thus,
+this theorem forms the basis of *interval-aware programming*.
+
+### Dependency problem
+
+Although many numerical calculations can be retrofitted for intervals, yielding correct results
+as per the fundamental theorem of interval arithmetic, the results are often suboptimal, which means
+that the resulting intervals are too wide. The most extreme example would be a function 𝑓(𝑥) = 𝑥 − 𝑥.
+If we construct its interval extension as 𝐹(𝑋) = 𝑋 − 𝑋, we find that it yields much wider intervals
+than necessary:
+
+𝐹([0,1]) = [0,1] − [0,1] = [0,1] + [−1,0] = [−1,1] ,
+
+whereas the interval extension 𝐺(𝑋) = [0,0] of the real-valued function 𝑔(𝑥) = 0, obviously
+algebraically equivalent to 𝑓, always yields the optimally tight interval [0,0].
+
+This is known as the [*dependency problem*](https://en.wikipedia.org/wiki/Interval_arithmetic#Dependency_problem),
+and one of the reasons why making effective use of interval arithmetic is hard. When making an
+existing numerical routine interval-aware, you should expect to spend a substantial amount of work
+on rewriting your expressions in algebraically advantageous forms.
+
+### Relational predicates
+
+We note that the relational predicates =, ≠, <, >, ≤, ≥ are ambiguous for interval arguments because
+of the possibility of interval overlap. For example, given two intervals 𝑈 = [0,2] and 𝑉 = [1,3],
+what could be the meaning of "𝑈 < 𝑉"?
+
+Two interpretations are often used in conjunction with interval arithmetic:
+
+- "possibly" semantics, where 𝑈 < 𝑉 :⇔ (∃𝑢 ∈ 𝑈 ∃𝑣 ∈ 𝑉: 𝑢 < 𝑣);
+- "certainly" semantics, where 𝑈 < 𝑉 :⇔ (∀𝑢 ∈ 𝑈 ∀𝑣 ∈ 𝑉: 𝑢 < 𝑣).
+
+With either interpretation, however, we find some essential relational identities invalidated:
+
+- 𝐴 ≠ 𝐵    ⇔    ¬(𝐴 = 𝐵)
+- 𝐴 < 𝐵    ⇔    ¬(𝐴 ≥ 𝐵)    	(complementarity)
+- A = 𝐵    ⇔    ¬(𝐴 < 𝐵 ∨ 𝐴 > 𝐵)    (totality)
+
+With regard to relational predicates, we say that a system of relations is *logically consistent*
+if these identities hold. But as we find easily by evaluating both sides with the counterexample
+A = 𝐵 = [0,1], neither of the given expressions are equivalent for intervals with either "possibly"
+or "certainly" semantics. This is unfortunate because these identities are commonly taken for
+granted by programmers. For example, consider a straightforward (though perhaps verbose)
+implementation of the `max` function:
+
+```c++
+template <typename T>
+T max(T a, T b)
+{
+    T x;
+    if (a < b)
+    {
+        x = b;
+    }
+    else
+    {
+        x = a;
+    }
+    return x;
+}
+```
+
+Semantically, the `else` clause is shorthand for an `if` clause with the negation of the previous
+branch condition, `!(a < b)`. However, the *intended* branch condition for the second clause
+is actually `a >= b`, which is why we want to assign `a` to `b`!
+
+### Set-valued logic
+
+We could try to work around by rewriting the `else` clause as an `if` clause to avoid the
+negation (as we might be used to do when writing NaN-resilient numerical code which is plagued
+by similar logical inconsistencies). But while this may be straightforward in this simple example,
+not being able to use the relational identities is generally an impediment and leads to brittle
+code.
+
+Instead, we would like to address the issue more thoroughly. As the root cause of our problem,
+we identify the fact that the result of "𝑈 < 𝑉" can be ambiguous cannot be not reflected in the
+two-element Boolean algebra. However, we *can* represent ambiguity if we use the
+[set extension](#set-and-interval-arithmetic) to define "𝑈 < 𝑉":
+
+𝑈 < 𝑉 := { (𝑢 < 𝑣) │ 𝑢 ∈ 𝑈, 𝑣 ∈ 𝑉 } .
+
+The resulting set is a *subset* of the two-element Boolean algebra with the set
+
+𝔹 := { false, true } .
+
+In particular, if the intervals 𝑈 and 𝑉 overlap, then 𝑈 < 𝑉 = { false, true }. Practically, if
+our interval data type can represent an invalid state, which would semantically correspond to
+the empty set, then 𝑈 < 𝑉 = ∅ if at least one of the arguments 𝑈 and 𝑉 is in an invalid state.
+One could say that (𝑈 < 𝑉) is an element of the *powerset* of 𝔹,
+
+𝒫(𝔹) = { ∅, { false }, { true }, { false, true } } .
+
+As it turns out, 𝒫(𝔹) is a [four-valued logic](https://en.wikipedia.org/wiki/Four-valued_logic):
+the [logical connectives](https://en.wikipedia.org/wiki/Logical_connective) ∧, ∨, and ¬
+can be given by the set extension,
+
+𝐴 ∧ 𝐵 := { (𝑎 ∧ 𝑏) | 𝑎 ∈ 𝐴, 𝑏 ∈ 𝐵 } ,  
+𝐴 ∨ 𝐵 := { (𝑎 ∨ 𝑏) | 𝑎 ∈ 𝐴, 𝑏 ∈ 𝐵 } ,  
+¬𝐴 := { ¬𝑎 | 𝑎 ∈ 𝐴 } .
+
+and the usual logical identities hold
+([associativity](https://en.wikipedia.org/wiki/Associative_property#Propositional_logic),
+[commutativity](https://en.wikipedia.org/wiki/Commutative_property#Propositional_logic),
+[distributivity](https://en.wikipedia.org/wiki/Distributive_property#Propositional_logic),
+[De Morgan’s laws](https://en.wikipedia.org/wiki/De_Morgan%27s_laws)).
+Also, the system of relational predicates =, ≠, <, >, ≤, ≥ is
+[logically consistent](#relational-predicates), so the usual relational identities can
+be relied on without hesitation.
+
+### Boolean projections
+
+TODO
+
+```c++
+template <typename T>
+T max(T a, T b)
+{
+    auto x = T{ };
+    auto c = (a < b);
+    if (possibly(c))
+    {
+        x = b;
+    }
+    if (possibly(!c))
+    {
+        x = a;
+    }
+    return x;
+}
+```
+
+### Partial assignment
+
+Depending on the values of the interval arguments `a` and `b` and on the relational semantics
+chosen, we now have to consider two additional possibilities:
+*neither branch* might be executed (if at least one argument is in the invalid state),
+or *both branches* might be executed (if the argument intervals overlap)!
+
+The first possibility can be accounted for by default-initializing the interval data type
+to the invalid state. But to account for the possibility of both branches being executed,
+the assignment must be modified to avoid the second assignment spuriously overwriting the
+first one.
+
+TODO
+
+### Partial assignment
+
+TODO
+
+### Constraints
+
+TODO
 
 ## Reference documentation
 
@@ -495,11 +677,21 @@ Many other libraries for interval arithmetics exist. Some exemplary C++ librarie
 [Boost Interval Arithmetic Library](https://www.boost.org/doc/libs/1_81_0/libs/numeric/interval/doc/interval.htm)
 and [GAOL](https://frederic.goualard.net/#research-software-gaol).
 
-*intervals* differs from other libraries mostly by its handling of relational comparison operators.
+*intervals* differs from other libraries mostly by its handling of relational comparison operators,
+encouraging a particular style of interval-aware programming.
 
 
 ## References
 
 The *intervals* library has been motivated and introduced in the following CoNGA 2023 conference paper:
 
-Beutel & Strzodka, *A paradigm for interval-aware programming*, in press
+[1]  Beutel & Strzodka, *A paradigm for interval-aware programming*, in press
+
+Other references:
+
+[2] *IEEE Standard for Interval Arithmetic.* IEEE Std 1788-2015 pp. 1–97 (Jun 2015).  
+https://doi.org/10.1109/IEEESTD.2015.7140721
+
+[3] Hickey, T., Ju, Q., Van Emden, M.H.: *Interval arithmetic: From principles to
+implementation.* Journal of the ACM 48(5), 1038–1068 (Sep 2001).  
+https://doi.org/10.1145/502102.502106
