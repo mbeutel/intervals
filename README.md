@@ -290,7 +290,7 @@ Two interpretations are often used in conjunction with interval arithmetic:
 With either interpretation, however, we find some essential relational identities invalidated:
 
 - 𝐴 ≠ 𝐵    ⇔    ¬(𝐴 = 𝐵)
-- 𝐴 < 𝐵    ⇔    ¬(𝐴 ≥ 𝐵)    	(complementarity)
+- 𝐴 < 𝐵    ⇔    ¬(𝐴 ≥ 𝐵)      (complementarity)
 - A = 𝐵    ⇔    ¬(𝐴 < 𝐵 ∨ 𝐴 > 𝐵)    (totality)
 
 With regard to relational predicates, we say that a system of relations is *logically consistent*
@@ -321,13 +321,40 @@ Semantically, the `else` clause is shorthand for an `if` clause with the negatio
 branch condition, `!(a < b)`. However, the *intended* branch condition for the second clause
 is actually `a >= b`, which is why we want to assign `a` to `b`!
 
-### Set-valued logic
+We can see that, with this tentative definition, the interval instantiation of the `max()`
+function template does not constitute an interval extension of the instantiation of `max()` for
+scalar arguments. For example, consider the three intervals [2,4], [4,5], and [3,6].
+According to the [set extension](#set-and-interval-arithmetic), the maximum of two intervals is
 
-We could try to work around by rewriting the `else` clause as an `if` clause to avoid the
-negation (as we might be used to do when writing NaN-resilient numerical code which is plagued
-by similar logical inconsistencies). But while this may be straightforward in this simple example,
-not being able to use the relational identities is generally an impediment and leads to brittle
-code.
+max(𝐴,𝐵) := { max(𝑎,𝑏) | a ∈ 𝐴, 𝑏 ∈ 𝐵 } ,
+
+and thus max([2,4],[3,6]) = [3,6] and max([4,5],[3,6]) = [4,6]. However, we find that, if the
+relational predicates follow either "possibly" or "certainly" semantics, the results returned
+by `max()` are incorrect:
+
+```c++
+auto A = interval{ 2, 4 };
+auto B = interval{ 4, 5 };
+auto C = interval{ 3, 6 };
+
+auto maxAC = max(A, C);
+// with "possibly" semantics:  interval{ 3, 6 }  (optimal)
+// with "certainly" semantics:  interval{ 2, 4 }  (wrong)
+
+auto maxCA = max(C, A);
+// with "possibly" semantics:  interval{ 2, 4 }  (wrong)
+// with "certainly" semantics:  interval{ 3, 6 }  (optimal)
+
+auto maxBC = max(B, C);
+// with "possibly" semantics:  interval{ 3, 6 }  (not wrong but excessive)
+// with "certainly" semantics:  interval{ 4, 5 }  (wrong)
+
+auto maxCB = max(C, B);
+// with "possibly" semantics:  interval{ 4, 5 }  (wrong)
+// with "certainly" semantics:  interval{ 3, 6 }  (not wrong but excessive)
+```
+
+### Set-valued logic
 
 Instead, we would like to address the issue more thoroughly. As the root cause of our problem,
 we identify the fact that the result of "𝑈 < 𝑉" can be ambiguous cannot be not reflected in the
@@ -338,14 +365,14 @@ two-element Boolean algebra. However, we *can* represent ambiguity if we use the
 
 The resulting set is a *subset* of the two-element Boolean algebra with the set
 
-𝔹 := { false, true } .
+𝔹 := { 𝚏𝚊𝚕𝚜𝚎, 𝚝𝚛𝚞𝚎 } .
 
-In particular, if the intervals 𝑈 and 𝑉 overlap, then 𝑈 < 𝑉 = { false, true }. Practically, if
+In particular, if the intervals 𝑈 and 𝑉 overlap, then 𝑈 < 𝑉 = { 𝚏𝚊𝚕𝚜𝚎, 𝚝𝚛𝚞𝚎 }. Practically, if
 our interval data type can represent an invalid state, which would semantically correspond to
 the empty set, then 𝑈 < 𝑉 = ∅ if at least one of the arguments 𝑈 and 𝑉 is in an invalid state.
 One could say that (𝑈 < 𝑉) is an element of the *powerset* of 𝔹,
 
-𝒫(𝔹) = { ∅, { false }, { true }, { false, true } } .
+𝒫(𝔹) = { ∅, { 𝚏𝚊𝚕𝚜𝚎 }, { 𝚝𝚛𝚞𝚎 }, { 𝚏𝚊𝚕𝚜𝚎, 𝚝𝚛𝚞𝚎 } } .
 
 As it turns out, 𝒫(𝔹) is a [four-valued logic](https://en.wikipedia.org/wiki/Four-valued_logic):
 the [logical connectives](https://en.wikipedia.org/wiki/Logical_connective) ∧, ∨, and ¬
@@ -366,19 +393,37 @@ be relied on without hesitation.
 
 ### Boolean projections
 
-TODO
+Because branches embody a dichotomy—to jump or not to jump—, branch conditions must necessarily
+be Boolean values. Thus, if relational predicates between interval arguments are taken to be
+set-valued, (𝑈 < 𝑉) ∈ 𝒫(𝔹) for intervals 𝑈 and 𝑉, then we need a way to interprete their
+values as Boolean values. This can be accomplished with the following intuitive *projections*:
+
+ᴘᴏssɪʙʟʏ: 𝒫(𝔹) → 𝔹, 𝑈 ↦ (𝚝𝚛𝚞𝚎 ∈ 𝑈) ,  
+ᴀʟᴡᴀʏs: 𝒫(𝔹) → 𝔹, 𝑈 ↦ (𝚏𝚊𝚕𝚜𝚎 ∉ 𝑈) ,  
+ᴄᴏɴᴛɪɴɢᴇɴᴛ: 𝒫(𝔹) → 𝔹, 𝑈 ↦ (𝑈 ≡ { 𝚏𝚊𝚕𝚜𝚎, 𝚝𝚛𝚞𝚎 }) ,  
+ᴠᴀᴄᴜᴏᴜs: 𝒫(𝔹) → 𝔹, 𝑈 ↦ (𝑈 ≡ ∅) .
+
+Among these projections, the following identities hold:
+
+¬ᴀʟᴡᴀʏs(𝑈)  ⇔  ᴘᴏssɪʙʟʏ(¬𝑈) ,  
+¬ᴘᴏssɪʙʟʏ(U)  ⇔  ᴀʟᴡᴀʏs(¬𝑈) ,  
+ᴄᴏɴᴛɪɴɢᴇɴᴛ(U)  ⇔  ᴘᴏssɪʙʟʏ(U) ∧ ᴘᴏssɪʙʟʏ(¬U) ,  
+ᴠᴀᴄᴜᴏᴜs(U)  ⇔  ᴀʟᴡᴀʏs(U) ∧ ᴀʟᴡᴀʏs(¬U) .
+
+Using the C++ implementation of the ᴘᴏssɪʙʟʏ projection, we can now express the branch
+conditions using set-valued predicates:
 
 ```c++
 template <typename T>
 T max(T a, T b)
 {
     auto x = T{ };
-    auto c = (a < b);
-    if (possibly(c))
+    auto c = (a < b);  // ∈ 𝒫(𝔹)
+    if (possibly(c))  // possibly(a < b)
     {
         x = b;
     }
-    if (possibly(!c))
+    if (possibly(!c))  // possibly(!(a < b)) == possibly(a >= b)
     {
         x = a;
     }
@@ -386,23 +431,70 @@ T max(T a, T b)
 }
 ```
 
+The projection functions have overloads for Boolean arguments; for example, if `c` is of
+type `bool`, then `possibly(c) == c`. Thanks to these overloads, the `max()` function
+template can be instantiated for both intervals or scalar types.
+
+In the original `max()` function, the second branch was governed by an `else` clause,
+equivalent to the negation of the preceding `if` clause. Here, this negation would be
+`!possibly(c)`, which is clearly not equivalent to `possibly(!c)`. By keeping the relational
+predicates set-valued and defining Boolean projections separately, the distinction between
+"not possibly" and "possibly not" can now be represented correctly.
+
+
 ### Partial assignment
 
 Depending on the values of the interval arguments `a` and `b` and on the relational semantics
 chosen, we now have to consider two additional possibilities:
-*neither branch* might be executed (if at least one argument is in the invalid state),
-or *both branches* might be executed (if the argument intervals overlap)!
+*neither branch* might be executed (if at least one argument is in the invalid state), or
+*both branches* might be executed (if the argument intervals overlap)!
 
 The first possibility can be accounted for by default-initializing the interval data type
 to the invalid state. But to account for the possibility of both branches being executed,
 the assignment must be modified to avoid the second assignment spuriously overwriting the
 first one.
 
-TODO
+To this end, *intervals* defines the function `assign_partial(x, a)` which widens the
+interval `x` such that it encloses the interval argument `a`. To ensure that generic code
+can be instantiated either for interval or for scalar arguments, `assign_partial(x, a)`
+also has an overload for scalar arguments `x` and `a` which simply executes the assignment
+`x = a`.
 
-### Partial assignment
+```c++
+template <typename T>
+T max2(T a, T b)
+{
+    auto x = T{ };
+    auto c = (a < b);
+    if (possibly(c))
+    {
+        assign_partial(x, b);
+    }
+    if (possibly(!c))
+    {
+        assign_partial(x, a);
+    }
+    return x;
+}
+```
 
-TODO
+With this modification, the second assignment to `x` will not overwrite but extend the first
+assignment if both branches are executed. The interval instantiation of the `max2()`
+function template now is an interval extension of the instantiation for scalar arguments.
+However, the intervals returned can still be excessive. Consider again the examples of
+max([2,4],[3,6]) = [3,6] and max([4,5],[3,6]) = [4,6]:
+
+```c++
+auto A = interval{ 2, 4 };
+auto B = interval{ 4, 5 };
+auto C = interval{ 3, 6 };
+
+auto max2AC = max2(A, C);  //  interval{ 2, 6 }  (not wrong but excessive)
+auto max2CA = max2(C, A);  // same
+
+auto max2BC = max2(B, C);  //  interval{ 3, 6 }  (not wrong but excessive)
+auto max2CB = max2(C, B);  // same
+```
 
 ### Constraints
 
@@ -648,10 +740,17 @@ TODO:
 
 TODO:
 - relational comparison operators for `interval<>` and `set<>`
-- `possibly()`, `possibly_not()`
-- `always()`, `never()`
-- `contingent()`, `vacuous()`
 - `constrain()`
+
+For arguments `b` convertible to `bool` and `c` convertible to `set<bool>`, *intervals*
+defines the following overloads of the [Boolean projections](#boolean-projections):
+
+- **`possibly(b)`**, returning `b`, and **`possibly(c)`**, returning `c.contains(true)`;
+- **`possibly_not(b)`**, returning `!b`, and **`possibly_not(c)`**, returning `c.contains(false)`;
+- **`always(b)`**, returning `b`, and **`always(c)`**, returning `!c.contains(false)`;
+- **`never(b)`**, returning `!b`, and **`never(c)`**, returning `!c.contains(true)`;
+- **`contingent(b)`**, returning `false`, and **`contingent(c)`**, returning `c.matches(set{ false, true })`;
+- **`vacuous(b)`**, returning `false`, and **`vacuous(c)`**, returning `c.matches(set<bool>{ })`.
 
 ### Algorithms
 
