@@ -387,12 +387,12 @@ possibly_not(set<bool> x) noexcept
 [[nodiscard]] constexpr bool
 always(set<bool> x) noexcept
 {
-    return x.matches(true);
+    return !x.contains(false);
 }
 [[nodiscard]] constexpr bool
 never(set<bool> x) noexcept
 {
-    return x.matches(false);
+    return !x.contains(true);
 }
 [[nodiscard]] constexpr bool
 contingent(set<bool> x) noexcept
