@@ -356,9 +356,9 @@ auto maxCB = max(C, B);
 
 ### Set-valued logic
 
-Instead, we would like to address the issue more thoroughly. As the root cause of our problem,
-we identify the fact that the result of "𝑈 < 𝑉" can be ambiguous cannot be not reflected in the
-two-element Boolean algebra. However, we *can* represent ambiguity if we use the
+As the root cause of our problem,
+we identify the fact that the result of "𝑈 < 𝑉" can be ambiguous, and that this cannot be reflected
+in the two-element Boolean algebra. However, we *can* represent ambiguity if we use the
 [set extension](#set-and-interval-arithmetic) to define "𝑈 < 𝑉":
 
 𝑈 < 𝑉 := { (𝑢 < 𝑣) │ 𝑢 ∈ 𝑈, 𝑣 ∈ 𝑉 } .
@@ -450,7 +450,7 @@ chosen, we now have to consider two additional possibilities:
 *both branches* might be executed (if the argument intervals overlap)!
 
 The first possibility can be accounted for by default-initializing the interval data type
-to the invalid state. But to account for the possibility of both branches being executed,
+to the invalid state. But handle the possibility of both branches being executed,
 the assignment must be modified to avoid the second assignment spuriously overwriting the
 first one.
 
