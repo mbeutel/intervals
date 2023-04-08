@@ -1353,7 +1353,7 @@ next(T&& x)
 
 template <detail::interval_value T, detail::any_interval U>
 requires std::convertible_to<detail::interval_value_t<U>, T>
-[[nodiscard]] constexpr inline T
+[[nodiscard]] constexpr inline set_of_t<T>
 narrow_cast(U&& rhs) noexcept
 {
     if (detail::assigned(rhs))
@@ -1364,7 +1364,7 @@ narrow_cast(U&& rhs) noexcept
 }
 template <detail::interval_value T, detail::any_interval U>
 requires std::convertible_to<detail::interval_value_t<U>, T>
-[[nodiscard]] constexpr inline T
+[[nodiscard]] constexpr inline set_of_t<T>
 narrow(U&& rhs)
 {
     if (detail::assigned(rhs))
@@ -1375,7 +1375,7 @@ narrow(U&& rhs)
 }
 template <detail::interval_value T, detail::any_interval U>
 requires std::convertible_to<detail::interval_value_t<U>, T>
-[[nodiscard]] constexpr inline T
+[[nodiscard]] constexpr inline set_of_t<T>
 narrow_failfast(U&& rhs)
 {
     if (detail::assigned(rhs))
