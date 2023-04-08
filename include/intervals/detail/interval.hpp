@@ -104,7 +104,7 @@ template <interval_arg T> constexpr bool have_id_v = false;
 template <any_interval IntervalT> constexpr bool have_id_v<constrained_interval<IntervalT>> = true;
 template <interval_arg T> struct have_id : std::bool_constant<have_id_v<T>> { };
 template <any_interval L, interval_arg T>
-struct can_compare_id : std::conjunction<std::bool_constant<any_interval<T>>, is_same_interval<L, T>, have_id<T>> { };
+struct can_compare_id : std::conjunction<is_same_interval<L, T>, have_id<T>> { };
 template <any_interval L, interval_arg T>
 constexpr bool can_compare_id_v = can_compare_id<L, T>::value;
 
@@ -455,38 +455,49 @@ constrain(IntervalT const& x, set<bool>, bool&)
 }
 template <typename IntervalT, typename L, typename R>
 constexpr as_constrained_interval_t<IntervalT>
-constrain(IntervalT const& x, less_equal_constraint<L, R> const& c, bool& constraintApplied)
+constrain(IntervalT const& x, less_equal_constraint<L, R> const& c, bool& constraintConsidered, bool optional = false)
 {
     using CInterval = as_constrained_interval_t<IntervalT>;
     using UInterval = interval_t<IntervalT>;
     using T = common_interval_value_t<L, R>;
 
-    if (c.contains(true))
+    if constexpr (can_compare_id_v<IntervalT, L>)
     {
-        if constexpr (can_compare_id_v<IntervalT, L>)
+        if (matches_identity(x, c.lhs_))
         {
-            if (matches_identity(x, c.lhs_))
+            constraintConsidered = true;
+            if (c.contains(true))
             {
                     // Apply constraint  x ≤ rhs⁺ .
                 auto xlo = lower(x);
                 auto xhi = upper(x);
                 auto rhi = upper(c.rhs_);
                 gsl_AssertDebug(xlo <= rhi);
-                constraintApplied = true;
                 return CInterval::make_with_identity(x, UInterval{ xlo, std::min<T>(xhi, rhi) });
             }
+            else
+            {
+                gsl_Assert(optional);
+            }
         }
-        if constexpr (can_compare_id_v<IntervalT, R>)
+    }
+    if constexpr (can_compare_id_v<IntervalT, R>)
+    {
+        if (matches_identity(x, c.rhs_))
         {
-            if (matches_identity(x, c.rhs_))
+            constraintConsidered = true;
+            if (c.contains(true))
             {
                     // Apply constraint  lhs⁻ ≤ x .
                 auto xlo = lower(x);
                 auto xhi = upper(x);
                 auto llo = lower(c.lhs_);
                 gsl_AssertDebug(llo <= xhi);
-                constraintApplied = true;
                 return CInterval::make_with_identity(x, UInterval{ std::max<T>(llo, xlo), xhi });
+            }
+            else
+            {
+                gsl_Assert(optional);
             }
         }
     }
@@ -494,38 +505,49 @@ constrain(IntervalT const& x, less_equal_constraint<L, R> const& c, bool& constr
 }
 template <typename IntervalT, typename L, typename R>
 constexpr as_constrained_interval_t<IntervalT>
-constrain(IntervalT const& x, less_constraint<L, R> const& c, bool& constraintApplied)
+constrain(IntervalT const& x, less_constraint<L, R> const& c, bool& constraintConsidered, bool optional = false)
 {
     using CInterval = as_constrained_interval_t<IntervalT>;
     using UInterval = interval_t<IntervalT>;
     using T = common_interval_value_t<L, R>;
 
-    if (c.contains(true))
+    if constexpr (can_compare_id_v<IntervalT, L>)
     {
-        if constexpr (can_compare_id_v<IntervalT, L>)
+        if (matches_identity(x, c.lhs_))
         {
-            if (matches_identity(x, c.lhs_))
+            constraintConsidered = true;
+            if (c.contains(true))
             {
                     // Apply constraint  x < rhs⁺ .
                 auto xlo = lower(x);
                 auto xhi = upper(x);
                 auto rhi = upper(c.rhs_);
                 gsl_AssertDebug(xlo < rhi);
-                constraintApplied = true;
                 return CInterval::make_with_identity(x, UInterval{ xlo, std::min<T>(xhi, pred(rhi)) });
             }
+            else
+            {
+                gsl_Assert(optional);
+            }
         }
-        if constexpr (can_compare_id_v<IntervalT, R>)
+    }
+    if constexpr (can_compare_id_v<IntervalT, R>)
+    {
+        if (matches_identity(x, c.rhs_))
         {
-            if (matches_identity(x, c.rhs_))
+            constraintConsidered = true;
+            if (c.contains(true))
             {
                     // Apply constraint  lhs⁻ < x .
                 auto xlo = lower(x);
                 auto xhi = upper(x);
                 auto llo = lower(c.lhs_);
                 gsl_AssertDebug(llo < xhi);
-                constraintApplied = true;
                 return CInterval::make_with_identity(x, UInterval{ std::max<T>(succ(llo), xlo), xhi });
+            }
+            else
+            {
+                gsl_Assert(optional);
             }
         }
     }
@@ -533,7 +555,7 @@ constrain(IntervalT const& x, less_constraint<L, R> const& c, bool& constraintAp
 }
 template <typename IntervalT, typename L, typename R>
 constexpr as_constrained_interval_t<IntervalT>
-constrain(IntervalT const& x, equal_constraint<L, R> const& c, bool& constraintApplied)
+constrain(IntervalT const& x, equal_constraint<L, R> const& c, bool& constraintConsidered, bool optional = false)
 {
     using CInterval = as_constrained_interval_t<IntervalT>;
     using UInterval = interval_t<IntervalT>;
@@ -541,9 +563,10 @@ constrain(IntervalT const& x, equal_constraint<L, R> const& c, bool& constraintA
 
     if constexpr (can_compare_id_v<IntervalT, L> || can_compare_id_v<IntervalT, R>)
     {
-        if (c.contains(true))
+        if (matches_identity(x, c.lhs_) || matches_identity(x, c.rhs_))
         {
-            if (matches_identity(x, c.lhs_) || matches_identity(x, c.rhs_))
+            constraintConsidered = true;
+            if (c.contains(true))
             {
                     // Apply constraint  lhs = rhs .
                 auto llo = lower(c.lhs_);
@@ -551,8 +574,11 @@ constrain(IntervalT const& x, equal_constraint<L, R> const& c, bool& constraintA
                 auto rlo = lower(c.rhs_);
                 auto rhi = upper(c.rhs_);
                 gsl_AssertDebug(rhi >= llo && rlo <= lhi);  // intervals overlap
-                constraintApplied = true;
                 return CInterval::make_with_identity(x, UInterval{ std::max<T>(llo, rlo), std::min<T>(lhi, rhi) });  // overlapping interval
+            }
+            else
+            {
+                gsl_Assert(optional);
             }
         }
         return x;
@@ -561,16 +587,17 @@ constrain(IntervalT const& x, equal_constraint<L, R> const& c, bool& constraintA
 }
 template <typename IntervalT, typename L, typename R>
 constexpr as_constrained_interval_t<IntervalT>
-constrain(IntervalT const& x, not_equal_constraint<L, R> const& c, bool& constraintApplied)
+constrain(IntervalT const& x, not_equal_constraint<L, R> const& c, bool& constraintConsidered, bool optional = false)
 {
     using CInterval = as_constrained_interval_t<IntervalT>;
     using UInterval = interval_t<IntervalT>;
 
     if constexpr (can_compare_id_v<IntervalT, L> || can_compare_id_v<IntervalT, R>)
     {
-        if (c.contains(true))
+        if (matches_identity(x, c.lhs_) || matches_identity(x, c.rhs_))
         {
-            if (matches_identity(x, c.lhs_) || matches_identity(x, c.rhs_))
+            constraintConsidered = true;
+            if (c.contains(true))
             {
                     // Apply constraint  lhs ≠ rhs .
                 auto llo = lower(c.lhs_);
@@ -578,7 +605,6 @@ constrain(IntervalT const& x, not_equal_constraint<L, R> const& c, bool& constra
                 auto rlo = lower(c.rhs_);
                 auto rhi = upper(c.rhs_);
                 gsl_AssertDebug(llo != rhi || lhi != rlo);  // intervals not identical
-                constraintApplied = true;
                 if constexpr (std::is_integral_v<typename IntervalT::value_type> || std::random_access_iterator<typename IntervalT::value_type>)
                 {
                     if (matches_identity(x, c.lhs_) && llo != lhi && rlo == rhi)
@@ -605,6 +631,10 @@ constrain(IntervalT const& x, not_equal_constraint<L, R> const& c, bool& constra
                     }
                 }
             }
+            else
+            {
+                gsl_Assert(optional);
+            }
         }
         return x;
     }
@@ -612,49 +642,50 @@ constrain(IntervalT const& x, not_equal_constraint<L, R> const& c, bool& constra
 }
 template <typename IntervalT, std::derived_from<condition> L, std::derived_from<condition> R>
 constexpr as_constrained_interval_t<IntervalT>
-constrain(IntervalT const& x, constraint_conjunction<L, R> const& c, bool& constraintApplied)
+constrain(IntervalT const& x, constraint_conjunction<L, R> const& c, bool& constraintConsidered, bool optional = false)
 {
     using CInterval = as_constrained_interval_t<IntervalT>;
     using UInterval = interval_t<IntervalT>;
 
+    auto xl = detail::constrain(x, c.lhs_, constraintConsidered, optional);
+    auto xr = detail::constrain(x, c.rhs_, constraintConsidered, optional);
     if (c.contains(true))
     {
-        auto xl = detail::constrain(x, c.lhs_, constraintApplied);
-        auto xr = detail::constrain(x, c.rhs_, constraintApplied);
-
             // Make sure that the two constraints overlap.
         gsl_AssertDebug(upper(xl) >= lower(xr) && lower(xl) <= upper(xr));
 
         return CInterval::make_with_identity(x, UInterval{ std::max(lower(xl), lower(xr)), std::min(upper(xl), upper(xr)) });
     }
+    // If `!c.contains(true) && !optional`, one of the nested calls to `constrain()` will have triggered an assertion.
     return x;
 }
 template <typename IntervalT, std::derived_from<condition> L, std::derived_from<condition> R>
 constexpr as_constrained_interval_t<IntervalT>
-constrain(IntervalT const& x, constraint_disjunction<L, R> const& c, bool& constraintApplied)
+constrain(IntervalT const& x, constraint_disjunction<L, R> const& c, bool& constraintConsidered, bool optional = false)
 {
     using CInterval = as_constrained_interval_t<IntervalT>;
     using UInterval = interval_t<IntervalT>;
 
-    if (c.contains(true))
+    bool constraintConsidered1 = false;
+    bool constraintConsidered2 = false;
+    bool nestedOptional = true;
+    auto xl = detail::constrain(x, c.lhs_, constraintConsidered1, nestedOptional);
+    auto xr = detail::constrain(x, c.rhs_, constraintConsidered2, nestedOptional);
+    constraintConsidered = constraintConsidered1 || constraintConsidered2;
+    bool blhs = constraintConsidered1 && c.lhs_.contains(true);
+    bool brhs = constraintConsidered2 && c.rhs_.contains(true);
+    gsl_Assert(c.contains(true) || optional);
+    if (blhs && brhs)
     {
-        bool constraintApplied1 = false;
-        bool constraintApplied2 = false;
-        auto xl = detail::constrain(x, c.lhs_, constraintApplied1);
-        auto xr = detail::constrain(x, c.rhs_, constraintApplied2);
-        constraintApplied = constraintApplied1 || constraintApplied2;
-        if (constraintApplied1 && constraintApplied2)
-        {
-            return CInterval::make_with_identity(x, UInterval{ std::min(lower(xl), lower(xr)), std::max(upper(xl), upper(xr)) });
-        }
-        else if (constraintApplied1)
-        {
-            return xl;
-        }
-        else if (constraintApplied2)
-        {
-            return xr;
-        }
+        return CInterval::make_with_identity(x, UInterval{ std::min(lower(xl), lower(xr)), std::max(upper(xl), upper(xr)) });
+    }
+    else if (blhs)
+    {
+        return xl;
+    }
+    else if (brhs)
+    {
+        return xr;
     }
     return x;
 }

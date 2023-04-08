@@ -1115,7 +1115,7 @@ TEST_CASE("interval<>", "interval arithmetic")
                 }
             }
         }
-        SECTION("constraint not applied")
+        SECTION("constraint not considered")
         {
             auto x = interval{ 1. };
             auto y = interval{ 2. };
@@ -1126,6 +1126,27 @@ TEST_CASE("interval<>", "interval arithmetic")
             CHECK_NOTHROW(constrain(x, cx));
             CHECK_THROWS_AS(constrain(x, cxp1), gsl::fail_fast);
             CHECK_THROWS_AS(constrain(x, cy), gsl::fail_fast);
+        }
+        SECTION("constraint not satisfiable")
+        {
+            auto x = interval{ 1. };
+            auto a = interval{ 3. };
+            auto cx1 = x == a;
+            auto cx2 = x >= a;
+            auto cx3 = a < x;
+            CHECK_THROWS_AS(constrain(x, cx1), gsl::fail_fast);
+            CHECK_THROWS_AS(constrain(x, cx2), gsl::fail_fast);
+            CHECK_THROWS_AS(constrain(x, cx3), gsl::fail_fast);
+        }
+        SECTION("composite sub-constraint not satisfiable")
+        {
+            auto x = interval{ 1. };
+            auto y = interval{ 2. };
+            auto a = interval{ 3. };
+            auto cx1t = (x == a) | (y < a);
+            auto cx1f = (x == a) | (y == a);
+            CHECK_NOTHROW(constrain(x, cx1t));
+            CHECK_THROWS_AS(constrain(x, cx1f), gsl::fail_fast);
         }
     }
     SECTION("example: max()")

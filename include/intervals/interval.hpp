@@ -1463,9 +1463,9 @@ template <detail::any_interval IntervalT, std::derived_from<detail::condition> C
 [[nodiscard]] constexpr detail::as_constrained_interval_t<IntervalT>
 constrain(IntervalT const& x, ConditionT const& c)
 {
-    bool constraintApplied = false;
-    auto xc = detail::constrain(x, c, constraintApplied);
-    gsl_Assert(constraintApplied && "conditional expression does not constrain given interval");
+    bool constraintConsidered = false;
+    auto xc = detail::constrain(x, c, constraintConsidered);
+    gsl_Assert(constraintConsidered && "conditional expression does not constrain given interval");
     return xc;
 }
 template <detail::any_interval IntervalT, std::derived_from<detail::condition> ConditionT>
