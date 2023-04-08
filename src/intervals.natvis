@@ -29,6 +29,13 @@
             <Item Name="upper">upper_</Item>
         </Expand>
     </Type>
+    <Type Name="intervals::detail::constrained_interval&lt;*&gt;">
+        <DisplayString>{ *($T1*)this }</DisplayString>
+        <Expand>
+            <Item Name="id">(void*) id_</Item>
+            <ExpandedItem>*($T1*)this</ExpandedItem>
+        </Expand>
+    </Type>
     <Type Name="intervals::detail::arithmetic_interval_base&lt;*&gt;">
         <DisplayString Condition="lower_ &gt; upper_">uninitialized</DisplayString>
         <DisplayString Condition="lower_ == upper_">{ lower_,g }</DisplayString>
