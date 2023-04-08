@@ -919,6 +919,23 @@ template <typename S, typename T> using propagate_set_t = typename propagate_set
 inline namespace math {
 
 
+template <detail::any_interval X>
+[[nodiscard]] constexpr detail::interval_value_t<X>
+liminf(X&& x)
+{
+    gsl_ExpectsDebug(detail::assigned(x));
+
+    return detail::lower(x);
+}
+template <detail::any_interval X>
+[[nodiscard]] constexpr detail::interval_value_t<X>
+limsup(X&& x)
+{
+    gsl_ExpectsDebug(detail::assigned(x));
+
+    return detail::upper(x);
+}
+
 template <typename L, typename R>
 requires detail::any_interval<L, R> && detail::same_values<L, R> && detail::relational_values<L, R>
 [[nodiscard]] constexpr detail::interval_of_t<L>

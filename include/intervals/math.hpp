@@ -35,13 +35,26 @@ wraparound(T x, T min, T max)
 inline namespace math {
 
 
-template <detail::arithmetic T>
+template <detail::interval_value X>
+[[nodiscard]] constexpr inline X
+liminf(X x)
+{
+    return x;
+}
+template <detail::interval_value X>
+[[nodiscard]] constexpr inline X
+limsup(X x)
+{
+    return x;
+}
+
+template <detail::interval_value T>
 [[nodiscard]] constexpr inline T
 min(T lhs, T rhs)
 {
     return rhs < lhs ? rhs : lhs;
 }
-template <detail::arithmetic T>
+template <detail::interval_value T>
 [[nodiscard]] constexpr inline T
 max(T lhs, T rhs)
 {
