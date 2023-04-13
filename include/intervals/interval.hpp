@@ -1523,22 +1523,46 @@ template <intervals::detail::any_interval IntervalT> class std::tuple_size<Inter
 template <std::size_t I, intervals::detail::any_interval IntervalT> class std::tuple_element<I, IntervalT> { public: using type = typename IntervalT::value_type; };
 
     // Specialize `std::common_type<>` for intervals.
-    // TODO: constraints are apparently inadequate here; we need to be more specific
-//template <intervals::detail::any_interval L, intervals::detail::any_interval R>
-//struct std::common_type<L, R>
-//{
-//    using type = intervals::detail::common_interval_t<L, R>;
-//};
-//template <intervals::detail::any_interval L, intervals::detail::interval_value R>
-//struct std::common_type<L, R>
-//{
-//    using type = intervals::detail::common_interval_t<L, R>;
-//};
-//template <intervals::detail::interval_value L, intervals::detail::any_interval R>
-//struct std::common_type<L, R>
-//{
-//    using type = intervals::detail::common_interval_t<L, R>;
-//};
+template <typename L, intervals::detail::interval_value R>
+struct std::common_type<intervals::interval<L>, R>
+{
+    using type = intervals::detail::common_interval_t<L, R>;
+};
+template <intervals::detail::interval_value L, typename R>
+struct std::common_type<L, intervals::interval<R>>
+{
+    using type = intervals::detail::common_interval_t<L, R>;
+};
+template <typename L, typename R>
+struct std::common_type<intervals::interval<L>, intervals::interval<R>>
+{
+    using type = intervals::detail::common_interval_t<L, R>;
+};
+template <typename L, intervals::detail::interval_value R>
+struct std::common_type<intervals::detail::constrained_interval<L>, R>
+{
+    using type = intervals::detail::common_interval_t<L, R>;
+};
+template <intervals::detail::interval_value L, typename R>
+struct std::common_type<L, intervals::detail::constrained_interval<R>>
+{
+    using type = intervals::detail::common_interval_t<L, R>;
+};
+template <typename L, typename R>
+struct std::common_type<intervals::detail::constrained_interval<L>, intervals::interval<R>>
+{
+    using type = intervals::detail::common_interval_t<L, R>;
+};
+template <typename L, typename R>
+struct std::common_type<intervals::interval<L>, intervals::detail::constrained_interval<R>>
+{
+    using type = intervals::detail::common_interval_t<L, R>;
+};
+template <typename L, typename R>
+struct std::common_type<intervals::detail::constrained_interval<L>, intervals::detail::constrained_interval<R>>
+{
+    using type = intervals::detail::common_interval_t<L, R>;
+};
 
 
 #endif // INCLUDED_INTERVALS_INTERVAL_HPP_
