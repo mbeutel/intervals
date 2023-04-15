@@ -14,6 +14,8 @@
 #include <intervals/set.hpp>
 #include <intervals/concepts.hpp>
 
+#include <intervals/detail/concepts-internal.hpp>
+
 
 namespace intervals {
 
@@ -291,7 +293,7 @@ constexpr inline common_interval_t<L, R>
 nan_interval() noexcept
 {
     using T = common_interval_value_t<L, R>;
-    if constexpr (floating_point_operands<L, R>)
+    if constexpr (detail::floating_point_operands<L, R>)
     {
         constexpr T nan = std::numeric_limits<T>::quiet_NaN();
         return common_interval_t<L, R>{ nan, nan };
@@ -304,7 +306,7 @@ constexpr inline common_interval_t<L, R>
 inf_interval() noexcept
 {
     using T = common_interval_value_t<L, R>;
-    if constexpr (floating_point_operands<L, R>)
+    if constexpr (detail::floating_point_operands<L, R>)
     {
         constexpr T inf = std::numeric_limits<T>::infinity();
         return common_interval_t<L, R>{ -inf, inf };
