@@ -1064,7 +1064,7 @@ pow(X&& x, Y&& y)
 
     using XV = interval_arg_value_t<X>;
     using YV = interval_arg_value_t<Y>;
-    auto result = detail::common_interval_t<X, Y>{ };
+    auto result = common_interval_t<X, Y>{ };
     if (intervals::possibly(x >= 0))
     {
         result.assign(intervals::exp(detail::_multiply_0(y, intervals::log(intervals::max(XV(0), x)))));
@@ -1183,13 +1183,13 @@ atan2(Y&& y, X&& x)
     {
         auto v1 = intervals::atan2(y, detail::lower(x));
         auto v2 = intervals::atan2(y, detail::upper(x));
-        return detail::common_interval_t<Y, X>{ intervals::min(v1, v2), intervals::max(v1, v2) };
+        return common_interval_t<Y, X>{ intervals::min(v1, v2), intervals::max(v1, v2) };
     }
     else if constexpr (interval_value<X>)
     {
         auto v1 = intervals::atan2(detail::lower(y), x);
         auto v2 = intervals::atan2(detail::upper(y), x);
-        return detail::common_interval_t<Y, X>{ intervals::min(v1, v2), intervals::max(v1, v2) };
+        return common_interval_t<Y, X>{ intervals::min(v1, v2), intervals::max(v1, v2) };
     }
     else
     {
@@ -1197,7 +1197,7 @@ atan2(Y&& y, X&& x)
         auto v2 = intervals::atan2(detail::lower(y), detail::upper(x));
         auto v3 = intervals::atan2(detail::upper(y), detail::lower(x));
         auto v4 = intervals::atan2(detail::upper(y), detail::upper(x));
-        return detail::common_interval_t<Y, X>{ intervals::min(intervals::min(v1, v2), intervals::min(v3, v4)), intervals::max(intervals::max(v1, v2), intervals::max(v3, v4)) };
+        return common_interval_t<Y, X>{ intervals::min(intervals::min(v1, v2), intervals::min(v3, v4)), intervals::max(intervals::max(v1, v2), intervals::max(v3, v4)) };
     }
 }
 
@@ -1256,14 +1256,14 @@ fractional_weights(A&& a, B&& b)
     auto blo = detail::lower(b);
     auto bhi = detail::upper(b);
     return std::pair{
-        detail::common_interval_t<A, B>{ alo/(alo + bhi), ahi/(ahi + blo) },
-        detail::common_interval_t<A, B>{ blo/(ahi + blo), bhi/(alo + bhi) }
+        common_interval_t<A, B>{ alo/(alo + bhi), ahi/(ahi + blo) },
+        common_interval_t<A, B>{ blo/(ahi + blo), bhi/(alo + bhi) }
     };
 }
 
 template <typename AB, typename XY>
 requires any_interval<AB, XY> && detail::floating_point_operands<AB, XY>
-[[nodiscard]] constexpr detail::common_interval_t<AB, XY>
+[[nodiscard]] constexpr common_interval_t<AB, XY>
 blend_linear(AB&& a, AB&& b, XY&& x, XY&& y)
 {
     gsl_ExpectsDebug(detail::assigned(a) && detail::assigned(b) && detail::assigned(x) && detail::assigned(y));
@@ -1293,7 +1293,7 @@ blend_linear(AB&& a, AB&& b, XY&& x, XY&& y)
         : qhi*xhi + (1 - qhi)*yhi;
 
         // We use `min()` and `max()` to mitigate rounding errors.
-    return detail::common_interval_t<AB, XY>{
+    return common_interval_t<AB, XY>{
         intervals::min(rlo, rhi),
         intervals::max(rlo, rhi)
     };
@@ -1526,42 +1526,42 @@ template <std::size_t I, intervals::any_interval IntervalT> class std::tuple_ele
 template <typename L, intervals::interval_value R>
 struct std::common_type<intervals::interval<L>, R>
 {
-    using type = intervals::detail::common_interval_t<L, R>;
+    using type = intervals::common_interval_t<L, R>;
 };
 template <intervals::interval_value L, typename R>
 struct std::common_type<L, intervals::interval<R>>
 {
-    using type = intervals::detail::common_interval_t<L, R>;
+    using type = intervals::common_interval_t<L, R>;
 };
 template <typename L, typename R>
 struct std::common_type<intervals::interval<L>, intervals::interval<R>>
 {
-    using type = intervals::detail::common_interval_t<L, R>;
+    using type = intervals::common_interval_t<L, R>;
 };
 template <typename L, intervals::interval_value R>
 struct std::common_type<intervals::detail::constrained_interval<L>, R>
 {
-    using type = intervals::detail::common_interval_t<L, R>;
+    using type = intervals::common_interval_t<L, R>;
 };
 template <intervals::interval_value L, typename R>
 struct std::common_type<L, intervals::detail::constrained_interval<R>>
 {
-    using type = intervals::detail::common_interval_t<L, R>;
+    using type = intervals::common_interval_t<L, R>;
 };
 template <typename L, typename R>
 struct std::common_type<intervals::detail::constrained_interval<L>, intervals::interval<R>>
 {
-    using type = intervals::detail::common_interval_t<L, R>;
+    using type = intervals::common_interval_t<L, R>;
 };
 template <typename L, typename R>
 struct std::common_type<intervals::interval<L>, intervals::detail::constrained_interval<R>>
 {
-    using type = intervals::detail::common_interval_t<L, R>;
+    using type = intervals::common_interval_t<L, R>;
 };
 template <typename L, typename R>
 struct std::common_type<intervals::detail::constrained_interval<L>, intervals::detail::constrained_interval<R>>
 {
-    using type = intervals::detail::common_interval_t<L, R>;
+    using type = intervals::common_interval_t<L, R>;
 };
 
 

@@ -66,6 +66,12 @@ template <interval_arg T> using interval_of_t = interval<interval_arg_value_t<T>
 
 template <any_interval T> using interval_t = typename std::remove_cvref_t<T>::interval_type;
 
+template <interval_arg... Ts>
+using common_interval_value_t = std::common_type_t<interval_arg_value_t<Ts>...>;
+
+template <interval_arg... Ts>
+using common_interval_t = interval<common_interval_value_t<Ts...>>;
+
 
 namespace detail {
 
@@ -90,12 +96,6 @@ concept same_values =
     interval_arg<L> &&
     interval_arg<R> &&
     std::same_as<interval_arg_value_t<L>, interval_arg_value_t<R>>;
-
-template <interval_arg... Ts>
-using common_interval_value_t = std::common_type_t<interval_arg_value_t<Ts>...>;
-
-template <interval_arg... Ts>
-using common_interval_t = interval<common_interval_value_t<Ts...>>;
 
 template <typename L, typename R>
 concept arithmetic_operands =
