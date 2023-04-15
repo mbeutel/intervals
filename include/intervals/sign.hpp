@@ -7,7 +7,8 @@
 
 #include <gsl-lite/gsl-lite.hpp>  // for type_identity<>
 
-#include <intervals/detail/concepts.hpp>
+#include <intervals/concepts.hpp>
+
 #include <intervals/detail/sign.hpp>
 
 
@@ -43,20 +44,20 @@ operator *(sign lhs, sign rhs)
 {
     return sign(int(lhs)*int(rhs));
 }
-template <detail::arithmetic T>
+template <arithmetic T>
 [[nodiscard]] constexpr T
 operator *(T lhs, sign rhs)
 {
     return lhs*int(rhs);
 }
-template <detail::arithmetic T>
+template <arithmetic T>
 [[nodiscard]] constexpr T
 operator *(sign lhs, T rhs)
 {
     return int(lhs)*rhs;
 }
 
-template <detail::arithmetic T>
+template <arithmetic T>
 [[nodiscard]] constexpr sign
 sgn(T x)
 {

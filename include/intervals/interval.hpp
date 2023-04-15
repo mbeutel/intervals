@@ -693,11 +693,11 @@ public:
     // Algebraic type representing a bounded scalar.
 template <typename T>
 class interval;
-template <detail::interval_value T>
+template <interval_value T>
 interval(interval<T>) -> interval<T>;
-template <detail::interval_value T>
+template <interval_value T>
 interval(T) -> interval<T>;
-template <detail::interval_value T1, detail::interval_value T2>
+template <interval_value T1, interval_value T2>
 interval(T1, T2) -> interval<std::common_type_t<T1, T2>>;
 template <std::floating_point T>
 class interval<T> : public detail::arithmetic_interval_base<T>
@@ -919,16 +919,16 @@ template <typename S, typename T> using propagate_set_t = typename propagate_set
 inline namespace math {
 
 
-template <detail::any_interval X>
-[[nodiscard]] constexpr detail::interval_value_t<X>
+template <any_interval X>
+[[nodiscard]] constexpr interval_value_t<X>
 infimum(X&& x)
 {
     gsl_ExpectsDebug(detail::assigned(x));
 
     return detail::lower(x);
 }
-template <detail::any_interval X>
-[[nodiscard]] constexpr detail::interval_value_t<X>
+template <any_interval X>
+[[nodiscard]] constexpr interval_value_t<X>
 supremum(X&& x)
 {
     gsl_ExpectsDebug(detail::assigned(x));
@@ -937,52 +937,52 @@ supremum(X&& x)
 }
 
 template <typename L, typename R>
-requires detail::any_interval<L, R> && detail::same_values<L, R> && detail::relational_values<L, R>
-[[nodiscard]] constexpr detail::interval_of_t<L>
+requires any_interval<L, R> && detail::same_values<L, R> && detail::relational_values<L, R>
+[[nodiscard]] constexpr interval_of_t<L>
 min(L&& lhs, R&& rhs)
 {
     gsl_ExpectsDebug(detail::assigned(lhs) && detail::assigned(rhs));
 
-    return detail::interval_of_t<L>{ intervals::min(detail::lower(lhs), detail::lower(rhs)), intervals::min(detail::upper(lhs), detail::upper(rhs)) };
+    return interval_of_t<L>{ intervals::min(detail::lower(lhs), detail::lower(rhs)), intervals::min(detail::upper(lhs), detail::upper(rhs)) };
 }
 template <typename L, typename R>
-requires detail::any_interval<L, R> && detail::same_values<L, R> && detail::relational_values<L, R>
-[[nodiscard]] constexpr detail::interval_of_t<L>
+requires any_interval<L, R> && detail::same_values<L, R> && detail::relational_values<L, R>
+[[nodiscard]] constexpr interval_of_t<L>
 max(L&& lhs, R&& rhs)
 {
     gsl_ExpectsDebug(detail::assigned(lhs) && detail::assigned(rhs));
 
-    return detail::interval_of_t<L>{ intervals::max(detail::lower(lhs), detail::lower(rhs)), intervals::max(detail::upper(lhs), detail::upper(rhs)) };
+    return interval_of_t<L>{ intervals::max(detail::lower(lhs), detail::lower(rhs)), intervals::max(detail::upper(lhs), detail::upper(rhs)) };
 }
 
-template <detail::arithmetic_interval X>
-[[nodiscard]] constexpr detail::interval_t<X>
+template <arithmetic_interval X>
+[[nodiscard]] constexpr interval_t<X>
 square(X&& x)
 {
     gsl_ExpectsDebug(x.assigned());
 
     auto lo = detail::lower(x);
     auto hi = detail::upper(x);
-    return detail::interval_t<X>{
+    return interval_t<X>{
         lo <= 0 && hi >= 0  // 0 ∈ [a, b]
             ? 0
             : intervals::min(lo*lo, hi*hi),
         intervals::max(lo*lo, hi*hi)
     };
 }
-template <detail::arithmetic_interval X>
-[[nodiscard]] constexpr detail::interval_t<X>
+template <arithmetic_interval X>
+[[nodiscard]] constexpr interval_t<X>
 cube(X&& x)
 {
     gsl_ExpectsDebug(x.assigned());
 
     auto lo = detail::lower(x);
     auto hi = detail::upper(x);
-    return detail::interval_t<X>{ lo*lo*lo, hi*hi*hi };
+    return interval_t<X>{ lo*lo*lo, hi*hi*hi };
 }
 
-template <detail::arithmetic_interval X>
-[[nodiscard]] constexpr detail::interval_t<X>
+template <arithmetic_interval X>
+[[nodiscard]] constexpr interval_t<X>
 abs(X&& x)
 {
     gsl_ExpectsDebug(x.assigned());
@@ -990,13 +990,13 @@ abs(X&& x)
     auto lo = detail::lower(x);
     auto hi = detail::upper(x);
     return lo <= 0 && hi >= 0                             // if  0 ∈ [a,b] :
-                ? detail::interval_t<X>{ 0, intervals::max(-lo, hi) } //     → [0, max{-a,b}]
+                ? interval_t<X>{ 0, intervals::max(-lo, hi) } //     → [0, max{-a,b}]
             : lo < 0                                      // else if  a,b < 0 :
-                ? detail::interval_t<X>{ -hi, -lo }                   //     → [-b,-a]
+                ? interval_t<X>{ -hi, -lo }                   //     → [-b,-a]
             : x;                                          // else            → [a,b]
 }
 
-template <detail::arithmetic_interval X>
+template <arithmetic_interval X>
 [[nodiscard]] constexpr set<sign>
 sgn(X&& x)
 {
@@ -1020,40 +1020,40 @@ sgn(X&& x)
     return result;
 }
 
-template <detail::floating_point_interval X>
-[[nodiscard]] constexpr detail::interval_t<X>
+template <floating_point_interval X>
+[[nodiscard]] constexpr interval_t<X>
 sqrt(X&& x)
 {
     gsl_ExpectsDebug(x.assigned());
 
-    return detail::interval_t<X>{ intervals::sqrt(detail::lower(x)), intervals::sqrt(detail::upper(x)) };
+    return interval_t<X>{ intervals::sqrt(detail::lower(x)), intervals::sqrt(detail::upper(x)) };
 }
-template <detail::floating_point_interval X>
-[[nodiscard]] constexpr detail::interval_t<X>
+template <floating_point_interval X>
+[[nodiscard]] constexpr interval_t<X>
 cbrt(X&& x)
 {
     gsl_ExpectsDebug(x.assigned());
 
-    return detail::interval_t<X>{ intervals::cbrt(detail::lower(x)), intervals::cbrt(detail::upper(x)) };
+    return interval_t<X>{ intervals::cbrt(detail::lower(x)), intervals::cbrt(detail::upper(x)) };
 }
-template <detail::floating_point_interval X>
-[[nodiscard]] constexpr detail::interval_t<X>
+template <floating_point_interval X>
+[[nodiscard]] constexpr interval_t<X>
 log(X&& x)
 {
     gsl_ExpectsDebug(x.assigned());
 
-    return detail::interval_t<X>{ intervals::log(detail::lower(x)), intervals::log(detail::upper(x)) };
+    return interval_t<X>{ intervals::log(detail::lower(x)), intervals::log(detail::upper(x)) };
 }
-template <detail::floating_point_interval X>
-[[nodiscard]] constexpr detail::interval_t<X>
+template <floating_point_interval X>
+[[nodiscard]] constexpr interval_t<X>
 exp(X&& x)
 {
     gsl_ExpectsDebug(x.assigned());
 
-    return detail::interval_t<X>{ intervals::exp(detail::lower(x)), intervals::exp(detail::upper(x)) };
+    return interval_t<X>{ intervals::exp(detail::lower(x)), intervals::exp(detail::upper(x)) };
 }
-template <detail::interval_arg X, detail::interval_arg Y>
-requires detail::any_interval<X, Y> && detail::floating_point_operands<X, Y>
+template <interval_arg X, interval_arg Y>
+requires any_interval<X, Y> && detail::floating_point_operands<X, Y>
 [[nodiscard]] constexpr auto
 pow(X&& x, Y&& y)
 {
@@ -1062,8 +1062,8 @@ pow(X&& x, Y&& y)
     using std::max;
     using std::log;
 
-    using XV = detail::interval_arg_value_t<X>;
-    using YV = detail::interval_arg_value_t<Y>;
+    using XV = interval_arg_value_t<X>;
+    using YV = interval_arg_value_t<Y>;
     auto result = detail::common_interval_t<X, Y>{ };
     if (intervals::possibly(x >= 0))
     {
@@ -1087,13 +1087,13 @@ pow(X&& x, Y&& y)
     return result;
 }
 
-template <detail::floating_point_interval X>
-[[nodiscard]] constexpr detail::interval_t<X>
+template <floating_point_interval X>
+[[nodiscard]] constexpr interval_t<X>
 cos(X&& x)
 {
     gsl_ExpectsDebug(x.assigned());
 
-    using T = detail::interval_value_t<X>;
+    using T = interval_value_t<X>;
     auto lo = intervals::wraparound(detail::lower(x), -std::numbers::pi_v<T>, std::numbers::pi_v<T>);
     auto delta = lo - detail::lower(x);
     auto hi = detail::upper(x) + delta;
@@ -1101,40 +1101,40 @@ cos(X&& x)
     {
         if (hi <= T(0))
         {
-            return detail::interval_t<X>{ intervals::cos(lo), intervals::cos(hi) };
+            return interval_t<X>{ intervals::cos(lo), intervals::cos(hi) };
         }
         else if (hi <= std::numbers::pi_v<T>)
         {
-            return detail::interval_t<X>{ intervals::min(intervals::cos(lo), intervals::cos(hi)), 1 };
+            return interval_t<X>{ intervals::min(intervals::cos(lo), intervals::cos(hi)), 1 };
         }
     }
     else  // 0 < lo < π
     {
         if (hi <= std::numbers::pi_v<T>)
         {
-            return detail::interval_t<X>{ intervals::cos(hi), intervals::cos(lo) };
+            return interval_t<X>{ intervals::cos(hi), intervals::cos(lo) };
         }
         else if (hi <= 2*std::numbers::pi_v<T>)
         {
-            return detail::interval_t<X>{ -1, intervals::max(intervals::cos(lo), intervals::cos(hi)) };
+            return interval_t<X>{ -1, intervals::max(intervals::cos(lo), intervals::cos(hi)) };
         }
     }
-    return detail::interval_t<X>{ T(-1), T(1) };
+    return interval_t<X>{ T(-1), T(1) };
 }
-template <detail::floating_point_interval X>
-[[nodiscard]] constexpr detail::interval_t<X>
+template <floating_point_interval X>
+[[nodiscard]] constexpr interval_t<X>
 sin(X&& x)
 {
-    using T = detail::interval_value_t<X>;
+    using T = interval_value_t<X>;
     return intervals::cos(x - std::numbers::pi_v<T>/2);
 }
-template <detail::floating_point_interval X>
-[[nodiscard]] constexpr detail::interval_t<X>
+template <floating_point_interval X>
+[[nodiscard]] constexpr interval_t<X>
 tan(X&& x)
 {
     gsl_ExpectsDebug(x.assigned());
 
-    using T = detail::interval_value_t<X>;
+    using T = interval_value_t<X>;
     auto lo = intervals::wraparound(detail::lower(x), -std::numbers::pi_v<T>/2, std::numbers::pi_v<T>/2);
     auto delta = lo - detail::lower(x);
     auto hi = detail::upper(x) + delta;
@@ -1142,34 +1142,34 @@ tan(X&& x)
     {
         return detail::inf_interval<T>();
     }
-    return detail::interval_t<X>{ intervals::tan(lo), intervals::tan(hi) };
+    return interval_t<X>{ intervals::tan(lo), intervals::tan(hi) };
 }
-template <detail::floating_point_interval X>
-[[nodiscard]] constexpr detail::interval_t<X>
+template <floating_point_interval X>
+[[nodiscard]] constexpr interval_t<X>
 acos(X&& x)
 {
     gsl_ExpectsDebug(x.assigned());
 
-    return detail::interval_t<X>{ intervals::acos(detail::upper(x)), intervals::acos(detail::lower(x)) };
+    return interval_t<X>{ intervals::acos(detail::upper(x)), intervals::acos(detail::lower(x)) };
 }
-template <detail::floating_point_interval X>
-[[nodiscard]] constexpr detail::interval_t<X>
+template <floating_point_interval X>
+[[nodiscard]] constexpr interval_t<X>
 asin(X&& x)
 {
     gsl_ExpectsDebug(x.assigned());
 
-    return detail::interval_t<X>{ intervals::asin(detail::lower(x)), intervals::asin(detail::upper(x)) };
+    return interval_t<X>{ intervals::asin(detail::lower(x)), intervals::asin(detail::upper(x)) };
 }
-template <detail::floating_point_interval X>
-[[nodiscard]] constexpr detail::interval_t<X>
+template <floating_point_interval X>
+[[nodiscard]] constexpr interval_t<X>
 atan(X&& x)
 {
     gsl_ExpectsDebug(x.assigned());
 
-    return detail::interval_t<X>{ intervals::atan(detail::lower(x)), intervals::atan(detail::upper(x)) };
+    return interval_t<X>{ intervals::atan(detail::lower(x)), intervals::atan(detail::upper(x)) };
 }
 template <typename Y, typename X>
-requires detail::any_interval<X, Y> && detail::floating_point_operands<Y, X>
+requires any_interval<X, Y> && detail::floating_point_operands<Y, X>
 [[nodiscard]] constexpr auto
 atan2(Y&& y, X&& x)
 {
@@ -1179,13 +1179,13 @@ atan2(Y&& y, X&& x)
     {
         return detail::nan_interval<Y, X>();
     }
-    if constexpr (detail::interval_value<Y>)
+    if constexpr (interval_value<Y>)
     {
         auto v1 = intervals::atan2(y, detail::lower(x));
         auto v2 = intervals::atan2(y, detail::upper(x));
         return detail::common_interval_t<Y, X>{ intervals::min(v1, v2), intervals::max(v1, v2) };
     }
-    else if constexpr (detail::interval_value<X>)
+    else if constexpr (interval_value<X>)
     {
         auto v1 = intervals::atan2(detail::lower(y), x);
         auto v2 = intervals::atan2(detail::upper(y), x);
@@ -1201,48 +1201,48 @@ atan2(Y&& y, X&& x)
     }
 }
 
-template <detail::floating_point_interval X>
-[[nodiscard]] constexpr detail::interval_t<X>
+template <floating_point_interval X>
+[[nodiscard]] constexpr interval_t<X>
 floor(X&& x)
 {
     gsl_ExpectsDebug(x.assigned());
 
-    return detail::interval_t<X>{ intervals::floor(detail::lower(x)), intervals::floor(detail::upper(x)) };
+    return interval_t<X>{ intervals::floor(detail::lower(x)), intervals::floor(detail::upper(x)) };
 }
-template <detail::floating_point_interval X>
-[[nodiscard]] constexpr detail::interval_t<X>
+template <floating_point_interval X>
+[[nodiscard]] constexpr interval_t<X>
 ceil(X&& x)
 {
     gsl_ExpectsDebug(x.assigned());
 
-    return detail::interval_t<X>{ intervals::ceil(detail::lower(x)), intervals::ceil(detail::upper(x)) };
+    return interval_t<X>{ intervals::ceil(detail::lower(x)), intervals::ceil(detail::upper(x)) };
 }
-template <detail::floating_point_interval X>
-[[nodiscard]] constexpr detail::interval_t<X>
+template <floating_point_interval X>
+[[nodiscard]] constexpr interval_t<X>
 round(X&& x)
 {
     gsl_ExpectsDebug(x.assigned());
 
-    return detail::interval_t<X>{ intervals::round(detail::lower(x)), intervals::round(detail::upper(x)) };
+    return interval_t<X>{ intervals::round(detail::lower(x)), intervals::round(detail::upper(x)) };
 }
-template <detail::floating_point_interval X>
-[[nodiscard]] constexpr detail::interval_t<X>
+template <floating_point_interval X>
+[[nodiscard]] constexpr interval_t<X>
 frac(X&& x)
 {
     gsl_ExpectsDebug(x.assigned());
 
-    using T = detail::interval_value_t<X>;
+    using T = interval_value_t<X>;
     T lfloor = intervals::floor(detail::lower(x));
     T ufloor = intervals::floor(detail::upper(x));
     if (lfloor != ufloor)
     {
-        return detail::interval_t<X>{ 0, 1 };
+        return interval_t<X>{ 0, 1 };
     }
-    return detail::interval_t<X>{ detail::lower(x) - lfloor, detail::upper(x) - ufloor };
+    return interval_t<X>{ detail::lower(x) - lfloor, detail::upper(x) - ufloor };
 }
 
 template <typename A, typename B>
-requires detail::any_interval<A, B> && detail::floating_point_operands<A, B>
+requires any_interval<A, B> && detail::floating_point_operands<A, B>
 [[nodiscard]] constexpr auto
 fractional_weights(A&& a, B&& b)
 {
@@ -1262,7 +1262,7 @@ fractional_weights(A&& a, B&& b)
 }
 
 template <typename AB, typename XY>
-requires detail::any_interval<AB, XY> && detail::floating_point_operands<AB, XY>
+requires any_interval<AB, XY> && detail::floating_point_operands<AB, XY>
 [[nodiscard]] constexpr detail::common_interval_t<AB, XY>
 blend_linear(AB&& a, AB&& b, XY&& x, XY&& y)
 {
@@ -1299,7 +1299,7 @@ blend_linear(AB&& a, AB&& b, XY&& x, XY&& y)
     };
 }
 
-template <detail::floating_point_interval X>
+template <floating_point_interval X>
 [[nodiscard]] constexpr set<bool>
 isinf(X&& x)
 {
@@ -1318,13 +1318,13 @@ isinf(X&& x)
     }
     return result;
 }
-template <detail::floating_point_interval X>
+template <floating_point_interval X>
 [[nodiscard]] constexpr set<bool>
 isfinite(X&& x)
 {
     return !intervals::isinf(x);
 }
-template <detail::floating_point_interval X>
+template <floating_point_interval X>
 [[nodiscard]] constexpr set<bool>
 isnan(X&& x)
 {
@@ -1337,22 +1337,22 @@ isnan(X&& x)
     return set{ false };
 }
 
-template <detail::iterator_interval T>
-[[nodiscard]] constexpr detail::interval_of_t<T>
+template <iterator_interval T>
+[[nodiscard]] constexpr interval_of_t<T>
 prev(T&& x)
 {
-    return detail::interval_of_t<T>{ detail::pred(detail::lower(x)), detail::pred(detail::upper(x)) };
+    return interval_of_t<T>{ detail::pred(detail::lower(x)), detail::pred(detail::upper(x)) };
 }
-template <detail::iterator_interval T>
-[[nodiscard]] constexpr detail::interval_of_t<T>
+template <iterator_interval T>
+[[nodiscard]] constexpr interval_of_t<T>
 next(T&& x)
 {
-    return detail::interval_of_t<T>{ detail::succ(detail::lower(x)), detail::succ(detail::upper(x)) };
+    return interval_of_t<T>{ detail::succ(detail::lower(x)), detail::succ(detail::upper(x)) };
 }
 
 
-template <detail::interval_value T, detail::any_interval U>
-requires std::convertible_to<detail::interval_value_t<U>, T>
+template <interval_value T, any_interval U>
+requires std::convertible_to<interval_value_t<U>, T>
 [[nodiscard]] constexpr inline set_of_t<T>
 narrow_cast(U&& rhs) noexcept
 {
@@ -1362,8 +1362,8 @@ narrow_cast(U&& rhs) noexcept
     }
     return set_of_t<T>{ };
 }
-template <detail::interval_value T, detail::any_interval U>
-requires std::convertible_to<detail::interval_value_t<U>, T>
+template <interval_value T, any_interval U>
+requires std::convertible_to<interval_value_t<U>, T>
 [[nodiscard]] constexpr inline set_of_t<T>
 narrow(U&& rhs)
 {
@@ -1373,8 +1373,8 @@ narrow(U&& rhs)
     }
     return set_of_t<T>{ };
 }
-template <detail::interval_value T, detail::any_interval U>
-requires std::convertible_to<detail::interval_value_t<U>, T>
+template <interval_value T, any_interval U>
+requires std::convertible_to<interval_value_t<U>, T>
 [[nodiscard]] constexpr inline set_of_t<T>
 narrow_failfast(U&& rhs)
 {
@@ -1396,7 +1396,7 @@ get(detail::interval_base<T> const& bound)
 }
 
 
-template <detail::arithmetic T>
+template <arithmetic T>
 [[nodiscard]] constexpr interval<T>
 operator *(T lhs, set<sign> rhs)
 {
@@ -1415,7 +1415,7 @@ operator *(T lhs, set<sign> rhs)
     }
     return result;
 }
-template <detail::arithmetic T>
+template <arithmetic T>
 [[nodiscard]] constexpr interval<T>
 operator *(set<sign> lhs, T rhs)
 {
@@ -1436,22 +1436,22 @@ assign_partial(interval<T>& lhs, gsl::type_identity_t<interval<T>> const& rhs)
 {
     lhs.assign(rhs);
 }
-template <detail::any_interval IntervalT>
+template <any_interval IntervalT>
 constexpr void
-reset(IntervalT& lhs, gsl::type_identity_t<detail::interval_t<IntervalT>> const& rhs)
+reset(IntervalT& lhs, gsl::type_identity_t<interval_t<IntervalT>> const& rhs)
 {
     lhs.reset(rhs);
 }
 
     // Expression does not constrain given interval.
-template <detail::any_interval IntervalT>
+template <any_interval IntervalT>
 constexpr IntervalT const&
 constrain(IntervalT const& x, set<bool>)
 {
     static_assert(makeshift::dependent_false<IntervalT>, "conditional expression does not constrain given interval");
     return x;
 }
-template <detail::any_interval IntervalT>
+template <any_interval IntervalT>
 constexpr IntervalT const&&
 constrain(IntervalT const&& x, set<bool>)
 {
@@ -1459,7 +1459,7 @@ constrain(IntervalT const&& x, set<bool>)
     return std::move(x);
 }
 
-template <detail::any_interval IntervalT, std::derived_from<detail::condition> ConditionT>
+template <any_interval IntervalT, std::derived_from<detail::condition> ConditionT>
 [[nodiscard]] constexpr detail::as_constrained_interval_t<IntervalT>
 constrain(IntervalT const& x, ConditionT const& c)
 {
@@ -1468,7 +1468,7 @@ constrain(IntervalT const& x, ConditionT const& c)
     gsl_Assert(constraintConsidered && "conditional expression does not constrain given interval");
     return xc;
 }
-template <detail::any_interval IntervalT, std::derived_from<detail::condition> ConditionT>
+template <any_interval IntervalT, std::derived_from<detail::condition> ConditionT>
 [[nodiscard]] constexpr IntervalT const&&
 constrain(IntervalT const&& x, ConditionT const&)
 {
@@ -1477,7 +1477,7 @@ constrain(IntervalT const&& x, ConditionT const&)
 }
 
 
-template <detail::interval_value T>
+template <interval_value T>
 [[nodiscard]] constexpr interval<T>
 if_else(set<bool> cond, detail::interval_base<T> const& resultIfTrue, detail::interval_base<T> const& resultIfFalse)
 {
@@ -1492,13 +1492,13 @@ if_else(set<bool> cond, detail::interval_base<T> const& resultIfTrue, detail::in
     }
     return result;
 }
-template <detail::interval_value T>
+template <interval_value T>
 [[nodiscard]] constexpr interval<T>
 if_else(set<bool> cond, T resultIfTrue, detail::interval_base<T> const& resultIfFalse)
 {
     return intervals::if_else(cond, interval(resultIfTrue), resultIfFalse);
 }
-template <detail::interval_value T>
+template <interval_value T>
 [[nodiscard]] constexpr interval<T>
 if_else(set<bool> cond, detail::interval_base<T> const& resultIfTrue, T resultIfFalse)
 {
@@ -1519,16 +1519,16 @@ if_else(set<bool> cond, T resultIfTrue, T resultIfFalse)
 
 
     // Implement tuple-like protocol for intervals.
-template <intervals::detail::any_interval IntervalT> class std::tuple_size<IntervalT> : public std::integral_constant<std::size_t, 2> { };
-template <std::size_t I, intervals::detail::any_interval IntervalT> class std::tuple_element<I, IntervalT> { public: using type = typename IntervalT::value_type; };
+template <intervals::any_interval IntervalT> class std::tuple_size<IntervalT> : public std::integral_constant<std::size_t, 2> { };
+template <std::size_t I, intervals::any_interval IntervalT> class std::tuple_element<I, IntervalT> { public: using type = typename IntervalT::value_type; };
 
     // Specialize `std::common_type<>` for intervals.
-template <typename L, intervals::detail::interval_value R>
+template <typename L, intervals::interval_value R>
 struct std::common_type<intervals::interval<L>, R>
 {
     using type = intervals::detail::common_interval_t<L, R>;
 };
-template <intervals::detail::interval_value L, typename R>
+template <intervals::interval_value L, typename R>
 struct std::common_type<L, intervals::interval<R>>
 {
     using type = intervals::detail::common_interval_t<L, R>;
@@ -1538,12 +1538,12 @@ struct std::common_type<intervals::interval<L>, intervals::interval<R>>
 {
     using type = intervals::detail::common_interval_t<L, R>;
 };
-template <typename L, intervals::detail::interval_value R>
+template <typename L, intervals::interval_value R>
 struct std::common_type<intervals::detail::constrained_interval<L>, R>
 {
     using type = intervals::detail::common_interval_t<L, R>;
 };
-template <intervals::detail::interval_value L, typename R>
+template <intervals::interval_value L, typename R>
 struct std::common_type<L, intervals::detail::constrained_interval<R>>
 {
     using type = intervals::detail::common_interval_t<L, R>;

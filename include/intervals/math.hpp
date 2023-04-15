@@ -7,7 +7,7 @@
 
 #include <gsl-lite/gsl-lite.hpp>  // for gsl_Expects(), gsl_ExpectsDebug()
 
-#include <intervals/detail/concepts.hpp>
+#include <intervals/concepts.hpp>
 
 
 namespace intervals {
@@ -35,45 +35,45 @@ wraparound(T x, T min, T max)
 inline namespace math {
 
 
-template <detail::interval_value X>
+template <interval_value X>
 [[nodiscard]] constexpr inline X
 infimum(X x)
 {
     return x;
 }
-template <detail::interval_value X>
+template <interval_value X>
 [[nodiscard]] constexpr inline X
 supremum(X x)
 {
     return x;
 }
 
-template <detail::interval_value T>
+template <interval_value T>
 [[nodiscard]] constexpr inline T
 min(T lhs, T rhs)
 {
     return rhs < lhs ? rhs : lhs;
 }
-template <detail::interval_value T>
+template <interval_value T>
 [[nodiscard]] constexpr inline T
 max(T lhs, T rhs)
 {
     return lhs < rhs ? rhs : lhs;
 }
 
-template <detail::arithmetic T>
+template <arithmetic T>
 [[nodiscard]] constexpr inline T
 square(T x)
 {
     return x*x;
 }
-template <detail::arithmetic T>
+template <arithmetic T>
 [[nodiscard]] constexpr inline T
 cube(T x)
 {
     return x*x*x;
 }
-template <detail::arithmetic T>
+template <arithmetic T>
 [[nodiscard]] inline T
 abs(T x)
 {
@@ -248,21 +248,21 @@ blend_quadratic(T a, T b, T x, T y)
 }
 
 
-template <detail::interval_value T>
+template <interval_value T>
 requires detail::non_const<T>
 constexpr void
 assign(T& lhs, gsl::type_identity_t<T> rhs)
 {
     lhs = rhs;
 }
-template <detail::interval_value T>
+template <interval_value T>
 requires detail::non_const<T>
 constexpr void
 assign_partial(T& lhs, gsl::type_identity_t<T> rhs)
 {
     lhs = rhs;
 }
-template <detail::interval_value T>
+template <interval_value T>
 requires detail::non_const<T>
 constexpr void
 reset(T& lhs, gsl::type_identity_t<T> rhs)
@@ -281,19 +281,19 @@ constrain(T x, bool c)
 }
 
 
-template <detail::interval_value T, detail::interval_value U>
+template <interval_value T, interval_value U>
 [[nodiscard]] constexpr T
 narrow_cast(U const& u) noexcept
 {
     return static_cast<T>(u);
 }
-template <detail::interval_value T, detail::interval_value U>
+template <interval_value T, interval_value U>
 [[nodiscard]] constexpr T
 narrow(U const& u)
 {
     return gsl::narrow<T>(u);
 }
-template <detail::interval_value T, detail::interval_value U>
+template <interval_value T, interval_value U>
 [[nodiscard]] constexpr T
 narrow_failfast(U const& u)
 {

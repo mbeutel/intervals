@@ -12,8 +12,7 @@
 #include <gsl-lite/gsl-lite.hpp>  // for gsl_AssertDebug()
 
 #include <intervals/set.hpp>
-
-#include <intervals/detail/concepts.hpp>
+#include <intervals/concepts.hpp>
 
 
 namespace intervals {

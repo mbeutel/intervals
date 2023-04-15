@@ -24,7 +24,7 @@ namespace intervals {
 namespace gsl = gsl_lite;
 
 
-template <detail::interval_value T, std::derived_from<detail::partitioning_constraint_base> PartitioningConstraintT>
+template <interval_value T, std::derived_from<detail::partitioning_constraint_base> PartitioningConstraintT>
 [[nodiscard]] constexpr T const&
 constrain(T const& x, PartitioningConstraintT const& c)
 {
@@ -43,19 +43,19 @@ constrain(T const& x, PartitioningConstraintT const& c)
     }
     return x;
 }
-template <detail::interval_value T, std::derived_from<detail::partitioning_constraint_base> PartitioningConstraintT>
+template <interval_value T, std::derived_from<detail::partitioning_constraint_base> PartitioningConstraintT>
 [[nodiscard]] constexpr T const&&
 constrain(T const&& x, PartitioningConstraintT const&)
 {
     static_assert(makeshift::dependent_false<T>, "rvalue interval cannot be constrained");
     return std::move(x);
 }
-template <detail::any_interval IntervalT, std::derived_from<detail::partitioning_constraint_base> PartitioningConstraintT>
+template <any_interval IntervalT, std::derived_from<detail::partitioning_constraint_base> PartitioningConstraintT>
 [[nodiscard]] constexpr detail::as_constrained_interval_t<IntervalT>
 constrain(IntervalT const& x, PartitioningConstraintT const& c)
 {
     using CInterval = detail::as_constrained_interval_t<IntervalT>;
-    using UInterval = detail::interval_t<IntervalT>;
+    using UInterval = interval_t<IntervalT>;
     if (!std::ranges::empty(c.range))
     {
         gsl::index ilo = detail::lower(c.index);
@@ -78,7 +78,7 @@ constrain(IntervalT const& x, PartitioningConstraintT const& c)
     }
     return x;
 }
-template <detail::any_interval IntervalT, std::derived_from<detail::partitioning_constraint_base> PartitioningConstraintT>
+template <any_interval IntervalT, std::derived_from<detail::partitioning_constraint_base> PartitioningConstraintT>
 [[nodiscard]] constexpr IntervalT const&&
 constrain(IntervalT const&& x, PartitioningConstraintT const&)
 {
@@ -121,7 +121,7 @@ partition_point(R&& range, PredicateT&& predicate)
     }
 }
 
-template <std::ranges::random_access_range R, detail::interval_arg T, typename CompareT = std::less<>>
+template <std::ranges::random_access_range R, interval_arg T, typename CompareT = std::less<>>
 [[nodiscard]] constexpr auto
 lower_bound(R&& range, T const& value, CompareT&& comp = { })
 {
@@ -132,7 +132,7 @@ lower_bound(R&& range, T const& value, CompareT&& comp = { })
             return comp(element, value);
         });
 }
-template <std::ranges::random_access_range R, detail::interval_arg T, typename CompareT = std::less<>>
+template <std::ranges::random_access_range R, interval_arg T, typename CompareT = std::less<>>
 [[nodiscard]] constexpr auto
 lower_bound(R&& range, T const&& value, CompareT&& comp = { })
 {
@@ -143,7 +143,7 @@ lower_bound(R&& range, T const&& value, CompareT&& comp = { })
             return comp(element, T(value));
         });
 }
-template <std::ranges::random_access_range R, detail::interval_arg T, typename CompareT = std::less<>>
+template <std::ranges::random_access_range R, interval_arg T, typename CompareT = std::less<>>
 [[nodiscard]] constexpr auto
 upper_bound(R&& range, T const& value, CompareT&& comp = { })
 {
@@ -154,7 +154,7 @@ upper_bound(R&& range, T const& value, CompareT&& comp = { })
             return !comp(value, element);
         });
 }
-template <std::ranges::random_access_range R, detail::interval_arg T, typename CompareT = std::less<>>
+template <std::ranges::random_access_range R, interval_arg T, typename CompareT = std::less<>>
 [[nodiscard]] constexpr auto
 upper_bound(R&& range, T const&& value, CompareT&& comp = { })
 {
