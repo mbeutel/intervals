@@ -921,7 +921,7 @@ inline namespace math {
 
 template <detail::any_interval X>
 [[nodiscard]] constexpr detail::interval_value_t<X>
-liminf(X&& x)
+infimum(X&& x)
 {
     gsl_ExpectsDebug(detail::assigned(x));
 
@@ -929,7 +929,7 @@ liminf(X&& x)
 }
 template <detail::any_interval X>
 [[nodiscard]] constexpr detail::interval_value_t<X>
-limsup(X&& x)
+supremum(X&& x)
 {
     gsl_ExpectsDebug(detail::assigned(x));
 

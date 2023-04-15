@@ -609,6 +609,8 @@ The bounds of an interval can be accessed directly or through a semantic accesso
   assert(!interval{ 0., 2. }.matches(interval{ 0., 1. }));
   ```
 
+TODO: `infimum()`, `supremum()`
+
 #### Assignment
 
 TODO: `reset()`, `assign()`, `assign_partial()`

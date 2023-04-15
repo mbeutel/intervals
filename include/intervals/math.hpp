@@ -37,13 +37,13 @@ inline namespace math {
 
 template <detail::interval_value X>
 [[nodiscard]] constexpr inline X
-liminf(X x)
+infimum(X x)
 {
     return x;
 }
 template <detail::interval_value X>
 [[nodiscard]] constexpr inline X
-limsup(X x)
+supremum(X x)
 {
     return x;
 }
