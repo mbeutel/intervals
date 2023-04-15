@@ -46,20 +46,20 @@ struct common_interval
 };
 
 
-template <typename T> struct set_of;
-template <> struct set_of<bool> { using type = set<bool, makeshift::reflector>; };
-template <detail::enum_ T> struct set_of<T> { using type = set<T, makeshift::reflector>; };
-template <std::floating_point T> struct set_of<T> { using type = interval<T>; };
-template <std::integral T> struct set_of<T> { using type = interval<T>; };
-template <std::random_access_iterator T> struct set_of<T> { using type = interval<T>; };
+template <typename T, typename ReflectorT = makeshift::reflector> struct set_of;
+template <typename ReflectorT> struct set_of<bool, ReflectorT> { using type = set<bool, ReflectorT>; };
+template <detail::enum_ T, typename ReflectorT> struct set_of<T, ReflectorT> { using type = set<T, ReflectorT>; };
+template <std::floating_point T, typename ReflectorT> struct set_of<T, ReflectorT> { using type = interval<T>; };
+template <std::integral T, typename ReflectorT> struct set_of<T, ReflectorT> { using type = interval<T>; };
+template <std::random_access_iterator T, typename ReflectorT> struct set_of<T, ReflectorT> { using type = interval<T>; };
 template <typename T, typename ReflectorT> struct set_of<set<T, ReflectorT>> { using type = set<T, ReflectorT>; };
-template <any_interval IntervalT> struct set_of<IntervalT> { using type = interval<typename IntervalT::value_type>; };
-template <typename T> using set_of_t = typename set_of<T>::type;
+template <any_interval IntervalT, typename ReflectorT> struct set_of<IntervalT, ReflectorT> { using type = interval<typename IntervalT::value_type>; };
+template <typename T, typename ReflectorT = makeshift::reflector> using set_of_t = typename set_of<T>::type;
 
-template <typename S, typename T> struct propagate_set { using type = T; };
-template <any_interval IntervalT, typename T> struct propagate_set<IntervalT, T> { using type = set_of_t<T>; };
-template <typename U, typename T> struct propagate_set<set<U>, T> { using type = set_of_t<T>; };
-template <typename S, typename T> using propagate_set_t = typename propagate_set<S, T>::type;
+template <typename S, typename T, typename ReflectorT = makeshift::reflector> struct propagate_set { using type = T; };
+template <any_interval IntervalT, typename T, typename ReflectorT> struct propagate_set<IntervalT, T, ReflectorT> { using type = set_of_t<T, ReflectorT>; };
+template <typename U, typename T, typename OldReflectorT, typename ReflectorT> struct propagate_set<set<U, OldReflectorT>, T, ReflectorT> { using type = set_of_t<T, ReflectorT>; };
+template <typename S, typename T, typename ReflectorT = makeshift::reflector> using propagate_set_t = typename propagate_set<S, T, ReflectorT>::type;
 
 
 } // namespace intervals
