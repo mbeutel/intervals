@@ -903,22 +903,6 @@ public:
 };
 
 
-template <typename T> struct set_of;
-template <> struct set_of<bool> { using type = set<bool>; };
-template <detail::enum_ T> struct set_of<T> { using type = set<T>; };
-template <std::floating_point T> struct set_of<T> { using type = interval<T>; };
-template <std::integral T> struct set_of<T> { using type = interval<T>; };
-template <std::random_access_iterator T> struct set_of<T> { using type = interval<T>; };
-template <typename T, typename ReflectorT> struct set_of<set<T, ReflectorT>> { using type = set<T, ReflectorT>; };
-template <std::derived_from<detail::interval_functions> IntervalT> struct set_of<IntervalT> { using type = interval<typename IntervalT::value_type>; };
-template <typename T> using set_of_t = typename set_of<T>::type;
-
-template <typename S, typename T> struct propagate_set { using type = T; };
-template <std::derived_from<detail::interval_functions> IntervalT, typename T> struct propagate_set<IntervalT, T> { using type = set_of_t<T>; };
-template <typename U, typename T> struct propagate_set<set<U>, T> { using type = set_of_t<T>; };
-template <typename S, typename T> using propagate_set_t = typename propagate_set<S, T>::type;
-
-
 inline namespace math {
 
 
