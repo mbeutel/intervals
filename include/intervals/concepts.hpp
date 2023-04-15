@@ -32,16 +32,14 @@ concept interval_value = arithmetic_interval_value<T> || iterator_interval_value
 
 template <typename... Ts>
 concept any_interval = (std::derived_from<std::remove_cvref_t<Ts>, detail::interval_functions> || ...);
-template <any_interval T>
-using interval_value_t = typename std::remove_cvref_t<T>::value_type;
 template <typename T>
-concept floating_point_interval = any_interval<T> && floating_point_interval_value<interval_value_t<T>>;
+concept floating_point_interval = any_interval<T> && floating_point_interval_value<typename std::remove_cvref_t<T>::value_type>;
 template <typename T>
-concept integral_interval = any_interval<T> && integral_interval_value<interval_value_t<T>>;
+concept integral_interval = any_interval<T> && integral_interval_value<typename std::remove_cvref_t<T>::value_type>;
 template <typename T>
-concept arithmetic_interval = any_interval<T> && arithmetic_interval_value<interval_value_t<T>>;
+concept arithmetic_interval = any_interval<T> && arithmetic_interval_value<typename std::remove_cvref_t<T>::value_type>;
 template <typename T>
-concept iterator_interval = any_interval<T> && iterator_interval_value<interval_value_t<T>>;
+concept iterator_interval = any_interval<T> && iterator_interval_value<typename std::remove_cvref_t<T>::value_type>;
 
 template <typename T>
 concept interval_arg = interval_value<T> || any_interval<T>;
@@ -57,60 +55,6 @@ concept iterator_interval_arg = iterator_interval_value<T> || iterator_interval<
 template <typename... Ts>
 concept any_interval_arg = (interval_arg<Ts> || ...);
 
-template <interval_value T> struct detail::interval_arg_value_0_<T> { using type = T; };
-template <any_interval IntervalT> struct detail::interval_arg_value_0_<IntervalT> { using type = typename IntervalT::value_type; };
-template <interval_arg T> struct interval_arg_value : detail::interval_arg_value_0_<std::remove_cvref_t<T>> { };
-template <interval_arg T> using interval_arg_value_t = typename interval_arg_value<T>::type;
-
-template <interval_arg T> using interval_of_t = interval<interval_arg_value_t<T>>;
-
-template <any_interval T> using interval_t = typename std::remove_cvref_t<T>::interval_type;
-
-template <interval_arg... Ts>
-using common_interval_value_t = std::common_type_t<interval_arg_value_t<Ts>...>;
-
-template <interval_arg... Ts>
-using common_interval_t = interval<common_interval_value_t<Ts...>>;
-
-
-namespace detail {
-
-
-template <typename L, typename R>
-concept relational = requires(L const& lhs, R const& rhs) {
-    { lhs < rhs } -> std::convertible_to<bool>;
-    { lhs <= rhs } -> std::convertible_to<bool>;
-    { lhs > rhs } -> std::convertible_to<bool>;
-    { lhs >= rhs } -> std::convertible_to<bool>;
-    { lhs == rhs } -> std::convertible_to<bool>;
-    { lhs != rhs } -> std::convertible_to<bool>;
-};
-template <typename L, typename R>
-concept relational_values =
-    interval_arg<L> &&
-    interval_arg<R> &&
-    relational<interval_arg_value_t<L>, interval_arg_value_t<R>>;
-
-template <typename L, typename R>
-concept same_values =
-    interval_arg<L> &&
-    interval_arg<R> &&
-    std::same_as<interval_arg_value_t<L>, interval_arg_value_t<R>>;
-
-template <typename L, typename R>
-concept arithmetic_operands =
-    interval_arg<L> &&
-    interval_arg<R> &&
-    arithmetic_interval_value<common_interval_value_t<L, R>>;
-
-template <typename L, typename R>
-concept floating_point_operands =
-    interval_arg<L> &&
-    interval_arg<R> &&
-    floating_point_interval_value<common_interval_value_t<L, R>>;
-
-
-} // namespace detail
 
 } // namespace intervals
 

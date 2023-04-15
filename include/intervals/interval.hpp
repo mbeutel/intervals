@@ -20,10 +20,13 @@
 
 #include <intervals/set.hpp>
 #include <intervals/sign.hpp>
-#include <intervals/math.hpp>   // for floating_point<>, integral<>, and to make assign*() and reset() available
-#include <intervals/logic.hpp>  // to make possibly() et al. for Boolean arguments available
+#include <intervals/math.hpp>         // for floating_point<>, integral<>, and to make assign*() and reset() available
+#include <intervals/logic.hpp>        // to make possibly() et al. for Boolean arguments available
+#include <intervals/concepts.hpp>
+#include <intervals/type_traits.hpp>
 
 #include <intervals/detail/interval.hpp>
+#include <intervals/detail/concepts-internal.hpp>
 
 
 namespace intervals {

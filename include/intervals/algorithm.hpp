@@ -15,6 +15,8 @@
 
 #include <intervals/set.hpp>
 #include <intervals/interval.hpp>
+#include <intervals/concepts.hpp>
+#include <intervals/type_traits.hpp>
 
 #include <intervals/detail/algorithm.hpp>
 

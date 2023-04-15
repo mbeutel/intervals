@@ -38,9 +38,6 @@ template <typename T>
 concept not_interval = !std::derived_from<std::remove_cvref_t<T>, interval_functions>;
 
 
-template <typename T> struct interval_arg_value_0_;
-
-
 }  // namespace detail
 
 } // namespace intervals
