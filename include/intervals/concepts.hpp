@@ -7,6 +7,8 @@
 #include <iterator>     // for random_access_iterator<>
 #include <type_traits>  // for remove_cvref<>, is_arithmetic<>, common_type<>
 
+#include <makeshift/metadata.hpp>  // for reflector
+
 #include <intervals/detail/concepts.hpp>
 
 
@@ -54,6 +56,9 @@ concept iterator_interval_arg = iterator_interval_value<T> || iterator_interval<
 
 template <typename... Ts>
 concept any_interval_arg = (interval_arg<Ts> || ...);
+
+template <typename ArgT, typename T, typename ReflectorT = makeshift::reflector>
+concept set_arg = std::same_as<std::remove_cvref_t<ArgT>, T> || std::derived_from<std::remove_cvref_t<ArgT>, set<T,  ReflectorT>>;
 
 
 } // namespace intervals

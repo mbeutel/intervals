@@ -13,6 +13,7 @@ namespace intervals {
 
 
 template <typename T> class interval;
+template <typename T, typename ReflectorT> class set;
 
 
 namespace detail {
