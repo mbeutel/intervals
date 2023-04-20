@@ -12,6 +12,7 @@
 #include <gsl-lite/gsl-lite.hpp>  // for gsl_AssertDebug()
 
 #include <intervals/set.hpp>
+#include <intervals/logic.hpp>
 #include <intervals/concepts.hpp>
 
 #include <intervals/detail/concepts-internal.hpp>
@@ -317,12 +318,17 @@ inf_interval() noexcept
 
 struct condition : set<bool>
 {
-    constexpr set<bool> const&
-    as_set() const noexcept
-    {
-        return *this;
-    }
 };
+constexpr bool
+as_bool_set_arg(bool c) noexcept
+{
+    return c;
+}
+constexpr set<bool> const&
+as_bool_set_arg(set<bool> const& c) noexcept
+{
+    return c;
+}
 template <typename L, typename R>
 struct less_equal_constraint : condition  // lhs ≤ rhs
 {
@@ -355,102 +361,80 @@ struct not_equal_constraint : condition  // lhs ≠ rhs
 };
 template <typename L, typename R>
 not_equal_constraint(condition, L, R) -> not_equal_constraint<L, R>;
-template <std::derived_from<condition> L, std::derived_from<condition> R>
+template <set_arg<bool> L, set_arg<bool> R>
 struct constraint_conjunction : condition  // lhs ∧ rhs
 {
     L lhs_;
     R rhs_;
 };
-template <std::derived_from<condition> L, std::derived_from<condition> R>
+template <set_arg<bool> L, set_arg<bool> R>
 constraint_conjunction(set<bool>, L, R) -> constraint_conjunction<L, R>;
-template <std::derived_from<condition> L, std::derived_from<condition> R>
+template <set_arg<bool> L, set_arg<bool> R>
 struct constraint_disjunction : condition  // lhs ∨ rhs
 {
     L lhs_;
     R rhs_;
 };
-template <std::derived_from<condition> L, std::derived_from<condition> R>
+template <set_arg<bool> L, set_arg<bool> R>
 constraint_disjunction(set<bool>, L, R) -> constraint_disjunction<L, R>;
 
-template <std::derived_from<condition> L, std::derived_from<condition> R>
-constexpr constraint_conjunction<L, R>
+template <set_arg<bool> L, set_arg<bool> R>
+requires std::derived_from<L, condition> || std::derived_from<R, condition>
+[[nodiscard]] constexpr constraint_conjunction<L, R>
 operator &(L const& lhs, R const& rhs)
 {
-    return { { lhs.as_set() & rhs.as_set() }, lhs, rhs };
-}
-template <std::derived_from<condition> L>
-constexpr constraint_conjunction<L, set<bool>>
-operator &(L const& lhs, bool rhs)
-{
-    return { { lhs.as_set() & rhs }, lhs, { rhs } };
-}
-template <std::derived_from<condition> R>
-constexpr constraint_conjunction<set<bool>, R>
-operator &(bool lhs, R const& rhs)
-{
-    return { { lhs & rhs.as_set() }, { lhs }, rhs };
+    return { { detail::as_bool_set_arg(lhs) & detail::as_bool_set_arg(rhs) }, lhs, rhs };
 }
 
-template <std::derived_from<condition> L, std::derived_from<condition> R>
-constexpr constraint_disjunction<L, R>
+template <set_arg<bool> L, set_arg<bool> R>
+requires std::derived_from<L, condition> || std::derived_from<R, condition>
+[[nodiscard]] constexpr constraint_disjunction<L, R>
 operator |(L const& lhs, R const& rhs)
 {
-    return { { lhs.as_set() | rhs.as_set() }, lhs, rhs };
-}
-template <std::derived_from<condition> L>
-constexpr constraint_disjunction<L, set<bool>>
-operator |(L const& lhs, bool rhs)
-{
-    return { { lhs.as_set() | rhs }, lhs, { rhs } };
-}
-template <std::derived_from<condition> R>
-constexpr constraint_disjunction<set<bool>, R>
-operator |(bool lhs, R const& rhs)
-{
-    return { { lhs | rhs.as_set() }, { lhs }, rhs };
+    return { { detail::as_bool_set_arg(lhs) | detail::as_bool_set_arg(rhs) }, lhs, rhs };
 }
 
 template <typename L, typename R>
-constexpr less_equal_constraint<R, L>
+[[nodiscard]] constexpr less_equal_constraint<R, L>
 operator !(less_constraint<L, R> const& c)
 {
-    return { { !c.as_set() }, c.rhs_, c.lhs_ };
+    return { { !detail::as_bool_set_arg(c) }, c.rhs_, c.lhs_ };
 }
 template <typename L, typename R>
-constexpr less_constraint<R, L>
+[[nodiscard]] constexpr less_constraint<R, L>
 operator !(less_equal_constraint<L, R> const& c)
 {
-    return { { !c.as_set() }, c.rhs_, c.lhs_ };
+    return { { !detail::as_bool_set_arg(c) }, c.rhs_, c.lhs_ };
 }
 template <typename L, typename R>
-constexpr not_equal_constraint<L, R>
+[[nodiscard]] constexpr not_equal_constraint<L, R>
 operator !(equal_constraint<L, R> const& c)
 {
-    return { { !c.as_set() }, c.lhs_, c.rhs_ };
+    return { { !detail::as_bool_set_arg(c) }, c.lhs_, c.rhs_ };
 }
 template <typename L, typename R>
-constexpr equal_constraint<L, R>
+[[nodiscard]] constexpr equal_constraint<L, R>
 operator !(not_equal_constraint<L, R> const& c)
 {
-    return { { !c.as_set() }, c.lhs_, c.rhs_ };
+    return { { !detail::as_bool_set_arg(c) }, c.lhs_, c.rhs_ };
 }
 template <std::derived_from<condition> L, std::derived_from<condition> R>
-constexpr auto
+[[nodiscard]] constexpr auto
 operator !(constraint_conjunction<L, R> const& c)
 {
-    return constraint_disjunction{ { !c.as_set() }, !c.lhs_, !c.rhs_ };
+    return constraint_disjunction{ { !detail::as_bool_set_arg(c) }, !c.lhs_, !c.rhs_ };
 }
 template <std::derived_from<condition> L, std::derived_from<condition> R>
-constexpr auto
+[[nodiscard]] constexpr auto
 operator !(constraint_disjunction<L, R> const& c)
 {
-    return constraint_conjunction{ { !c.as_set() }, !c.lhs_, !c.rhs_ };
+    return constraint_conjunction{ { !detail::as_bool_set_arg(c) }, !c.lhs_, !c.rhs_ };
 }
 
 
-template <typename IntervalT>
+template <typename IntervalT, set_arg<bool> B>
 constexpr as_constrained_interval_t<IntervalT>
-constrain(IntervalT const& x, set<bool>, bool&)
+constrain(IntervalT const& x, B, bool&, bool = false)
 {
     return x;
 }
@@ -641,7 +625,7 @@ constrain(IntervalT const& x, not_equal_constraint<L, R> const& c, bool& constra
     }
     else return x;
 }
-template <typename IntervalT, std::derived_from<condition> L, std::derived_from<condition> R>
+template <typename IntervalT, set_arg<bool> L, set_arg<bool> R>
 constexpr as_constrained_interval_t<IntervalT>
 constrain(IntervalT const& x, constraint_conjunction<L, R> const& c, bool& constraintConsidered, bool optional = false)
 {
@@ -660,7 +644,7 @@ constrain(IntervalT const& x, constraint_conjunction<L, R> const& c, bool& const
     // If `!c.contains(true) && !optional`, one of the nested calls to `constrain()` will have triggered an assertion.
     return x;
 }
-template <typename IntervalT, std::derived_from<condition> L, std::derived_from<condition> R>
+template <typename IntervalT, set_arg<bool> L, set_arg<bool> R>
 constexpr as_constrained_interval_t<IntervalT>
 constrain(IntervalT const& x, constraint_disjunction<L, R> const& c, bool& constraintConsidered, bool optional = false)
 {
@@ -673,8 +657,8 @@ constrain(IntervalT const& x, constraint_disjunction<L, R> const& c, bool& const
     auto xl = detail::constrain(x, c.lhs_, constraintConsidered1, nestedOptional);
     auto xr = detail::constrain(x, c.rhs_, constraintConsidered2, nestedOptional);
     constraintConsidered = constraintConsidered1 || constraintConsidered2;
-    bool blhs = constraintConsidered1 && c.lhs_.contains(true);
-    bool brhs = constraintConsidered2 && c.rhs_.contains(true);
+    bool blhs = constraintConsidered1 && logic::possibly(c.lhs_);
+    bool brhs = constraintConsidered2 && logic::possibly(c.rhs_);
     gsl_Assert(c.contains(true) || optional);
     if (blhs && brhs)
     {
