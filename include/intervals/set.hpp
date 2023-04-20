@@ -374,6 +374,10 @@ operator ^(bool x, set<bool> y)
     return set<bool>::from_bits((detail::lut_4vK_xor >> (2*y.to_bits() + 8*(1 + int(x)))) & 0b11u);
 }
 
+
+inline namespace logic {
+
+
 [[nodiscard]] constexpr bool
 possibly(set<bool> x) noexcept
 {
@@ -404,6 +408,37 @@ vacuous(set<bool> x) noexcept
 {
     return !x.assigned();
 }
+
+template <typename T>
+[[nodiscard]] constexpr set<T>
+if_else(set<bool> cond, set<T> resultIfTrue, set<T> resultIfFalse)
+{
+    set<T> result;
+    if (intervals::possibly(cond))
+    {
+        result.assign(resultIfTrue);
+    }
+    if (intervals::possibly_not(cond))
+    {
+        result.assign(resultIfFalse);
+    }
+    return result;
+}
+template <typename T>
+[[nodiscard]] constexpr set<T>
+if_else(set<bool> cond, T resultIfTrue, set<T> resultIfFalse)
+{
+    return intervals::if_else(cond, set(resultIfTrue), resultIfFalse);
+}
+template <typename T>
+[[nodiscard]] constexpr set<T>
+if_else(set<bool> cond, set<T> resultIfTrue, T resultIfFalse)
+{
+    return intervals::if_else(cond, resultIfTrue, set(resultIfFalse));
+}
+
+
+} // inline namespace logic
 
 
 template <typename T, typename R>
@@ -482,35 +517,6 @@ operator *(set<sign> lhs, sign rhs)
 operator *(sign lhs, set<sign> rhs)
 {
     return rhs*set<sign>(lhs);
-}
-
-
-template <typename T>
-[[nodiscard]] constexpr set<T>
-if_else(set<bool> cond, set<T> resultIfTrue, set<T> resultIfFalse)
-{
-    set<T> result;
-    if (intervals::possibly(cond))
-    {
-        result.assign(resultIfTrue);
-    }
-    if (intervals::possibly_not(cond))
-    {
-        result.assign(resultIfFalse);
-    }
-    return result;
-}
-template <typename T>
-[[nodiscard]] constexpr set<T>
-if_else(set<bool> cond, T resultIfTrue, set<T> resultIfFalse)
-{
-    return intervals::if_else(cond, set(resultIfTrue), resultIfFalse);
-}
-template <typename T>
-[[nodiscard]] constexpr set<T>
-if_else(set<bool> cond, set<T> resultIfTrue, T resultIfFalse)
-{
-    return intervals::if_else(cond, resultIfTrue, set(resultIfFalse));
 }
 
 
