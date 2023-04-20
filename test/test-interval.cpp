@@ -1148,6 +1148,37 @@ TEST_CASE("interval<>", "interval arithmetic")
             CHECK_NOTHROW(constrain(x, cx1t));
             CHECK_THROWS_AS(constrain(x, cx1f), gsl::fail_fast);
         }
+        SECTION("erroneous nested constraint")
+        {
+            auto a = GENERATE(
+                interval{ 1., 4. },  // uncritical
+                interval{ 1., 5. },  // always caught
+                interval{ 4., 5. }   // not caught
+            );
+            auto ext = true;  // some external condition
+            auto c = (a <= 3) | ext;  // { false, true }
+            REQUIRE(possibly(c));
+                //      [1,4] | (a ≤ 3 | true) = [1,3]
+                //      [1,5] | (a ≤ 3 | true) = [1,3]
+                // but  [4,5] | (a ≤ 3 | true) = [4,5] !!
+            auto ac = constrain(a, c);
+
+                // correct
+            auto ccGood = (ac > 4);
+            if (possibly(ccGood))  // true for a = [4, 5]
+            {
+                CHECK_NOTHROW(constrain(ac, ccGood));
+            }
+
+                // incorrect
+            auto ccBad = (a > 4);
+            if (possibly(ccBad))  // true for  a = [1,5]  and  a = [4,5]
+            {
+                    // If `constrain()` returned a `constrained_interval<>`, this would not trigger
+                    // a runtime error for  a = [4,5].
+                CHECK_THROWS_AS(constrain(ac, ccBad), gsl::fail_fast);
+            }
+        }
     }
     SECTION("example: max()")
     {

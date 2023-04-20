@@ -1447,7 +1447,7 @@ constrain(IntervalT const&& x, set<bool>)
 }
 
 template <any_interval IntervalT, std::derived_from<detail::condition> ConditionT>
-[[nodiscard]] constexpr detail::as_constrained_interval_t<IntervalT>
+[[nodiscard]] constexpr IntervalT
 constrain(IntervalT const& x, ConditionT const& c)
 {
     bool constraintConsidered = false;
