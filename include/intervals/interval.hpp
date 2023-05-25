@@ -556,6 +556,12 @@ protected:
 public:
     using value_type = T;
 
+    static constexpr interval<T>
+    from_unordered_bounds(T b1, T b2)
+    {
+        return interval<T>{ intervals::min(b1, b2), intervals::max(b1, b2) };
+    }
+
     constexpr bool
     assigned() const noexcept
     {
@@ -1013,7 +1019,9 @@ sqrt(X&& x)
 {
     gsl_ExpectsDebug(x.assigned());
 
-    return interval_t<X>{ intervals::sqrt(detail::lower(x)), intervals::sqrt(detail::upper(x)) };
+        // Allow for slight numerical non-monotonicity of the `sqrt()` implementation, as might occur with an iterative implementation.
+    //return interval_t<X>{ intervals::sqrt(detail::lower(x)), intervals::sqrt(detail::upper(x)) };
+    return interval_t<X>::from_unordered_bounds(intervals::sqrt(detail::lower(x)), intervals::sqrt(detail::upper(x)));
 }
 template <floating_point_interval X>
 [[nodiscard]] constexpr interval_t<X>
@@ -1021,7 +1029,9 @@ cbrt(X&& x)
 {
     gsl_ExpectsDebug(x.assigned());
 
-    return interval_t<X>{ intervals::cbrt(detail::lower(x)), intervals::cbrt(detail::upper(x)) };
+        // Allow for slight numerical non-monotonicity of the `cbrt()` implementation, as might occur with an iterative implementation.
+    //return interval_t<X>{ intervals::cbrt(detail::lower(x)), intervals::cbrt(detail::upper(x)) };
+    return interval_t<X>::from_unordered_bounds(intervals::cbrt(detail::lower(x)), intervals::cbrt(detail::upper(x)));
 }
 template <floating_point_interval X>
 [[nodiscard]] constexpr interval_t<X>
@@ -1088,7 +1098,9 @@ cos(X&& x)
     {
         if (hi <= T(0))
         {
-            return interval_t<X>{ intervals::cos(lo), intervals::cos(hi) };
+                // Allow for slight numerical non-monotonicity of the `cos()` implementation, as might occur with an iterative implementation.
+            //return interval_t<X>{ intervals::cos(lo), intervals::cos(hi) };
+            return interval_t<X>::from_unordered_bounds(intervals::cos(lo), intervals::cos(hi));
         }
         else if (hi <= std::numbers::pi_v<T>)
         {
@@ -1099,7 +1111,9 @@ cos(X&& x)
     {
         if (hi <= std::numbers::pi_v<T>)
         {
-            return interval_t<X>{ intervals::cos(hi), intervals::cos(lo) };
+                // Allow for slight numerical non-monotonicity of the `cos()` implementation, as might occur with an iterative implementation.
+            //return interval_t<X>{ intervals::cos(hi), intervals::cos(lo) };
+            return interval_t<X>::from_unordered_bounds(intervals::cos(hi), intervals::cos(lo));
         }
         else if (hi <= 2*std::numbers::pi_v<T>)
         {
@@ -1129,7 +1143,9 @@ tan(X&& x)
     {
         return detail::inf_interval<T>();
     }
-    return interval_t<X>{ intervals::tan(lo), intervals::tan(hi) };
+        // Allow for slight numerical non-monotonicity of the `tan()` implementation, as might occur with an iterative implementation.
+    //return interval_t<X>{ intervals::tan(lo), intervals::tan(hi) };
+    return interval_t<X>::from_unordered_bounds(intervals::tan(lo), intervals::tan(hi));
 }
 template <floating_point_interval X>
 [[nodiscard]] constexpr interval_t<X>
@@ -1137,7 +1153,9 @@ acos(X&& x)
 {
     gsl_ExpectsDebug(x.assigned());
 
-    return interval_t<X>{ intervals::acos(detail::upper(x)), intervals::acos(detail::lower(x)) };
+        // Allow for slight numerical non-monotonicity of the `acos()` implementation, as might occur with an iterative implementation.
+    //return interval_t<X>{ intervals::acos(detail::upper(x)), intervals::acos(detail::lower(x)) };
+    return interval_t<X>::from_unordered_bounds(intervals::acos(detail::upper(x)), intervals::acos(detail::lower(x)));
 }
 template <floating_point_interval X>
 [[nodiscard]] constexpr interval_t<X>
@@ -1145,7 +1163,9 @@ asin(X&& x)
 {
     gsl_ExpectsDebug(x.assigned());
 
-    return interval_t<X>{ intervals::asin(detail::lower(x)), intervals::asin(detail::upper(x)) };
+        // Allow for slight numerical non-monotonicity of the `asin()` implementation, as might occur with an iterative implementation.
+    //return interval_t<X>{ intervals::asin(detail::lower(x)), intervals::asin(detail::upper(x)) };
+    return interval_t<X>::from_unordered_bounds(intervals::asin(detail::lower(x)), intervals::asin(detail::upper(x)));
 }
 template <floating_point_interval X>
 [[nodiscard]] constexpr interval_t<X>
@@ -1153,7 +1173,9 @@ atan(X&& x)
 {
     gsl_ExpectsDebug(x.assigned());
 
-    return interval_t<X>{ intervals::atan(detail::lower(x)), intervals::atan(detail::upper(x)) };
+        // Allow for slight numerical non-monotonicity of the `atan()` implementation, as might occur with an iterative implementation.
+    //return interval_t<X>{ intervals::atan(detail::lower(x)), intervals::atan(detail::upper(x)) };
+    return interval_t<X>::from_unordered_bounds(intervals::atan(detail::lower(x)), intervals::atan(detail::upper(x)));
 }
 template <typename Y, typename X>
 requires any_interval<X, Y> && detail::floating_point_operands<Y, X>
@@ -1279,11 +1301,8 @@ blend_linear(AB&& a, AB&& b, XY&& x, XY&& y)
         ? qlo*xhi + (1 - qlo)*yhi
         : qhi*xhi + (1 - qhi)*yhi;
 
-        // We use `min()` and `max()` to mitigate rounding errors.
-    return common_interval_t<AB, XY>{
-        intervals::min(rlo, rhi),
-        intervals::max(rlo, rhi)
-    };
+        // We use `from_unordered_bounds()` to allow for slight numerical non-monotonicity.
+    return common_interval_t<AB, XY>::from_unordered_bounds(rlo, rhi);
 }
 
 template <floating_point_interval X>
