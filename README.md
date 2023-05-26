@@ -93,11 +93,8 @@ The following compilers are officially supported (that is, part of
 - Microsoft Visual C++ 19.3 and newer (Visual Studio 2022 and newer)
 - GCC 12 and newer with libstdc++ (tested on Linux and MacOS)
 - Clang 14 and newer with libc++ (tested on Windows and Linux)
+- AppleClang 14.0.3 and newer with libc++ (Xcode 14.3 and newer)
 
-Please note that Apple Clang is not yet supported because the standard library it ships with
-[does not currently implement](https://en.cppreference.com/w/cpp/compiler_support#C.2B.2B20_library_features)
-C++20 [ranges](https://en.cppreference.com/w/cpp/ranges).
- 
 
 ## Dependencies
 
