@@ -3,7 +3,8 @@
 #define INCLUDED_INTERVALS_MATH_HPP_
 
 
-#include <concepts>  // for floating_point<>
+#include <concepts>     // for floating_point<>
+#include <type_traits>  // for common_type<>
 
 #include <gsl-lite/gsl-lite.hpp>  // for gsl_Expects(), gsl_ExpectsDebug()
 
@@ -298,6 +299,24 @@ template <interval_value T, interval_value U>
 narrow_failfast(U const& u)
 {
     return gsl::narrow_failfast<T>(u);
+}
+
+
+template <interval_value T0, interval_value... Ts>
+[[nodiscard]] constexpr std::common_type_t<T0, Ts...>
+merge(T0 const& arg0, Ts const&... /*args*/)
+{
+    // Can't really do anything about the other values – they might be subtly different due to numerics.
+
+    return arg0;
+}
+template <interval_value T0, interval_value... Ts>
+[[nodiscard]] constexpr std::common_type_t<T0, Ts...>
+intersect(T0 const& arg0, Ts const&... /*args*/)
+{
+    // Can't really do anything about the other values – they might be subtly different due to numerics.
+
+    return arg0;
 }
 
 

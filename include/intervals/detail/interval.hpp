@@ -9,7 +9,7 @@
 #include <iterator>   // for random_access_iterator<>
 #include <algorithm>  // for min(), max()
 
-#include <gsl-lite/gsl-lite.hpp>  // for gsl_AssertDebug()
+#include <gsl-lite/gsl-lite.hpp>  // for gsl_Assert(), gsl_AssertDebug()
 
 #include <intervals/set.hpp>
 #include <intervals/logic.hpp>
@@ -673,6 +673,16 @@ constrain(IntervalT const& x, constraint_disjunction<L, R> const& c, bool& const
         return xr;
     }
     return x;
+}
+
+
+template <typename X, typename U>
+void
+narrow_interval(X& x, U const& u)
+{
+    auto xu = X(u);
+    gsl_Assert(x.overlaps_with(xu));
+    x.reset(X(std::max(x.lower_unchecked(), xu.lower_unchecked()), std::min(x.upper_unchecked(), xu.upper_unchecked())));
 }
 
 

@@ -607,6 +607,11 @@ public:
     }
 
     [[nodiscard]] constexpr bool
+    overlaps_with(interval_base const& rhs) const
+    {
+        return assigned() && rhs.upper_ >= lower_ && rhs.lower_ <= upper_;
+    }
+    [[nodiscard]] constexpr bool
     contains(T value) const
     {
         return lower_ <= value && value <= upper_;
@@ -1516,6 +1521,24 @@ requires detail::not_interval<T> && detail::not_instantiation_of<T, set>
 if_else(set<bool> cond, T resultIfTrue, T resultIfFalse)
 {
     return intervals::if_else(cond, set_of_t<T>(resultIfTrue), set_of_t<T>(resultIfFalse));
+}
+
+
+template <any_interval T0, any_interval... Ts>
+[[nodiscard]] constexpr std::common_type_t<T0, Ts...>
+merge(T0 const& arg0, Ts const&... args)
+{
+    auto result = std::common_type_t<T0, Ts...>(arg0);
+    (result.assign(args), ...);
+    return result;
+}
+template <any_interval T0, any_interval... Ts>
+[[nodiscard]] constexpr std::common_type_t<T0, Ts...>
+intersect(T0 const& arg0, Ts const&... args)
+{
+    auto result = std::common_type_t<T0, Ts...>(arg0);
+    (detail::narrow_interval(result, args), ...);
+    return result;
 }
 
 
