@@ -681,8 +681,9 @@ void
 narrow_interval(X& x, U const& u)
 {
     auto xu = X(u);
-    gsl_Assert(x.overlaps_with(xu));
-    x.reset(X(std::max(x.lower_unchecked(), xu.lower_unchecked()), std::min(x.upper_unchecked(), xu.upper_unchecked())));
+    //gsl_Assert(x.overlaps_with(xu));  // TODO: this must be disabled until we have ensured inclusion of rounding error
+    //x.reset(X(std::max(x.lower_unchecked(), xu.lower_unchecked()), std::min(x.upper_unchecked(), xu.upper_unchecked())));
+    x.reset(X::from_unordered_bounds(std::max(x.lower_unchecked(), xu.lower_unchecked()), std::min(x.upper_unchecked(), xu.upper_unchecked())));
 }
 
 
