@@ -783,7 +783,9 @@ encouraging a particular style of interval-aware programming.
 
 The *intervals* library has been motivated and introduced in the following CoNGA 2023 conference paper:
 
-[1]  Beutel & Strzodka, *A paradigm for interval-aware programming*, in press
+[1]  Beutel, M. & Strzodka, R. 2023, *A paradigm for interval-aware programming*, in Next Generation Arithmetic, ed. J. Gustafson, S. H.
+Leong, & M. Michalewicz, Lecture Notes in Computer Science (Cham: Springer Nature Switzerland), 38–60  
+https://link.springer.com/chapter/10.1007/978-3-031-32180-1_3
 
 Other references:
 
