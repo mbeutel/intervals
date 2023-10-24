@@ -1275,10 +1275,33 @@ fractional_weights(A&& a, B&& b)
     };
 }
 
-template <typename AB, typename XY>
-requires any_interval<AB, XY> && detail::floating_point_operands<AB, XY>
-[[nodiscard]] constexpr common_interval_t<AB, XY>
-blend_linear(AB&& a, AB&& b, XY&& x, XY&& y)
+template <typename F, typename X, typename Y>
+requires any_interval<F, X, Y> && detail::floating_point_operands<F, X, Y>
+[[nodiscard]] constexpr common_interval_t<F, X, Y>
+blend_fractions(F&& f, X&& x, Y&& y)
+{
+    gsl_ExpectsDebug(detail::assigned(f) && detail::assigned(x) && detail::assigned(y));
+    gsl_ExpectsDebug(intervals::always((f >= 0) & (f <= 1)));
+
+    auto xlo = detail::lower(x);
+    auto xhi = detail::upper(x);
+    auto ylo = detail::lower(y);
+    auto yhi = detail::upper(y);
+    auto flo = detail::lower(f);
+    auto fhi = detail::upper(f);
+
+        // r = f x + (1 - f) y
+    auto rlo = (xlo >= ylo ? flo : fhi)*(xlo - ylo) + ylo;
+    auto rhi = (xhi >= yhi ? fhi : flo)*(xhi - yhi) + yhi;
+
+        // We use `from_unordered_bounds()` to allow for slight numerical non-monotonicity.
+    return common_interval_t<F, X, Y>::from_unordered_bounds(rlo, rhi);
+}
+
+template <typename A, typename B, typename X, typename Y>
+requires any_interval<A, B, X, Y> && detail::floating_point_operands<A, B, X, Y>
+[[nodiscard]] constexpr common_interval_t<A, B, X, Y>
+blend_linear(A&& a, B&& b, X&& x, Y&& y)
 {
     gsl_ExpectsDebug(detail::assigned(a) && detail::assigned(b) && detail::assigned(x) && detail::assigned(y));
     gsl_ExpectsDebug(intervals::always(a >= 0));
@@ -1292,22 +1315,23 @@ blend_linear(AB&& a, AB&& b, XY&& x, XY&& y)
     auto bhi = detail::upper(b);
     auto qlo = 1/(1 + bhi/alo);
     auto qhi = 1/(1 + blo/ahi);
+    return intervals::blend_fractions(interval{ qlo, qhi }, std::forward<X>(x), std::forward<Y>(y));
 
-        // r = a/(a + b) x + b/(a + b) y
-        //   = q x + (1 - q) y
-    auto xlo = detail::lower(x);
-    auto xhi = detail::upper(x);
-    auto ylo = detail::lower(y);
-    auto yhi = detail::upper(y);
-    auto rlo = xlo > ylo
-        ? qlo*xlo + (1 - qlo)*ylo
-        : qhi*xlo + (1 - qhi)*ylo;
-    auto rhi = xhi < yhi
-        ? qlo*xhi + (1 - qlo)*yhi
-        : qhi*xhi + (1 - qhi)*yhi;
-
-        // We use `from_unordered_bounds()` to allow for slight numerical non-monotonicity.
-    return common_interval_t<AB, XY>::from_unordered_bounds(rlo, rhi);
+    //    // r = a/(a + b) x + b/(a + b) y
+    //    //   = q x + (1 - q) y
+    //auto xlo = detail::lower(x);
+    //auto xhi = detail::upper(x);
+    //auto ylo = detail::lower(y);
+    //auto yhi = detail::upper(y);
+    //auto rlo = xlo > ylo
+    //    ? qlo*xlo + (1 - qlo)*ylo
+    //    : qhi*xlo + (1 - qhi)*ylo;
+    //auto rhi = xhi < yhi
+    //    ? qlo*xhi + (1 - qlo)*yhi
+    //    : qhi*xhi + (1 - qhi)*yhi;
+    //
+    //    // We use `from_unordered_bounds()` to allow for slight numerical non-monotonicity.
+    //return common_interval_t<AB, XY>::from_unordered_bounds(rlo, rhi);
 }
 
 template <floating_point_interval X>

@@ -235,6 +235,14 @@ fractional_weights(T a, T b)
 
 template <std::floating_point T>
 constexpr T
+blend_fractions(T f, T x, T y)
+{
+    gsl_ExpectsDebug(f >= 0 && f <= 1);
+
+    return f*x + (1 - f)*y;
+}
+template <std::floating_point T>
+constexpr T
 blend_linear(T a, T b, T x, T y)
 {
     auto [wa, wb] = intervals::fractional_weights(a, b);
