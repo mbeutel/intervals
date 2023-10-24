@@ -252,8 +252,8 @@ by replacing operations with their interval extensions. For the given example, t
 states that *𝐹 is an interval extension of 𝑓*.
 
 Observing that the interval-valued function 𝐹 is syntactically identical to the real-valued function
-𝑓, we assume that it may be possible to repurpose numerical code for interval arithmetic. Thus,
-this theorem forms the basis of *interval-aware programming*.
+𝑓, we assume that it may be possible to repurpose numerical code for interval arithmetic.
+This theorem forms the basis of *interval-aware programming*.
 
 ### Dependency problem
 
@@ -269,14 +269,14 @@ whereas the interval extension 𝐺(𝑋) = [0,0] of the real-valued function �
 algebraically equivalent to 𝑓, always yields the optimally tight interval [0,0].
 
 This is known as the [*dependency problem*](https://en.wikipedia.org/wiki/Interval_arithmetic#Dependency_problem),
-and one of the reasons why making effective use of interval arithmetic is hard. When making an
+and it is one of the reasons why making effective use of interval arithmetic is hard. When making an
 existing numerical routine interval-aware, you should expect to spend a substantial amount of work
 on rewriting your expressions in algebraically advantageous forms.
 
 ### Relational predicates
 
 We note that the relational predicates =, ≠, <, >, ≤, ≥ are ambiguous for interval arguments because
-of the possibility of interval overlap. For example, given two intervals 𝑈 = [0,2] and 𝑉 = [1,3],
+of the possibility of overlapping intervals. For example, given two intervals 𝑈 = [0,2] and 𝑉 = [1,3],
 what could be the meaning of "𝑈 < 𝑉"?
 
 Two interpretations are often used in conjunction with interval arithmetic:
@@ -316,7 +316,7 @@ T max(T a, T b)
 
 Semantically, the `else` clause is shorthand for an `if` clause with the negation of the previous
 branch condition, `!(a < b)`. However, the *intended* branch condition for the second clause
-is actually `a >= b`, which is why we want to assign `a` to `b`!
+is actually `a >= b`!
 
 We can see that, with this tentative definition, the interval instantiation of the `max()`
 function template does not constitute an interval extension of the instantiation of `max()` for
