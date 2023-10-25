@@ -1291,8 +1291,10 @@ blend_fractions(F&& f, X&& x, Y&& y)
     auto fhi = detail::upper(f);
 
         // r = f x + (1 - f) y
-    auto rlo = (xlo >= ylo ? flo : fhi)*(xlo - ylo) + ylo;
-    auto rhi = (xhi >= yhi ? fhi : flo)*(xhi - yhi) + yhi;
+    auto qlo = xlo >= ylo ? flo : fhi;
+    auto qhi = xhi >= yhi ? fhi : flo;
+    auto rlo = qlo*xlo + (1 - qlo)*ylo;
+    auto rhi = qhi*xhi + (1 - qhi)*yhi;
 
         // We use `from_unordered_bounds()` to allow for slight numerical non-monotonicity.
     return common_interval_t<F, X, Y>::from_unordered_bounds(rlo, rhi);
