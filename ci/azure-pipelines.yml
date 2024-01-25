@@ -30,7 +30,7 @@ jobs:
         & cmake -G $env:CIMAKESHIFT_CMAKE_GENERATOR -DCMAKE_BUILD_TYPE=Debug $vcpkgArgs '$(Agent.BuildDirectory)/makeshift'
       displayName: 'Install makeshift'
     
-    cmakeConfigArgs: '-DBUILD_TESTING=ON -DBUILD_EXAMPLES=ON -Dmakeshift_DIR=$(Agent.BuildDirectory)/makeshift/build'
+    cmakeConfigArgs: '-DINTERVALS_BUILD_TESTING=ON -DINTERVALS_BUILD_EXAMPLES=ON -Dmakeshift_DIR=$(Agent.BuildDirectory)/makeshift/build'
 
     cmakeBuildConfigurations: [Debug, RelWithDebInfo]
 
