@@ -12,6 +12,7 @@ find_package(makeshift 4.0 REQUIRED)
 add_library(intervals INTERFACE
     "intervals.natvis"
 )
+add_library(intervals::intervals ALIAS intervals)
 
 target_compile_features(intervals INTERFACE cxx_std_20)
 
