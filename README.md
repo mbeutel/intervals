@@ -392,7 +392,7 @@ be relied on without hesitation.
 
 Because branches embody a dichotomy—to jump or not to jump—, branch conditions must necessarily
 be Boolean values. Thus, if relational predicates between interval arguments are taken to be
-set-valued, (𝑈 < 𝑉) ∈ 𝒫(𝔹) for intervals 𝑈 and 𝑉, then we need a way to interprete their
+set-valued, (𝑈 < 𝑉) ∈ 𝒫(𝔹) for intervals 𝑈 and 𝑉, then we need a way to interpret their
 values as Boolean values. This can be accomplished with the following intuitive *projections*:
 
 ᴘᴏssɪʙʟʏ: 𝒫(𝔹) → 𝔹, 𝑈 ↦ (𝚝𝚛𝚞𝚎 ∈ 𝑈) ,  

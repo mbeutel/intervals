@@ -16,7 +16,7 @@ resources:
 jobs:
 - template: azure-pipelines/cmake.yml@CImakeshift
   parameters:
-    vcpkgRef: c6592ce60ff394049905365865f59e3a4d93d35b
+    vcpkgRef: fc6345e114c2e2c4f9714037340ccb08326b3e8c
 
     # TODO: this should become unnecessary once Vcpkg knows about makeshift
     postSetupSteps:
