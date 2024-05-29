@@ -25,9 +25,8 @@ jobs:
         git clone https://github.com/mbeutel/makeshift.git '$(Agent.BuildDirectory)/makeshift'
         New-Item -Type Directory -Force '$(Agent.BuildDirectory)/makeshift/build'
         cd '$(Agent.BuildDirectory)/makeshift/build'
-        # TODO: make "CIMAKESHIFT_CMAKE_VCPKG_ARGS_" a public variable in CImakeshift
         $vcpkgArgs = $env:CIMAKESHIFT_CMAKE_VCPKG_ARGS_ -split ' '
-        & cmake -G $env:CIMAKESHIFT_CMAKE_GENERATOR -DCMAKE_BUILD_TYPE=Debug $vcpkgArgs '$(Agent.BuildDirectory)/makeshift'
+        & cmake -G $env:CIMAKESHIFT_CMAKE_GENERATOR -DCMAKE_BUILD_TYPE=Debug $(CIMAKESHIFT_CMAKE_CONFIG_ARGS) '$(Agent.BuildDirectory)/makeshift'
       displayName: 'Install makeshift'
     
     cmakeConfigArgs: '-DINTERVALS_BUILD_TESTING=ON -DINTERVALS_BUILD_EXAMPLES=ON -Dmakeshift_DIR=$(Agent.BuildDirectory)/makeshift/build'
@@ -48,37 +47,36 @@ jobs:
 
     - os: Linux
       cxxCompiler: GCC
-      cxxCompilerVersions: [12]
+      cxxCompilerVersions: [13]
       platforms: [x64]
 
     - os: Linux
       cxxCompiler: Clang
-      cxxCompilerVersions: [12]
+      cxxCompilerVersions: [17]
       platforms: [x64]
 
     - os: Linux
       cxxCompiler: GCC
-      cxxCompilerVersions: [12]
+      cxxCompilerVersions: [13]
       platforms: [x64]
       cxxStandardLibraryDebugMode: true
       cxxSanitizers: [AddressSanitizer, UndefinedBehaviorSanitizer]
       tag: 'sanitize'
 
-    # TODO: something is broken about linking the ASAN runtime with Clang
-    #- os: Linux
-    #  cxxCompiler: Clang
-    #  cxxCompilerVersions: [14]
-    #  platforms: [x64]
-    #  cxxStandardLibraryDebugMode: true
-    #  cxxSanitizers: [AddressSanitizer, UndefinedBehaviorSanitizer, ImplicitIntegerArithmeticValueChange]
-    #  tag: 'sanitize'
+    - os: Linux
+      cxxCompiler: Clang
+      cxxCompilerVersions: [17]
+      platforms: [x64]
+      cxxStandardLibraryDebugMode: true
+      cxxSanitizers: [AddressSanitizer, UndefinedBehaviorSanitizer, ImplicitIntegerArithmeticValueChange]
+      tag: 'sanitize'
 
     - os: MacOS
       cxxCompiler: GCC
-      cxxCompilerVersions: [12]
+      cxxCompilerVersions: [13]
       platforms: [x64]
 
     - os: MacOS
       cxxCompiler: AppleClang
-      cxxCompilerVersions: [14_0_3]
+      cxxCompilerVersions: [15_2]
       platforms: [x64]
