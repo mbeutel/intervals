@@ -6,36 +6,11 @@
 
 cmake_minimum_required(VERSION 3.20)
 
-find_package(gsl-lite 0.40 REQUIRED)
+find_package(gsl-lite 0.42 REQUIRED)
 find_package(makeshift 4.0 REQUIRED)
-find_package(fmt 9 REQUIRED)
+find_package(fmt REQUIRED)
 
 add_library(simple-libs INTERFACE)
-target_precompile_headers(simple-libs
-    INTERFACE
-        # C standard library
-        <cmath>
-        # C++ standard library
-        <array>
-        <bitset>
-        <iosfwd>
-        <limits>
-        <compare>
-        <numbers>
-        <utility>
-        <concepts>
-        <algorithm>
-        <type_traits>
-        <initializer_list>
-        # other libraries
-        <gsl-lite/gsl-lite.hpp>
-        <fmt/core.h>
-        <fmt/ostream.h>
-        <makeshift/tuple.hpp>
-        <makeshift/concepts.hpp>
-        <makeshift/metadata.hpp>
-        <makeshift/type_traits.hpp>
-)
 target_link_libraries(simple-libs
     INTERFACE
         gsl::gsl-lite-v1
