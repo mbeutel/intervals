@@ -23,9 +23,6 @@ template <typename T>
 concept non_const = !std::is_const_v<T>;
 
 template <typename T, template <typename...> class U>
-concept instantiation_of = makeshift::is_instantiation_of_v<T, U>;
-
-template <typename T, template <typename...> class U>
 concept not_instantiation_of = !makeshift::is_instantiation_of_v<T, U>;
 
 template <typename T>
