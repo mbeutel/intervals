@@ -26,9 +26,10 @@ template <typename T> struct fmt::formatter<intervals::interval<T>> : fmt::ostre
 template <typename T>
 T
 interpolate_linear_scalar(
-        ranges::random_access_range auto&& xs,  // points  xᵢ  with  x₁ ≤ ... ≤ xₙ
-        ranges::random_access_range auto&& ys,  // corresponding values  yᵢ
-        T x) {
+    ranges::random_access_range auto&& xs,  // points  xᵢ  with  x₁ ≤ ... ≤ xₙ
+    ranges::random_access_range auto&& ys,  // corresponding values  yᵢ
+    T x)
+{
     gsl_lite::dim n = ranges::ssize(xs);
 
     gsl_Expects(n >= 2);
@@ -42,18 +43,21 @@ interpolate_linear_scalar(
 
         // For values  x < x₁ , just extend the first point of support  y₁  as a constant.
     bool below = i == 0;
-    if (below) {
+    if (below)
+    {
         result = ys[0];
     }
 
         // For values  x > xₙ , just extend the last point of support  yₙ  as a constant.
     bool above = i == n;
-    if (above) {
+    if (above)
+    {
         result = ys[n - 1];
     }
 
         // Otherwise, return linear interpolation  yᵢ + (x - xᵢ)/(xᵢ₊₁ - xᵢ)⋅(yᵢ₊₁ - yᵢ) .
-    if (!below && !above) {
+    if (!below && !above)
+    {
 
 
         auto x0 = xs[i - 1];
@@ -70,9 +74,10 @@ interpolate_linear_scalar(
 template <typename T>
 T
 interpolate_linear(
-        ranges::random_access_range auto&& xs,  // points  xᵢ  with  x₁ ≤ ... ≤ xₙ
-        ranges::random_access_range auto&& ys,  // corresponding values  yᵢ
-        T x) {
+    ranges::random_access_range auto&& xs,  // points  xᵢ  with  x₁ ≤ ... ≤ xₙ
+    ranges::random_access_range auto&& ys,  // corresponding values  yᵢ
+    T x)
+{
     gsl_lite::dim n = ranges::ssize(xs);
 
     gsl_Expects(n >= 2);
@@ -86,20 +91,24 @@ interpolate_linear(
 
         // For values  x < x₁ , extend the first point of support  y₁  as a constant.
     auto below = i == 0;
-    if (possibly(below)) {
+    if (possibly(below))
+    {
         assign_partial(result, ys[0]);
     }
 
         // For values  x > xₙ , extend the last point of support  yₙ  as a constant.
     auto above = i == n;
-    if (possibly(above)) {
+    if (possibly(above))
+    {
         assign_partial(result, ys[n - 1]);
     }
 
         // Otherwise, return linear interpolation  yᵢ + (x - xᵢ)/(xᵢ₊₁ - xᵢ)⋅(yᵢ₊₁ - yᵢ) .
-    if (auto c = !below & !above; possibly(c)) {
+    if (auto c = !below & !above; possibly(c))
+    {
         auto ic = constrain(i, c);
-        for (gsl_lite::index j : enumerate(ic)) {
+        for (gsl_lite::index j : enumerate(ic))
+        {
             auto x0 = xs[j - 1];
             auto x1 = xs[j];
             auto y0 = ys[j - 1];
@@ -112,13 +121,17 @@ interpolate_linear(
     return result;
 }
 
-int main() {
+int
+main()
+{
     auto xs = std::array{ 1., 2., 4., 8. };
     auto ys = std::array{ 1., 3., 9., -3. };
-    auto y1s = [&](auto const& x) {
+    auto y1s = [&](auto const& x)
+    {
         return interpolate_linear_scalar(xs, ys, x);
     };
-    auto y1 = [&](auto const& x) {
+    auto y1 = [&](auto const& x)
+    {
         return interpolate_linear(xs, ys, x);
     };
 

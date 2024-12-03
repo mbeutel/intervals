@@ -10,22 +10,30 @@ using namespace intervals;
 
 template <typename T> struct fmt::formatter<intervals::interval<T>> : fmt::ostream_formatter { };
 
+
 template <typename T>
 T
-s(T x) {
+s(T x)
+{
     auto result = T{ };
     auto cond = x >= 0;
-    if (possibly(cond)) {
+    if (possibly(cond))
+    {
         auto xc = constrain(x, cond);
         assign_partial(result, sqrt(xc));
     }
-    if (possibly_not(cond)) {
+    if (possibly_not(cond))
+    {
         assign_partial(result, 0);
     }
     return result;
 }
-int main() {
-    for (auto x : { -1., 0., 2. }) {
+
+int
+main()
+{
+    for (auto x : { -1., 0., 2. })
+    {
         fmt::print("s({}) = {}\n", x, s(x));
     }
     auto ix = interval{ -1., 2. };

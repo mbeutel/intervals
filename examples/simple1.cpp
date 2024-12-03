@@ -10,14 +10,19 @@ template <typename T> struct fmt::formatter<intervals::interval<T>> : fmt::ostre
 
 
 interval<double>
-f1(interval<double> x) {
+f1(interval<double> x)
+{
     return square(x) - 2*x;
 }
 interval<double>
-f2(interval<double> x) {
+f2(interval<double> x)
+{
     return square(x - 1) - 1;
 }
-int main() {
+
+int
+main()
+{
     auto x = interval{ 0., 1. };
     fmt::print("f1({}) = {}\n", x, f1(x));
     fmt::print("f1({}) > 0: {}\n", x, fmt::streamed(f1(x) > 0));

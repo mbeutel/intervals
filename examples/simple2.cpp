@@ -10,32 +10,41 @@ template <typename T> struct fmt::formatter<intervals::interval<T>> : fmt::ostre
 
 
 interval<double>
-imax0(interval<double> a, interval<double> b) {
+imax0(interval<double> a, interval<double> b)
+{
     auto result = interval<double>{ };
     auto cond = a >= b;
-    if (possibly(cond)) {
+    if (possibly(cond))
+    {
         assign_partial(result, a);
     }
-    if (possibly_not(cond)) {
+    if (possibly_not(cond))
+    {
         assign_partial(result, b);
     }
     return result;
 }
 interval<double>
-imax(interval<double> a, interval<double> b) {
+imax(interval<double> a, interval<double> b)
+{
     auto result = interval<double>{ };
     auto cond = a >= b;
-    if (possibly(cond)) {
+    if (possibly(cond))
+    {
         auto ac = constrain(a, cond);
         assign_partial(result, ac);
     }
-    if (possibly_not(cond)) {
+    if (possibly_not(cond))
+    {
         auto bc = constrain(b, !cond);
         assign_partial(result, bc);
     }
     return result;
 }
-int main() {
+
+int
+main()
+{
     auto a = interval{ 0., 4. };
     auto b = interval{ 1., 2. };
     fmt::print("imax0({}, {}) = {}\n",
