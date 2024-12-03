@@ -7,7 +7,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 find_package(Catch2 3.0 REQUIRED)
-find_package(gsl-lite 0.40 REQUIRED)
+find_package(gsl-lite 0.42 REQUIRED)
 
 include(TargetCompileSettings)
 

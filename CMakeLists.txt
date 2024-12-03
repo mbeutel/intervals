@@ -32,6 +32,6 @@ cmakeshift_install_basic_package_files(intervals
     COMPATIBILITY SameMajorVersion
     ARCH_INDEPENDENT
     DEPENDENCIES
-        "gsl-lite 0.40"
+        "gsl-lite 0.42"
         "makeshift 4.0"
 )
