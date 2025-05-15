@@ -1,4 +1,4 @@
-# intervals: interval-aware programming in C++
+﻿# intervals: interval-aware programming in C++
 
 | metadata | build  | tests  |
 | -------- | ------ | ------ |
@@ -98,64 +98,40 @@ The following compilers are officially supported (that is, part of
 
 ## Dependencies
 
-* [*makeshift*](https://github.com/mbeutel/makeshift), a library for lightweight metaprogramming
 * [*gsl-lite*](https://github.com/gsl-lite/gsl-lite), an implementation of the [C++ Core Guidelines Support Library](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#S-gsl)
+* [*makeshift*](https://github.com/mbeutel/makeshift), a library for lightweight metaprogramming
 * optional (for testing only): [*Catch2*](https://github.com/catchorg/Catch2)
 
 
 ## Installation and use
 
-### As CMake package
-
-The recommended way to consume *intervals* in your CMake project is to use `find_package()` and `target_link_libraries()`:
+The recommended way to consume *intervals* in your CMake project is to use `find_package()` to locate the package `intervals`
+and `target_link_libraries()` to link to the imported target `intervals::intervals`:
 
 ```CMake
-cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
-    
-find_package(intervals 1.0 REQUIRED)
-    
+cmake_minimum_required(VERSION 3.30 FATAL_ERROR)
+
 project(my-program LANGUAGES CXX)
-    
+
+find_package(intervals 1.0 REQUIRED)
+
 add_executable(my-program main.cpp)
+target_compile_features(my-program PRIVATE cxx_std_20)
 target_link_libraries(my-program PRIVATE intervals::intervals)
 ```
 
-(Right now, installation of the library and its dependencies is still a manual process because
-[*makeshift*](https://github.com/mbeutel/makeshift) and *intervals* are not yet available in
-the [Vcpkg](https://vcpkg.io/en/index.html) package manager, which we hope to change soon.)
+*intervals* may be obtained with [CPM](https://github.com/cpm-cmake/CPM.cmake):
+```cmake
+# obtain dependencies
+CPMAddPackage(NAME gsl-lite  VERSION 0.43.0 GITHUB_REPOSITORY gsl-lite/gsl-lite)
+CPMAddPackage(NAME makeshift GIT_TAG master GITHUB_REPOSITORY mbeutel/makeshift)
 
-First, clone the repositories of [*gsl-lite*](https://github.com/gsl-lite/gsl-lite) and
-[*makeshift*](https://github.com/mbeutel/makeshift) and configure build directories with CMake:
+# obtain intervals
+CPMAddPackage(NAME intervals VERSION 1.0.0 GITHUB_REPOSITORY mbeutel/intervals)
+```
+See the directories [example/with-CPM](https://github.com/mbeutel/intervals/tree/master/example/with-CPM) for
+an example project that uses CPM to obtain *intervals*.
 
-    git clone git@github.com:gsl-lite/gsl-lite.git <gsl-lite-dir>
-    cd <gsl-lite-dir>
-    mkdir build
-    cd build
-    cmake -G Ninja ..
-
-    git clone git@github.com:mbeutel/makeshift.git <makeshift-dir>
-    cd <makeshift-dir>
-    mkdir build
-    cd build
-    cmake -G Ninja -Dgsl-lite_DIR:PATH=<gsl-lite-dir>/build ..
-
-Then, clone the *intervals* repository and configure a build directory with CMake:
-
-    git clone git@github.com:mbeutel/intervals.git <intervals-dir>
-    cd <intervals-dir>
-    mkdir build
-    cd build
-    cmake -G Ninja -Dgsl-lite_DIR:PATH=<gsl-lite-dir>/build -Dmakeshift_DIR:PATH=<makeshift-dir>/build ..
-
-(Note that, as header-only libraries, none of these projects need to be built.)
-
-Now, configure and build your project:
-
-    cd <my-program-dir>
-    mkdir build
-    cd build
-    cmake -G Ninja -Dgsl-lite_DIR:PATH=<gsl-lite-dir>/build -Dmakeshift_DIR:PATH=<makeshift-dir>/build -Dmakeshift_DIR:PATH=<intervals-dir>/build ..
-    cmake --build .
 
 ### Natvis debugger visualizer
 
