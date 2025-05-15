@@ -1,4 +1,4 @@
-
+﻿
 trigger:
 - master
 - mr/*
@@ -16,18 +16,7 @@ resources:
 jobs:
 - template: azure-pipelines/cmake.yml@CImakeshift
   parameters:
-    vcpkgRef: 3edabbe1407e2d4d8ce5b78bab8abf42cc966d10
-
-    # TODO: this should become unnecessary once Vcpkg knows about makeshift
-    postSetupSteps:
-    - pwsh: |
-        New-Item -Type Directory -Force '$(Agent.BuildDirectory)/makeshift'
-        git clone https://github.com/mbeutel/makeshift.git '$(Agent.BuildDirectory)/makeshift'
-        New-Item -Type Directory -Force '$(Agent.BuildDirectory)/makeshift/build'
-        cd '$(Agent.BuildDirectory)/makeshift/build'
-        $vcpkgArgs = $env:CIMAKESHIFT_CMAKE_VCPKG_ARGS_ -split ' '
-        & cmake -G $env:CIMAKESHIFT_CMAKE_GENERATOR -DCMAKE_BUILD_TYPE=Debug $(CIMAKESHIFT_CMAKE_CONFIG_ARGS) '$(Agent.BuildDirectory)/makeshift'
-      displayName: 'Install makeshift'
+    vcpkgRef: ca846b21276c9a3171074ac8d2b4f6516894a7d0
     
     cmakeConfigArgs: '-DINTERVALS_BUILD_TESTING=ON -DINTERVALS_BUILD_EXAMPLES=ON -Dmakeshift_DIR=$(Agent.BuildDirectory)/makeshift/build'
 
@@ -39,44 +28,48 @@ jobs:
       cxxCompiler: MSVC
       cxxCompilerVersions: [VS2022]
       platforms: [x86, x64]
+      cmakeConfigPreset: 'ci-msvc'
 
     - os: Windows
       cxxCompiler: Clang
       cxxCompilerVersions: [VS2022]
       platforms: [x86, x64]
+      cmakeConfigPreset: 'ci-clang-cl'
+
+    - os: Linux
+      cxxCompiler: GCC
+      cxxCompilerVersions: [13, 14]
+      platforms: [x64]
+      cmakeConfigPreset: 'ci-gcc'
+
+    - os: Linux
+      cxxCompiler: Clang
+      cxxCompilerVersions: [17, 19]
+      platforms: [x64]
+      cmakeConfigPreset: 'ci-clang'
 
     - os: Linux
       cxxCompiler: GCC
       cxxCompilerVersions: [13]
       platforms: [x64]
+      tag: 'sanitize'
+      cmakeConfigPreset: 'ci-gcc-sanitize'
 
     - os: Linux
       cxxCompiler: Clang
-      cxxCompilerVersions: [17]
+      cxxCompilerVersions: [19]
       platforms: [x64]
-
-    - os: Linux
-      cxxCompiler: GCC
-      cxxCompilerVersions: [13]
-      platforms: [x64]
-      cxxStandardLibraryDebugMode: true
-      cxxSanitizers: [AddressSanitizer, UndefinedBehaviorSanitizer]
       tag: 'sanitize'
-
-    - os: Linux
-      cxxCompiler: Clang
-      cxxCompilerVersions: [17]
-      platforms: [x64]
-      cxxStandardLibraryDebugMode: true
-      cxxSanitizers: [AddressSanitizer, UndefinedBehaviorSanitizer, ImplicitIntegerArithmeticValueChange]
-      tag: 'sanitize'
+      cmakeConfigPreset: 'ci-clang-sanitize'
 
     - os: MacOS
       cxxCompiler: GCC
-      cxxCompilerVersions: [13]
+      cxxCompilerVersions: [13, 14]
       platforms: [x64]
+      cmakeConfigPreset: 'ci-gcc'
 
     - os: MacOS
       cxxCompiler: AppleClang
-      cxxCompilerVersions: [15_2]
+      cxxCompilerVersions: [15_2, 16, 17]
       platforms: [x64]
+      cmakeConfigPreset: 'ci-clang'

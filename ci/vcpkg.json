@@ -1,0 +1,7 @@
+﻿{
+    "name": "intervals-ci",
+    "dependencies": [
+        "gsl-lite",
+        "catch2"
+    ]
+}

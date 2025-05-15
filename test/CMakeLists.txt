@@ -1,15 +1,13 @@
-
+﻿
 # intervals C++ library
 # Author: Moritz Beutel
 # intervals unit tests
 
 
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.30)
 
-find_package(Catch2 3.0 REQUIRED)
-find_package(gsl-lite 0.42 REQUIRED)
-
-include(TargetCompileSettings)
+find_package(Catch2 3 REQUIRED)
+find_package(gsl-lite 0.43 REQUIRED)
 
 # common settings target
 add_executable(test-intervals
@@ -33,6 +31,10 @@ target_compile_definitions(test-intervals
 target_compile_features(test-intervals
     PRIVATE
         cxx_std_20
+)
+target_compile_options(test-intervals
+    INTERFACE
+        ${INTERVALS_COMPILE_OPTIONS}
 )
 target_link_libraries(test-intervals
     PRIVATE
@@ -61,9 +63,6 @@ target_precompile_headers(test-intervals
         <makeshift/concepts.hpp>
         <makeshift/type_traits.hpp>
         <catch2/catch_test_macros.hpp>
-)
-cmakeshift_target_compile_settings(test-intervals
-    SOURCE_FILE_ENCODING "UTF-8"
 )
 add_test(NAME test-intervals COMMAND test-intervals)
 set_property(TEST test-intervals PROPERTY FAIL_REGULAR_EXPRESSION "Sanitizer")

@@ -1,12 +1,12 @@
-
+﻿
 # intervals C++ library
 # Author: Moritz Beutel
 # intervals library target
 
 
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.30)
 
-find_package(gsl-lite 0.42 REQUIRED)
+find_package(gsl-lite 0.43 REQUIRED)
 find_package(makeshift 4.0 REQUIRED)
 
 add_library(intervals INTERFACE
