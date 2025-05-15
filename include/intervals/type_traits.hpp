@@ -27,7 +27,7 @@ template <interval_arg T> using interval_of_t = interval<interval_arg_value_t<T>
 template <interval_arg T>
 struct interval_of
 {
-	using type = interval_of<T>;
+    using type = interval_of<T>;
 };
 
 template <any_interval T> using interval_t = typename std::remove_cvref_t<T>::interval_type;
@@ -42,7 +42,7 @@ using common_interval_t = interval<common_interval_value_t<Ts...>>;
 template <interval_arg... Ts>
 struct common_interval
 {
-	using type = common_interval_t<Ts...>;
+    using type = common_interval_t<Ts...>;
 };
 
 
