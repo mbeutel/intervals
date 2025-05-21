@@ -7,7 +7,7 @@
 cmake_minimum_required(VERSION 3.30)
 
 find_package(Catch2 3 REQUIRED)
-find_package(gsl-lite 0.43 REQUIRED)
+find_package(gsl-lite 1.0 REQUIRED)
 
 # common settings target
 add_executable(test-intervals
@@ -38,7 +38,7 @@ target_compile_options(test-intervals
 )
 target_link_libraries(test-intervals
     PRIVATE
-        gsl::gsl-lite-v1
+        gsl-lite::gsl-lite
         Catch2::Catch2WithMain
         intervals
 )

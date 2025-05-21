@@ -6,7 +6,7 @@
 
 cmake_minimum_required(VERSION 3.30)
 
-find_package(gsl-lite 0.43 REQUIRED)
+find_package(gsl-lite 1.0 REQUIRED)
 find_package(makeshift 4.0 REQUIRED)
 
 add_library(intervals INTERFACE
@@ -24,7 +24,7 @@ target_include_directories(intervals
 
 target_link_libraries(intervals
     INTERFACE
-        gsl::gsl-lite-v1
+        gsl-lite::gsl-lite
         makeshift::makeshift
 )
 

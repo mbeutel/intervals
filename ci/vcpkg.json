@@ -2,6 +2,7 @@
     "name": "intervals-ci",
     "dependencies": [
         "gsl-lite",
+        "fmt",
         "catch2"
     ]
 }

@@ -21,7 +21,7 @@ option(CPM_USE_LOCAL_PACKAGES "Always try to use `find_package` to get dependenc
 option(CPM_LOCAL_PACKAGES_ONLY "Only use `find_package` to get dependencies" OFF)
 set(CPM_SOURCE_CACHE "${CMAKE_BINARY_DIR}/CPM-cache")
 include(cmake/CPM.cmake)
-CPMAddPackage(NAME gsl-lite      VERSION 0.43.0 GITHUB_REPOSITORY gsl-lite/gsl-lite   SYSTEM OFF)
+CPMAddPackage(NAME gsl-lite      VERSION  1.0.1 GITHUB_REPOSITORY gsl-lite/gsl-lite   SYSTEM OFF)
 CPMAddPackage(NAME makeshift     GIT_TAG master GITHUB_REPOSITORY mbeutel/makeshift   SYSTEM OFF)
 if(INTERVALS_BUILD_TESTING OR INTERVALS_BUILD_EXAMPLES)
     CPMAddPackage(NAME fmt       GIT_TAG 11.0.2 GITHUB_REPOSITORY fmtlib/fmt          SYSTEM OFF)
@@ -47,6 +47,6 @@ install_basic_package_files(intervals
     COMPATIBILITY SameMajorVersion
     ARCH_INDEPENDENT
     DEPENDENCIES
-        "gsl-lite 0.43"
+        "gsl-lite 1.0"
         "makeshift 4.0"
 )
