@@ -17,6 +17,7 @@ jobs:
 - template: azure-pipelines/cmake.yml@CImakeshift
   parameters:
     vcpkgRef: a9eee3b18df395dbb8be71a31bd78ea441056e42
+    vcpkgManifestRoot: '$(Build.SourcesDirectory)/ci'
 
     cmakeBuildConfigurations: [Debug, RelWithDebInfo]
 
