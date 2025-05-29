@@ -16,9 +16,7 @@ resources:
 jobs:
 - template: azure-pipelines/cmake.yml@CImakeshift
   parameters:
-    vcpkgRef: ca846b21276c9a3171074ac8d2b4f6516894a7d0
-    
-    cmakeConfigArgs: '-DINTERVALS_BUILD_TESTING=ON -DINTERVALS_BUILD_EXAMPLES=ON -Dmakeshift_DIR=$(Agent.BuildDirectory)/makeshift/build'
+    vcpkgRef: a9eee3b18df395dbb8be71a31bd78ea441056e42
 
     cmakeBuildConfigurations: [Debug, RelWithDebInfo]
 
