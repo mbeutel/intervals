@@ -33,7 +33,7 @@ target_compile_features(test-intervals
         cxx_std_20
 )
 target_compile_options(test-intervals
-    INTERFACE
+    PRIVATE
         ${INTERVALS_COMPILE_OPTIONS}
 )
 target_link_libraries(test-intervals
