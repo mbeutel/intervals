@@ -9,15 +9,17 @@
             "binaryDir": "${sourceDir}/build/${presetName}",
             "cacheVariables": {
                 "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/install/${presetName}",
-                "INTERVALS_COMPILE_OPTIONS": "$env{MY_COMPILE_OPTIONS}",
-                "CMAKE_CXX_SCAN_FOR_MODULES": "OFF"  // workaround for issue with CMake not finding clang-scan-deps
+                "INTERVALS_COMPILE_OPTIONS": "$env{MY_COMPILE_OPTIONS}"
             }
         },
         {
             "name": "CI settings",
             "hidden": true,
-            "inherits": [ "defaults", "CI", "high warning level", "warnings as errors" ],
+            "inherits": [ "defaults", "CI", "use Vcpkg", "high warning level", "warnings as errors" ],
             "cacheVariables": {
+                // Obtain dependencies for testing through Vcpkg
+                "VCPKG_MANIFEST_DIR": "${sourceDir}/ci",
+                //"CPM_LOCAL_PACKAGES_ONLY": "ON",  // makeshift is not currently available via Vcpkg
                 // Project-specific settings
                 "INTERVALS_BUILD_TESTING": "ON",
                 "INTERVALS_BUILD_EXAMPLES": "ON"
