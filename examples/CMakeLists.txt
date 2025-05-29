@@ -6,14 +6,14 @@
 
 cmake_minimum_required(VERSION 3.20)
 
-find_package(gsl-lite 0.42 REQUIRED)
+find_package(gsl-lite 1.0 REQUIRED)
 find_package(makeshift 4.0 REQUIRED)
 find_package(fmt REQUIRED)
 
 add_library(simple-libs INTERFACE)
 target_link_libraries(simple-libs
     INTERFACE
-        gsl::gsl-lite-v1
+        gsl-lite::gsl-lite
         makeshift::makeshift
         fmt::fmt
         intervals

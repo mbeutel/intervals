@@ -123,11 +123,11 @@ target_link_libraries(my-program PRIVATE intervals::intervals)
 *intervals* may be obtained with [CPM](https://github.com/cpm-cmake/CPM.cmake):
 ```cmake
 # obtain dependencies
-CPMAddPackage(NAME gsl-lite  VERSION 0.43.0 GITHUB_REPOSITORY gsl-lite/gsl-lite)
-CPMAddPackage(NAME makeshift GIT_TAG master GITHUB_REPOSITORY mbeutel/makeshift)
+CPMFindPackage(NAME gsl-lite  VERSION  1.0.1 GITHUB_REPOSITORY gsl-lite/gsl-lite)
+CPMFindPackage(NAME makeshift GIT_TAG master GITHUB_REPOSITORY mbeutel/makeshift)
 
 # obtain intervals
-CPMAddPackage(NAME intervals VERSION 1.0.0 GITHUB_REPOSITORY mbeutel/intervals)
+CPMFindPackage(NAME intervals VERSION master GITHUB_REPOSITORY mbeutel/intervals)
 ```
 See the directories [example/with-CPM](https://github.com/mbeutel/intervals/tree/master/example/with-CPM) for
 an example project that uses CPM to obtain *intervals*.
