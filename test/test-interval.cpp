@@ -239,8 +239,8 @@ TEST_CASE("interval<>", "interval arithmetic")
         {
             auto z = x + y;
             CAPTURE(z);
-            bool indefinite = possibly((x ==  inf & y == -inf)
-                                     | (x == -inf & y ==  inf));
+            bool indefinite = possibly(((x ==  inf) & (y == -inf))
+                                     | ((x == -inf) & (y ==  inf)));
             if (indefinite)
             {
                     // Subtracting infinities ⇒ NaN
@@ -256,8 +256,8 @@ TEST_CASE("interval<>", "interval arithmetic")
         {
             auto z = x - y;
             CAPTURE(z);
-            bool indefinite = possibly((x == -inf & y == -inf)
-                                     | (x ==  inf & y ==  inf));
+            bool indefinite = possibly(((x == -inf) & (y == -inf))
+                                     | ((x ==  inf) & (y ==  inf)));
             if (indefinite)
             {
                     // Subtracting infinities ⇒ NaN
@@ -275,8 +275,8 @@ TEST_CASE("interval<>", "interval arithmetic")
             {
                 auto z = x*y;
                 CAPTURE(z);
-                bool indefinite = possibly((intervals::isinf(x) & y == 0)
-                                         | (intervals::isinf(y) & x == 0));
+                bool indefinite = possibly((intervals::isinf(x) & (y == 0))
+                                         | (intervals::isinf(y) & (x == 0)));
                 if (indefinite)
                 {
                         // Subtracting infinities ⇒ NaN
@@ -298,7 +298,7 @@ TEST_CASE("interval<>", "interval arithmetic")
                 auto z = x*c;
                 CAPTURE(z);
                 bool indefinite = possibly((intervals::isinf(x) & (c == 0))  // extra parentheses to silence Clang's `-Wparentheses`
-                                         | (std::isinf(c) & x == 0));
+                                         | (std::isinf(c) & (x == 0)));
                 if (indefinite)
                 {
                         // Subtracting infinities ⇒ NaN
@@ -320,7 +320,7 @@ TEST_CASE("interval<>", "interval arithmetic")
             {
                 auto z = x/y;
                 CAPTURE(z);
-                bool indefinite = possibly((x == 0 & y == 0)
+                bool indefinite = possibly(((x == 0) & (y == 0))
                                          | (intervals::isinf(x) & intervals::isinf(y)));
                 bool infinite = always(x != 0) && y.encloses(0);
                 if (indefinite)

@@ -489,7 +489,7 @@ constexpr std::common_type_t<X, Y>
 _multiply_0(X x, Y y)
 {
     auto result = x*y;
-    if (std::isnan(result) && (std::isinf(x) && y == 0 || std::isinf(y) && x == 0))
+    if (std::isnan(result) && ((std::isinf(x) && y == 0) || (std::isinf(y) && x == 0)))
     {
         return 0;
     }

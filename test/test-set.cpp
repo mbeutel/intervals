@@ -116,7 +116,6 @@ TEST_CASE("set<>", "algebra with bounds")
 
         auto value = GENERATE(false, true);
         auto svalue = set{ value };
-        auto nsvalue = set{ !value };
         auto s = intervals::set<bool>{ };
         s.assign(value);
         CHECK(possibly(s == set{ value }));
